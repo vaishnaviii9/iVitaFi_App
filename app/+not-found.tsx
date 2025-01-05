@@ -3,15 +3,16 @@ import { StyleSheet } from 'react-native';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import React from 'react';
 
 export default function NotFoundScreen() {
   return (
     <>
       <Stack.Screen options={{ title: 'Oops!' }} />
       <ThemedView style={styles.container}>
-        <ThemedText type="title">This screen doesn't exist.</ThemedText>
-        <Link href="/" style={styles.link}>
-          <ThemedText type="link">Go to home screen!</ThemedText>
+        <ThemedText style={styles.title}>This screen doesn't exist.</ThemedText>
+        <Link href="/(tabs)" style={styles.link}>
+          <ThemedText style={styles.linkText}>Go to home screen!</ThemedText>
         </Link>
       </ThemedView>
     </>
@@ -24,6 +25,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     padding: 20,
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  linkText: {
+    fontSize: 16,
+    color: '#2e78b7',
   },
   link: {
     marginTop: 15,
