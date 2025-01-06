@@ -1,3 +1,4 @@
+// app/(auth)/Login.tsx
 import React, { useState } from 'react';
 import { View, Text, TextInput, Alert, ActivityIndicator, StyleSheet, Image, TouchableOpacity, Linking } from 'react-native';
 import axios from 'axios';
@@ -31,7 +32,7 @@ const LoginScreen = () => {
 
       if (response.data.token) {
         Alert.alert('Success', 'Login successful!');
-        // navigation.navigate('Home');
+        navigation.navigate('Home'); // Navigate to Home screen after successful login
       } else {
         Alert.alert('Error', response.data.message || 'Login failed');
       }
@@ -41,7 +42,7 @@ const LoginScreen = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }
 
   const handleForgotPassword = () => {
     Alert.alert('Forgot Password', 'Redirect to password recovery page.');
