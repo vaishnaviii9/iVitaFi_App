@@ -31,7 +31,7 @@ const LoginScreen = () => {
 
       if (response.data.token) {
         Alert.alert('Success', 'Login successful!');
-        navigation.navigate('Home');
+        // navigation.navigate('Home');
       } else {
         Alert.alert('Error', response.data.message || 'Login failed');
       }
@@ -63,7 +63,7 @@ const LoginScreen = () => {
     <View style={styles.outerContainer}>
       <Image
         style={styles.logo}
-        source={require('../../assets/images/amerisBankLogo.png')}
+        source={require('../../assets/images/Ameris_bank_text_logo.png')}
       />
       <Text style={styles.title}>Ameris Bank Healthcare Financing</Text>
       <TextInput
@@ -162,8 +162,11 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   eyeIcon: {
-    position: 'absolute',
-    right: 16,
+    position: 'absolute', // Use absolute positioning to place the icon
+    right: 10, // Adjust this value based on your layout
+    top: '40%', // Center vertically within the parent container
+    transform: [{ translateY: -12 }], // Offset by half the icon's height to align vertically
+    zIndex: 1, // Ensure it's above other elements if overlapping occurs
   },
   forgotPassword: {
     textAlign: 'center',
