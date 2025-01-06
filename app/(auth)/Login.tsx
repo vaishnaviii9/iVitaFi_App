@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Alert, ActivityIndicator, StyleSheet, Image, TouchableOpacity } from 'react-native';
+import { View, Text, TextInput, Alert, ActivityIndicator, StyleSheet, Image, TouchableOpacity, Linking } from 'react-native';
 import axios from 'axios';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useNavigation } from '@react-navigation/native';
@@ -47,6 +47,18 @@ const LoginScreen = () => {
     Alert.alert('Forgot Password', 'Redirect to password recovery page.');
   };
 
+  const handleTermsOfService = () => {
+    Linking.openURL('https://ivitafinancial.com/terms-of-service/');
+  };
+
+  const handlePrivacyPolicy = () => {
+    Linking.openURL('https://ivitafinancial.com/privacy-policy/');
+  };
+
+  const handleFAQ = () => {
+    Linking.openURL('https://ivitafinancial.com/faq/#faq');
+  };
+
   return (
     <View style={styles.outerContainer}>
       <Image
@@ -89,9 +101,19 @@ const LoginScreen = () => {
           <Text style={styles.loginButtonText}>Sign In</Text>
         </TouchableOpacity>
       )}
-      <Text style={styles.footerText}>
-        Terms of Service | Privacy Policy | FAQ
-      </Text>
+      <View style={styles.footerContainer}>
+        <TouchableOpacity onPress={handleTermsOfService}>
+          <Text style={styles.footerText}>Terms of Service</Text>
+        </TouchableOpacity>
+        <Text style={styles.footerText}> | </Text>
+        <TouchableOpacity onPress={handlePrivacyPolicy}>
+          <Text style={styles.footerText}>Privacy Policy</Text>
+        </TouchableOpacity>
+        <Text style={styles.footerText}> | </Text>
+        <TouchableOpacity onPress={handleFAQ}>
+          <Text style={styles.footerText}>FAQ</Text>
+        </TouchableOpacity>
+      </View>
       <Text style={styles.poweredBy}>Powered by</Text>
       <Image
         style={styles.poweredByLogo}
@@ -170,6 +192,12 @@ const styles = StyleSheet.create({
     lineHeight: 30,
     letterSpacing: 0.20,
   },
+  footerContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
   footerText: {
     textAlign: 'center',
     color: '#151616',
@@ -178,7 +206,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     lineHeight: 30,
     letterSpacing: 0.20,
-    marginBottom: 20,
   },
   poweredBy: {
     textAlign: 'center',
