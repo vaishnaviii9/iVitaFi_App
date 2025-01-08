@@ -31,13 +31,19 @@ const LoginScreen = () => {
 
       if (response.data.token) {
         Alert.alert('Success', 'Login successful!');
-        // navigation.navigate('Home');
+        const { firstName, lastName } = response.data.user;
+        navigation.navigate('Home', { firstName, lastName }); // Navigate to Home screen with props
       } else {
         Alert.alert('Error', response.data.message || 'Login failed');
       }
     } catch (error) {
       console.error('Login error:', error);
-      Alert.alert('Error', 'An error occurred during login');
+      if (error) {
+        console.error('Error response data:', error); // Log the response data
+        // Alert.alert('Error', error.response.data.message || 'An error occurred during login');
+      } else {
+        Alert.alert('Error', 'An error occurred during login');
+      }
     } finally {
       setLoading(false);
     }
