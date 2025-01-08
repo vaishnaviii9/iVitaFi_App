@@ -117,7 +117,7 @@ const LoginScreen = () => {
       <Text style={styles.poweredBy}>Powered by</Text>
       <Image
         style={styles.poweredByLogo}
-        source={require('../../assets/images/iVitaFi.png')}
+        source={require('../../assets/images/ivitafi_logo.png')}
       />
     </View>
   );
