@@ -16,38 +16,29 @@ const LoginScreen = () => {
       Alert.alert('Error', 'Please fill in both fields');
       return;
     }
-
+  
     setLoading(true);
-
+  
     try {
-      console.log('Payload:', { email, password }); // Log the payload being sent
-
       const response = await axios.post('https://dev.ivitafi.com/api/User/authenticate', {
         email,
         password,
       });
-
-      console.log('Response:', response.data); // Log the response for debugging
-
+  
       if (response.data.token) {
-        Alert.alert('Success', 'Login successful!');
         const { firstName, lastName } = response.data.user;
-        navigation.navigate('Home', { firstName, lastName }); // Navigate to Home screen with props
+        navigation.navigate('Home', { firstName, lastName, token: response.data.token }); // Pass the token to Home
       } else {
         Alert.alert('Error', response.data.message || 'Login failed');
       }
     } catch (error) {
       console.error('Login error:', error);
-      if (error) {
-        console.error('Error response data:', error); // Log the response data
-        // Alert.alert('Error', error.response.data.message || 'An error occurred during login');
-      } else {
-        Alert.alert('Error', 'An error occurred during login');
-      }
+      Alert.alert('Error', 'An error occurred during login');
     } finally {
       setLoading(false);
     }
   };
+  
 
   const handleForgotPassword = () => {
     Alert.alert('Forgot Password', 'Redirect to password recovery page.');
