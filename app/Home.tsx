@@ -13,12 +13,17 @@ type RootStackParamList = {
 
 type HomeScreenRouteProp = RouteProp<RootStackParamList, 'Home'>;
 
+interface CreditApplication {
+  accountNumber: string;
+}
+
 const HomeScreen: React.FC = () => {
   const route = useRoute<HomeScreenRouteProp>();
   const { firstName, lastName, token } = route.params;
 
   const [userData, setUserData] = useState<any>(null);
   const [customerData, setCustomerData] = useState<any>(null);
+  const [accountNumbers, setAccountNumbers] = useState<string[]>([]);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -38,7 +43,16 @@ const HomeScreen: React.FC = () => {
         const customerResponse = await axios.get('https://dev.ivitafi.com/api/customer/current/true', {
           headers: { Authorization: `Bearer ${token}` }, // Pass token in headers
         });
-        setCustomerData(customerResponse.data);
+        const customerResponseData = customerResponse.data;
+        setCustomerData(customerResponseData);
+        // console.log(customerResponseData);
+
+        if (customerResponseData.creditAccounts) {
+          const accountNumbers = customerResponseData.creditAccounts.map((application: CreditApplication) => application.accountNumber);
+          setAccountNumbers(accountNumbers);
+          // console.log(accountNumbers);
+          
+        }
       } catch (error) {
         console.error('Error fetching customer data:', error);
         Alert.alert('Error', 'Failed to fetch customer data.');
@@ -52,17 +66,12 @@ const HomeScreen: React.FC = () => {
   return (
     <View style={styles.container}>
       <View style={styles.topContainer}>
-        <Text style={styles.nameText}>
-          Welcome, {firstName} {lastName}
-        </Text>
-        
+        <Text style={styles.nameText}>Welcome {firstName} {lastName}!</Text>
+        {accountNumbers.map((accountNumber, index) => (
+          <Text key={index} style={styles.accountNumberText}>Account Number: {accountNumber}</Text>
+        ))}
       </View>
       <View style={styles.centerContainer}>
-        {customerData && (
-          <Text style={styles.infoText}>
-            Customer Info: {JSON.stringify(customerData)}
-          </Text>
-        )}
         <TouchableOpacity style={styles.button}>
           <Text style={styles.additionalPaymentText}>Make Additional Payment</Text>
         </TouchableOpacity>
@@ -74,10 +83,10 @@ const HomeScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'flex-start',
+    justifyContent: 'flex-start', // Move content to the top
     alignItems: 'center',
     backgroundColor: '#fff',
-    paddingTop: 20,
+    paddingTop: 20, // Add some padding at the top if needed
   },
   topContainer: {
     width: 378,
@@ -89,7 +98,7 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     borderRadius: 20,
     marginBottom: 20,
-    marginTop: 30,
+    marginTop: 30, // Add margin at the top to move it down
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -98,10 +107,9 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
   },
-  infoText: {
+  accountNumberText: {
     color: 'white',
-    fontSize: 16,
-    textAlign: 'center',
+    fontSize: 18,
     marginTop: 10,
   },
   centerContainer: {
