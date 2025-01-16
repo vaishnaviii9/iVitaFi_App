@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { Avatar } from 'react-native-elements';
 import { RouteProp, useRoute } from '@react-navigation/native';
 import axios from 'axios';
 
@@ -47,18 +48,15 @@ const HomeScreen: React.FC = () => {
         setCustomerData(customerResponseData);
         console.log(customerResponseData);
 
-        if (customerResponseData.creditAccounts) {
-          const accountNumbers = customerResponseData.creditAccounts.map((application: CreditApplication) => application.accountNumber);
+        if (customerResponseData.creditApplications) {
+          const accountNumbers = customerResponseData.creditApplications.map((application: CreditApplication) => application.accountNumber);
           setAccountNumbers(accountNumbers);
-          console.log(accountNumbers);
-          
         }
       } catch (error) {
         console.error('Error fetching customer data:', error);
         Alert.alert('Error', 'Failed to fetch customer data.');
       }
     };
-    
 
     fetchUserData();
     fetchCustomerData();
@@ -73,6 +71,18 @@ const HomeScreen: React.FC = () => {
         ))}
       </View>
       <View style={styles.centerContainer}>
+        <View style={styles.avatarRow}>
+          <Avatar
+            size="large"
+            rounded
+            title={`${firstName[0]}${lastName[0]}`} // Initials as avatar title
+            containerStyle={styles.avatar}
+            titleStyle={{ color: 'white' }}
+          />
+          <Text style={styles.nameText}>
+            Welcome, {firstName} {lastName}
+          </Text>
+        </View>
         <TouchableOpacity style={styles.button}>
           <Text style={styles.additionalPaymentText}>Make Additional Payment</Text>
         </TouchableOpacity>
@@ -116,6 +126,15 @@ const styles = StyleSheet.create({
   centerContainer: {
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  avatarRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  avatar: {
+    backgroundColor: '#2D4768',
+    marginRight: 10,
   },
   button: {
     width: 294,

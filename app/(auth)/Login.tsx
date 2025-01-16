@@ -16,9 +16,9 @@ const LoginScreen = () => {
       Alert.alert('Error', 'Please fill in both fields');
       return;
     }
-  
-    setLoading(true);
-  
+
+   setLoading(true);
+
     try {
       const response = await axios.post('https://dev.ivitafi.com/api/User/authenticate', {
         email,
