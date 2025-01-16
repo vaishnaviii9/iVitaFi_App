@@ -45,12 +45,12 @@ const HomeScreen: React.FC = () => {
         });
         const customerResponseData = customerResponse.data;
         setCustomerData(customerResponseData);
-        // console.log(customerResponseData);
+        console.log(customerResponseData);
 
         if (customerResponseData.creditAccounts) {
           const accountNumbers = customerResponseData.creditAccounts.map((application: CreditApplication) => application.accountNumber);
           setAccountNumbers(accountNumbers);
-          // console.log(accountNumbers);
+          console.log(accountNumbers);
           
         }
       } catch (error) {
@@ -58,6 +58,7 @@ const HomeScreen: React.FC = () => {
         Alert.alert('Error', 'Failed to fetch customer data.');
       }
     };
+    
 
     fetchUserData();
     fetchCustomerData();
