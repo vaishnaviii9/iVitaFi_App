@@ -1,8 +1,15 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
-import { Avatar } from 'react-native-elements';
-import { RouteProp, useRoute } from '@react-navigation/native';
-import axios from 'axios';
+import React, { useEffect, useState } from "react";
+import { View, Text, StyleSheet, TouchableOpacity, Alert } from "react-native";
+import { RouteProp, useRoute } from "@react-navigation/native";
+import axios from "axios";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+  withTiming,
+  Easing,
+} from 'react-native-reanimated';
+
 
 type RootStackParamList = {
   Home: {
@@ -12,7 +19,11 @@ type RootStackParamList = {
   };
 };
 
-type HomeScreenRouteProp = RouteProp<RootStackParamList, 'Home'>;
+type HomeScreenRouteProp = RouteProp<RootStackParamList, "Home">;
+
+interface CreditApplication {
+  accountNumber: string;
+}
 
 const HomeScreen: React.FC = () => {
   const route = useRoute<HomeScreenRouteProp>();
@@ -20,29 +31,44 @@ const HomeScreen: React.FC = () => {
 
   const [userData, setUserData] = useState<any>(null);
   const [customerData, setCustomerData] = useState<any>(null);
+  const [accountNumbers, setAccountNumbers] = useState<string[]>([]);
 
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const userResponse = await axios.get('https://dev.ivitafi.com/api/User/current-user', {
-          headers: { Authorization: `Bearer ${token}` }, // Pass token in headers
-        });
+        const userResponse = await axios.get(
+          "https://dev.ivitafi.com/api/User/current-user",
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
         setUserData(userResponse.data);
       } catch (error) {
-        console.error('Error fetching user data:', error);
-        Alert.alert('Error', 'Failed to fetch user data.');
+        console.error("Error fetching user data:", error);
+        Alert.alert("Error", "Failed to fetch user data.");
       }
     };
 
     const fetchCustomerData = async () => {
       try {
-        const customerResponse = await axios.get('https://dev.ivitafi.com/api/customer/current/true', {
-          headers: { Authorization: `Bearer ${token}` }, // Pass token in headers
-        });
-        setCustomerData(customerResponse.data);
+        const customerResponse = await axios.get(
+          "https://dev.ivitafi.com/api/customer/current/true",
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        const customerResponseData = customerResponse.data;
+        setCustomerData(customerResponseData);
+
+        if (customerResponseData.creditAccounts) {
+          const accountNumbers = customerResponseData.creditAccounts.map(
+            (application: CreditApplication) => application.accountNumber
+          );
+          setAccountNumbers(accountNumbers);
+        }
       } catch (error) {
-        console.error('Error fetching customer data:', error);
-        Alert.alert('Error', 'Failed to fetch customer data.');
+        console.error("Error fetching customer data:", error);
+        Alert.alert("Error", "Failed to fetch customer data.");
       }
     };
 
@@ -50,26 +76,45 @@ const HomeScreen: React.FC = () => {
     fetchCustomerData();
   }, [token]);
 
+
+
   return (
     <View style={styles.container}>
-      <View style={styles.avatarRow}>
-          <Avatar
-            size="large"
-            rounded
-            title={`${firstName[0]}${lastName[0]}`} // Initials as avatar title
-            containerStyle={styles.avatar}
-            titleStyle={{ color: 'white' }}
-          />
-          <Text style={styles.nameText}>
-            Welcome, {firstName} {lastName}
+      
+      
+      
+      {/* Updated Avatar Container */}
+      <View style={styles.headerContainer}>
+
+       <View style={styles.iconandTextContainer}>
+  <Animated.Image
+    source={require('@/assets/images/profile.png')} // Add the avatar.png image
+    style={styles.avatarIcon} // Apply shared animation style
+  />
+  <View style={styles.infoContainer}>
+  <Text style={styles.userName}>{firstName}</Text>
+  <Text style={styles.welcomeText}>Welcome to IvitaFi</Text>
+</View>
+</View> 
+  
+  <Animated.Image
+    source={require('@/assets/images/menus.png')} // Add the hamburger.png image
+    style={styles.hamBurgerIcon} // Apply shared animation style
+  />
+</View>
+
+
+      {/* Box Container */}
+      <View style={styles.boxContainer}>
+        {accountNumbers.map((accountNumber, index) => (
+          <Text key={index} style={styles.accountNumberText}>
+            Account Number: {accountNumber}
           </Text>
-        </View>
-      <View style={styles.topContainer}>
-        hello
+        ))}
       </View>
 
-      <View style={styles.centerContainer}>
-
+      {/* Button Container */}
+      <View style={styles.buttonContainer}>
         <TouchableOpacity style={styles.button}>
           <Text style={styles.additionalPaymentText}>Make Additional Payment</Text>
         </TouchableOpacity>
@@ -81,63 +126,104 @@ const HomeScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'flex-start',
-    alignItems: 'center',
-    backgroundColor: '#fff',
+    justifyContent: "flex-start",
+    alignItems: "center",
+    backgroundColor: "#fff",
     paddingTop: 20,
   },
-  topContainer: {
+  headerContainer: {
+    flexDirection: "row",
+    alignItems: 'center',
+    justifyContent: "space-between",
+    width: "100%",
+    paddingHorizontal: 20,
+    height: 60,
+    marginTop: 25,
+    
+  },
+
+iconandTextContainer: {
+  flexDirection: 'row',
+  justifyContent: 'flex-start',
+  gap:8
+},  
+  hamBurgerIcon: {
+    width: 50,
+    position: 'relative',
+    maxWidth: '10%',
+    overflow: 'hidden',
+    height:27,
+    objectFit:'cover',
+  },
+  avatarIcon: {
+    width:50,
+    position: 'relative',
+    height:50,
+    objectFit:'cover',
+  },
+  infoContainer: {
+    width:169,
+    height:40,
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "flex-start",
+    justifyContent:"flex-start",
+    gap: 6,
+  },
+  userName: {
+    width:180,
+    position: 'relative',
+    lineHeight: 20,
+    fontWeight: "600",
+    display:'flex',
+    fontSize: 18,
+    alignItems:'center',
+    marginTop: 5,
+  },
+  welcomeText: {
+    fontWeight: "500",
+    fontSize: 17,
+    color: "#757575",
+    fontFamily: "Inter-Regular",
+  },
+  boxContainer: {
     width: 378,
-    height: 299,
-    backgroundColor: '#2D4768',
-    shadowColor: '#000',
+    height: 200,
+    backgroundColor: "#2D4768",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.25,
     shadowRadius: 4,
     borderRadius: 20,
+    justifyContent: "center",
+    alignItems: "center",
     marginBottom: 20,
-    marginTop: 30,
-    justifyContent: 'center',
-    alignItems: 'center',
+    marginTop: 20,
   },
-  avatarRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  avatar: {
-    backgroundColor: '#517fa4', // Background color for the avatar
-    marginRight:5,
-  },
-  nameText: {
-    color: 'black',
-    fontSize: 15,
-    fontWeight: 'bold',
-
-  },
-  infoText: {
-    color: 'white',
-    fontSize: 16,
-    textAlign: 'center',
+  accountNumberText: {
+    color: "white",
+    fontSize: 18,
     marginTop: 10,
   },
-  centerContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
+  buttonContainer: {
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 20,
   },
   button: {
     width: 294,
     height: 64,
-    backgroundColor: '#2D4768',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#2D4768",
+    justifyContent: "center",
+    alignItems: "center",
     borderRadius: 10,
   },
   additionalPaymentText: {
-    color: 'white',
+    color: "white",
     fontSize: 20,
-    fontFamily: 'Poppins',
-    fontWeight: '600',
-    textAlign: 'center',
+    fontFamily: "Poppins",
+    fontWeight: "600",
+    textAlign: "center",
   },
 });
 
