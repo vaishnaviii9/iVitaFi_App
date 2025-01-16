@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { Avatar } from 'react-native-elements';
 import { RouteProp, useRoute } from '@react-navigation/native';
 import axios from 'axios';
 
@@ -51,18 +52,24 @@ const HomeScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.topContainer}>
-        <Text style={styles.nameText}>
-          Welcome, {firstName} {lastName}
-        </Text>
-        
-      </View>
-      <View style={styles.centerContainer}>
-        {customerData && (
-          <Text style={styles.infoText}>
-            Customer Info: {JSON.stringify(customerData)}
+      <View style={styles.avatarRow}>
+          <Avatar
+            size="large"
+            rounded
+            title={`${firstName[0]}${lastName[0]}`} // Initials as avatar title
+            containerStyle={styles.avatar}
+            titleStyle={{ color: 'white' }}
+          />
+          <Text style={styles.nameText}>
+            Welcome, {firstName} {lastName}
           </Text>
-        )}
+        </View>
+      <View style={styles.topContainer}>
+        hello
+      </View>
+
+      <View style={styles.centerContainer}>
+
         <TouchableOpacity style={styles.button}>
           <Text style={styles.additionalPaymentText}>Make Additional Payment</Text>
         </TouchableOpacity>
@@ -93,10 +100,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  avatarRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  avatar: {
+    backgroundColor: '#517fa4', // Background color for the avatar
+    marginRight:5,
+  },
   nameText: {
-    color: 'white',
-    fontSize: 24,
+    color: 'black',
+    fontSize: 15,
     fontWeight: 'bold',
+
   },
   infoText: {
     color: 'white',
