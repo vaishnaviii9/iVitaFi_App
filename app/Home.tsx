@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Alert, Image } from "react-native";
 import { RouteProp, useRoute } from "@react-navigation/native";
 import axios from "axios";
+import { fetchData } from "../api/api"; // Import the fetchData function
 
 type RootStackParamList = {
   Home: {
@@ -32,63 +33,31 @@ const HomeScreen: React.FC = () => {
 
   useEffect(() => {
     const fetchUserData = async () => {
-      try {
-        const userResponse = await axios.get(
-          "https://dev.ivitafi.com/api/User/current-user",
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
-        setUserData(userResponse.data);
-      } catch (error) {
-        console.error("Error fetching user data:", error);
-        Alert.alert("Error", "Failed to fetch user data.");
-      }
+      await fetchData("https://dev.ivitafi.com/api/User/current-user", token, setUserData, "Failed to fetch user data.");
     };
 
     const fetchCustomerData = async () => {
-      try {
-        const customerResponse = await axios.get('https://dev.ivitafi.com/api/customer/current/true', {
-          headers: { Authorization: `Bearer ${token}` }, // Pass token in headers
-        });
-        const customerResponseData = customerResponse.data;
-        setCustomerData(customerResponseData);
-        console.log(customerResponseData);
-
-        if (customerResponseData.creditAccounts) {
-          const accountNumbers = customerResponseData.creditAccounts.map((application: CreditApplication) => application.accountNumber);
-          setAccountNumbers(accountNumbers);
-
-          customerResponseData.creditAccounts.forEach((account: any) => {
-            if (account.patientEpisodes && account.patientEpisodes.length > 0) {
-              const creditAccountId = account.patientEpisodes[0].creditAccountId;
-              fetchCreditAccountSummary(creditAccountId);
-            }
-          });
-        }
-        setLoading(false); // Set loading to false after data is fetched
-      } catch (error) {
-        console.error('Error fetching customer data:', error);
-        Alert.alert('Error', 'Failed to fetch customer data.');
-        setLoading(false); // Set loading to false in case of error
-      }
-    };
-
-    const fetchCreditAccountSummary = async (creditAccountId: string) => {
-      try {
-        const creditAccountResponse = await axios.get(`https://dev.ivitafi.com/api/CreditAccount/${creditAccountId}/summary`, {
-          headers: { Authorization: `Bearer ${token}` }, // Pass token in headers
-        });
-        console.log('Credit Account Summary:', creditAccountResponse.data);
-      } catch (error) {
-        console.error('Error fetching credit account summary:', error);
-        Alert.alert('Error', 'Failed to fetch credit account summary.');
-      }
+      await fetchData("https://dev.ivitafi.com/api/customer/current/true", token, setCustomerData, "Failed to fetch customer data.");
     };
 
     fetchUserData();
     fetchCustomerData();
   }, [token]);
+
+  useEffect(() => {
+    if (customerData && customerData.creditAccounts) {
+      const accountNumbers = customerData.creditAccounts.map((application: CreditApplication) => application.accountNumber);
+      setAccountNumbers(accountNumbers);
+
+      customerData.creditAccounts.forEach((account: any) => {
+        if (account.patientEpisodes && account.patientEpisodes.length > 0) {
+          const creditAccountId = account.patientEpisodes[0].creditAccountId;
+          fetchData(`https://dev.ivitafi.com/api/CreditAccount/${creditAccountId}/summary`, token, () => {}, "Failed to fetch credit account summary.");
+        }
+      });
+      setLoading(false);
+    }
+  }, [customerData]);
 
   return (
     <View style={styles.container}>
