@@ -1,15 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Alert } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Alert, Image } from "react-native";
 import { RouteProp, useRoute } from "@react-navigation/native";
 import axios from "axios";
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-  withTiming,
-  Easing,
-} from 'react-native-reanimated';
-
 
 type RootStackParamList = {
   Home: {
@@ -32,6 +24,7 @@ const HomeScreen: React.FC = () => {
   const [userData, setUserData] = useState<any>(null);
   const [customerData, setCustomerData] = useState<any>(null);
   const [accountNumbers, setAccountNumbers] = useState<string[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -69,6 +62,8 @@ const HomeScreen: React.FC = () => {
       } catch (error) {
         console.error("Error fetching customer data:", error);
         Alert.alert("Error", "Failed to fetch customer data.");
+      } finally {
+        setLoading(false); // Stop loading after fetching is done
       }
     };
 
@@ -76,44 +71,50 @@ const HomeScreen: React.FC = () => {
     fetchCustomerData();
   }, [token]);
 
-
-
   return (
     <View style={styles.container}>
-      
-      
-      
-      {/* Updated Avatar Container */}
       <View style={styles.headerContainer}>
-
-       <View style={styles.iconandTextContainer}>
-  <Animated.Image
-    source={require('@/assets/images/profile.png')} // Add the avatar.png image
-    style={styles.avatarIcon} // Apply shared animation style
-  />
-  <View style={styles.infoContainer}>
-  <Text style={styles.userName}>{firstName}</Text>
-  <Text style={styles.welcomeText}>Welcome to IvitaFi</Text>
-</View>
-</View> 
-  
-  <Animated.Image
-    source={require('@/assets/images/menus.png')} // Add the hamburger.png image
-    style={styles.hamBurgerIcon} // Apply shared animation style
-  />
-</View>
-
-
-      {/* Box Container */}
-      <View style={styles.boxContainer}>
-        {accountNumbers.map((accountNumber, index) => (
-          <Text key={index} style={styles.accountNumberText}>
-            Account Number: {accountNumber}
-          </Text>
-        ))}
+        <View style={styles.iconAndTextContainer}>
+          <Image source={require("@/assets/images/profile.png")} style={styles.avatarIcon} />
+          <View style={styles.infoContainer}>
+            <Text style={styles.userName}>{firstName}</Text>
+            <Text style={styles.welcomeText}>Welcome to IvitaFi</Text>
+          </View>
+        </View>
+        <Image source={require("@/assets/images/menus.png")} style={styles.hamburgerIcon} />
       </View>
 
-      {/* Button Container */}
+      <View style={styles.boxContainer}>
+        {loading ? (
+          <Text style={styles.loadingText}>Loading...</Text> // Show loading text
+        ) : (
+          accountNumbers.length > 0 && accountNumbers.map((accountNumber, index) => (
+            <View key={index} style={styles.accountDetails}>
+              <View style={styles.accountNumberContainer}>
+                <Text style={styles.accountNumberText}>Account Number: {accountNumber}</Text>
+              </View>
+
+              <View style={styles.paymentContainer}>
+                <View>
+                  <Text style={styles.paymentLabel}>Next Payment</Text>
+                  <Text style={styles.paymentAmount}>$20.00</Text>
+                </View>
+
+                <View>
+                  <Text style={styles.paymentLabel}>Payment Date</Text>
+                  <Text style={styles.paymentDate}>01/21</Text>
+                </View>
+
+                <View>
+                  <Text style={styles.paymentLabel}>Account</Text>
+                  <Text style={styles.paymentDate}>*0016</Text>
+                </View>
+              </View>
+            </View>
+          ))
+        )}
+      </View>
+
       <View style={styles.buttonContainer}>
         <TouchableOpacity style={styles.button}>
           <Text style={styles.additionalPaymentText}>Make Additional Payment</Text>
@@ -126,104 +127,104 @@ const HomeScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "flex-start",
     alignItems: "center",
     backgroundColor: "#fff",
     paddingTop: 20,
   },
   headerContainer: {
     flexDirection: "row",
-    alignItems: 'center',
     justifyContent: "space-between",
     width: "100%",
     paddingHorizontal: 20,
-    height: 60,
     marginTop: 25,
-    
   },
-
-iconandTextContainer: {
-  flexDirection: 'row',
-  justifyContent: 'flex-start',
-  gap:8
-},  
-  hamBurgerIcon: {
-    width: 50,
-    position: 'relative',
-    maxWidth: '10%',
-    overflow: 'hidden',
-    height:27,
-    objectFit:'cover',
+  iconAndTextContainer: {
+    flexDirection: "row",
+    alignItems: "center",
   },
   avatarIcon: {
-    width:50,
-    position: 'relative',
-    height:50,
-    objectFit:'cover',
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+  },
+  hamburgerIcon: {
+    width: 30,
+    height: 30,
+    marginTop: 10,
   },
   infoContainer: {
-    width:169,
-    height:40,
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "flex-start",
-    justifyContent:"flex-start",
-    gap: 6,
+    marginLeft: 10,
   },
   userName: {
-    width:180,
-    position: 'relative',
-    lineHeight: 20,
-    fontWeight: "600",
-    display:'flex',
     fontSize: 18,
-    alignItems:'center',
-    marginTop: 5,
+    fontWeight: "600",
   },
   welcomeText: {
-    fontWeight: "500",
-    fontSize: 17,
+    fontSize: 16,
     color: "#757575",
-    fontFamily: "Inter-Regular",
   },
   boxContainer: {
-    width: 378,
-    height: 200,
+    width: "90%",
     backgroundColor: "#2D4768",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
     borderRadius: 20,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 20,
+    padding: 15,
     marginTop: 20,
+  },
+  accountDetails: {
+    marginBottom: 15,
+  },
+  accountNumberContainer: {
+    display: "flex",
+    alignContent: "flex-start",
   },
   accountNumberText: {
     color: "white",
     fontSize: 18,
-    marginTop: 10,
+    marginBottom: 5,
+  },
+
+  paymentContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignContent: "center",
+    marginTop: 25,
+  },
+
+  paymentLabel: {
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  paymentAmount: {
+    color: "#fff",
+    fontSize: 22,
+    fontWeight: "700",
+    marginBottom: 5,
+  },
+  paymentDate: {
+    color: "#fff",
+    fontSize: 22,
+    fontWeight: "700",
+    marginBottom: 5,
+  },
+  loadingText: {
+    color: "#fff",
+    fontSize: 16,
+    textAlign: "center",
   },
   buttonContainer: {
-    justifyContent: "center",
-    alignItems: "center",
     marginTop: 20,
   },
   button: {
-    width: 294,
-    height: 64,
     backgroundColor: "#2D4768",
-    justifyContent: "center",
-    alignItems: "center",
+    paddingVertical: 15,
+    paddingHorizontal: 40,
     borderRadius: 10,
   },
   additionalPaymentText: {
     color: "white",
-    fontSize: 20,
-    fontFamily: "Poppins",
+    fontSize: 16,
     fontWeight: "600",
-    textAlign: "center",
   },
 });
 
