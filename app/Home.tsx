@@ -24,12 +24,15 @@ interface CreditAccount {
 
 const HomeScreen: React.FC = () => {
   const route = useRoute<HomeScreenRouteProp>();
-  const { firstName, lastName, token } = route.params;
+  const { firstName, token } = route.params;
 
   const [userData, setUserData] = useState<any>(null);
   const [customerData, setCustomerData] = useState<any>(null);
   const [accountNumbers, setAccountNumbers] = useState<string[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [currentAmountDue, setCurrentAmountDue] = useState<number | null>(null);
+  const [accountNumber, setAccountNumber] = useState<string | null>(null);
+  const [nextPaymentDate, setNextPaymentDate] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -52,7 +55,13 @@ const HomeScreen: React.FC = () => {
       customerData.creditAccounts.forEach((account: any) => {
         if (account.patientEpisodes && account.patientEpisodes.length > 0) {
           const creditAccountId = account.patientEpisodes[0].creditAccountId;
-          fetchData(`https://dev.ivitafi.com/api/CreditAccount/${creditAccountId}/summary`, token, () => {}, "Failed to fetch credit account summary.");
+          fetchData(`https://dev.ivitafi.com/api/CreditAccount/${creditAccountId}/summary`, token, (response) => {
+            console.log(response); // Log the response
+            setCurrentAmountDue(response.currentAmountDue); // Set the current amount due
+            setAccountNumber(response.paymentMethod.accountNumber); // Set the account number
+            const date = new Date(response.nextPaymentDate);
+            setNextPaymentDate(`${date.getMonth() + 1}/${date.getDate()}`); // Set the next payment date in MM/DD format
+          }, "Failed to fetch credit account summary.");
         }
       });
       setLoading(false);
@@ -76,26 +85,26 @@ const HomeScreen: React.FC = () => {
         {loading ? (
           <Text style={styles.loadingText}>Loading...</Text> // Show loading text
         ) : (
-          accountNumbers.length > 0 && accountNumbers.map((accountNumber, index) => (
+          accountNumbers.length > 0 && accountNumbers.map((accountNum, index) => (
             <View key={index} style={styles.accountDetails}>
               <View style={styles.accountNumberContainer}>
-                <Text style={styles.accountNumberText}>Account Number: {accountNumber}</Text>
+                <Text style={styles.accountNumberText}>Account Number: {accountNum}</Text>
               </View>
 
               <View style={styles.paymentContainer}>
                 <View>
                   <Text style={styles.paymentLabel}>Next Payment</Text>
-                  <Text style={styles.paymentAmount}>$20.00</Text>
+                  <Text style={styles.paymentAmount}>${currentAmountDue !== null ? currentAmountDue : " "}</Text>
                 </View>
 
                 <View>
                   <Text style={styles.paymentLabel}>Payment Date</Text>
-                  <Text style={styles.paymentDate}>01/21</Text>
+                  <Text style={styles.paymentDate}>{nextPaymentDate !== null ? nextPaymentDate : " "}</Text>
                 </View>
 
                 <View>
                   <Text style={styles.paymentLabel}>Account</Text>
-                  <Text style={styles.paymentDate}>*0016</Text>
+                  <Text style={styles.paymentDate}>*{accountNumber !== null ? accountNumber.slice(-4) : " "}</Text>
                 </View>
               </View>
             </View>
