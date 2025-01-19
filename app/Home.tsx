@@ -3,7 +3,6 @@ import { View, Text, StyleSheet, TouchableOpacity, Alert, Image } from "react-na
 import { RouteProp, useRoute } from "@react-navigation/native";
 import axios from "axios";
 
-
 type RootStackParamList = {
   Home: {
     firstName: string;
@@ -18,8 +17,8 @@ interface CreditApplication {
   accountNumber: string;
 }
 
-interface CreditApplication {
-  accountNumber: string;
+interface CreditAccount {
+  creditAccountId: string;
 }
 
 const HomeScreen: React.FC = () => {
@@ -29,10 +28,7 @@ const HomeScreen: React.FC = () => {
   const [userData, setUserData] = useState<any>(null);
   const [customerData, setCustomerData] = useState<any>(null);
   const [accountNumbers, setAccountNumbers] = useState<string[]>([]);
-<<<<<<< HEAD
-=======
   const [loading, setLoading] = useState<boolean>(true);
->>>>>>> master
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -52,41 +48,41 @@ const HomeScreen: React.FC = () => {
 
     const fetchCustomerData = async () => {
       try {
-<<<<<<< HEAD
         const customerResponse = await axios.get('https://dev.ivitafi.com/api/customer/current/true', {
           headers: { Authorization: `Bearer ${token}` }, // Pass token in headers
         });
         const customerResponseData = customerResponse.data;
         setCustomerData(customerResponseData);
-        // console.log(customerResponseData);
+        console.log(customerResponseData);
 
         if (customerResponseData.creditAccounts) {
           const accountNumbers = customerResponseData.creditAccounts.map((application: CreditApplication) => application.accountNumber);
           setAccountNumbers(accountNumbers);
-          // console.log(accountNumbers);
-          
-=======
-        const customerResponse = await axios.get(
-          "https://dev.ivitafi.com/api/customer/current/true",
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
-        const customerResponseData = customerResponse.data;
-        setCustomerData(customerResponseData);
 
-        if (customerResponseData.creditAccounts) {
-          const accountNumbers = customerResponseData.creditAccounts.map(
-            (application: CreditApplication) => application.accountNumber
-          );
-          setAccountNumbers(accountNumbers);
->>>>>>> master
+          customerResponseData.creditAccounts.forEach((account: any) => {
+            if (account.patientEpisodes && account.patientEpisodes.length > 0) {
+              const creditAccountId = account.patientEpisodes[0].creditAccountId;
+              fetchCreditAccountSummary(creditAccountId);
+            }
+          });
         }
+        setLoading(false); // Set loading to false after data is fetched
       } catch (error) {
-        console.error("Error fetching customer data:", error);
-        Alert.alert("Error", "Failed to fetch customer data.");
-      } finally {
-        setLoading(false); // Stop loading after fetching is done
+        console.error('Error fetching customer data:', error);
+        Alert.alert('Error', 'Failed to fetch customer data.');
+        setLoading(false); // Set loading to false in case of error
+      }
+    };
+
+    const fetchCreditAccountSummary = async (creditAccountId: string) => {
+      try {
+        const creditAccountResponse = await axios.get(`https://dev.ivitafi.com/api/CreditAccount/${creditAccountId}/summary`, {
+          headers: { Authorization: `Bearer ${token}` }, // Pass token in headers
+        });
+        console.log('Credit Account Summary:', creditAccountResponse.data);
+      } catch (error) {
+        console.error('Error fetching credit account summary:', error);
+        Alert.alert('Error', 'Failed to fetch credit account summary.');
       }
     };
 
@@ -96,31 +92,6 @@ const HomeScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-<<<<<<< HEAD
-      {/* Avatar Container */}
-      <View style={styles.avatarContainer}>
-        <Avatar
-          size="medium"          
-          rounded
-          title={`${firstName[0]}${lastName[0]}`} // Initials as avatar title
-          containerStyle={styles.avatar}
-          titleStyle={{ color: 'white' }}
-        />
-        <Text style={styles.nameText}>
-          Welcome, {firstName} {lastName}
-        </Text>
-      </View>
-
-      {/* Box Container */}
-      <View style={styles.boxContainer}>
-     
-        {accountNumbers.map((accountNumber, index) => (
-          <Text key={index} style={styles.accountNumberText}>Account Number: {accountNumber}</Text>
-        ))}
-      </View>
-
-      {/* Button Container */}
-=======
       <View style={styles.headerContainer}>
         <View style={styles.iconAndTextContainer}>
           <Image source={require("@/assets/images/profile.png")} style={styles.avatarIcon} />
@@ -163,7 +134,6 @@ const HomeScreen: React.FC = () => {
         )}
       </View>
 
->>>>>>> master
       <View style={styles.buttonContainer}>
         <TouchableOpacity style={styles.button}>
           <Text style={styles.additionalPaymentText}>Make Additional Payment</Text>
@@ -180,50 +150,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     paddingTop: 20,
   },
-<<<<<<< HEAD
-  avatarContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 30,
-    marginTop:30, // Add spacing below avatar
-    paddingHorizontal: 20, // Horizontal padding for better alignment
-  },
-  avatar: {
-    backgroundColor: '#517fa4', // Background color for the avatar
-    marginRight: 10, // Space between avatar and text
-  },
-  nameText: {
-    color: 'black',
-    fontSize: 15,
-    fontWeight: 'bold',
-  },  
-  accountNumberText: {
-    color: 'white',
-    fontSize: 18,
-    marginTop: 10,
-  },
-  boxContainer: {
-    width: 377,
-    height: 153,
-    backgroundColor: '#2D4768',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  infoText: {
-    color: 'white',
-    fontSize: 16,
-    textAlign: 'center',
-  },
-  buttonContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
-=======
   headerContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -306,7 +232,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   buttonContainer: {
->>>>>>> master
     marginTop: 20,
   },
   button: {
@@ -320,7 +245,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
   },
-  
 });
 
 export default HomeScreen;
