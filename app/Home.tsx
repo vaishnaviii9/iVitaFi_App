@@ -166,6 +166,8 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 15,
     marginTop: 20,
+    height: 150, // Set a minimum height for the box container
+    justifyContent: "center", // Center content vertically
   },
   accountDetails: {
     marginBottom: 15,
