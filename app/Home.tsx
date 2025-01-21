@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Image, ActivityIndicator } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Image } from "react-native";
 import { RouteProp, useRoute } from "@react-navigation/native";
-import { fetchData } from "../api/api"; // Import the fetchData function
-import Loader from "./Loader"; // Import the Loader component
+import { fetchData } from "../api/api";
+import Loader from "./Loader";
 
 type RootStackParamList = {
   Home: {
@@ -33,40 +33,62 @@ const HomeScreen: React.FC = () => {
   const [nextPaymentDate, setNextPaymentDate] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchUserData = async () => {
-      await fetchData("https://dev.ivitafi.com/api/User/current-user", token, setUserData, "Failed to fetch user data.");
+    const fetchAllData = async () => {
+      try {
+        // Fetch user and customer data in parallel
+        const [userResponse, customerResponse] = await Promise.all([
+          fetchData("https://dev.ivitafi.com/api/User/current-user", token, setUserData, "Failed to fetch user data."),
+          fetchData("https://dev.ivitafi.com/api/customer/current/true", token, setCustomerData, "Failed to fetch customer data."),
+        ]);
+
+        if (customerResponse && customerResponse.creditAccounts) {
+          const accountNumbers = customerResponse.creditAccounts.map((application: CreditApplication) => application.accountNumber);
+          setAccountNumbers(accountNumbers);
+
+          // Fetch credit account summaries in parallel
+          const creditSummaries = await Promise.all(
+            customerResponse.creditAccounts.map((account: any) => {
+              if (account.patientEpisodes && account.patientEpisodes.length > 0) {
+                const creditAccountId = account.patientEpisodes[0].creditAccountId;
+                return fetchData(
+                  `https://dev.ivitafi.com/api/CreditAccount/${creditAccountId}/summary`,
+                  token,
+                  (data) => data,
+                  "Failed to fetch credit account summary."
+                );
+              }
+              return null;
+            })
+          );
+
+          // Update state with the first valid summary data
+          const validSummary = creditSummaries.find((summary) => summary !== null);
+          if (validSummary) {
+            setCurrentAmountDue(validSummary.currentAmountDue);
+            setAccountNumber(validSummary.paymentMethod.accountNumber);
+            setBalance(validSummary.currentBalance);
+            setAvailableCredit(validSummary.availableCredit);
+            const date = new Date(validSummary.nextPaymentDate);
+            setNextPaymentDate(`${date.getMonth() + 1}/${date.getDate()}`);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
+        setLoading(false); // End loading
+      }
     };
 
-    const fetchCustomerData = async () => {
-      await fetchData("https://dev.ivitafi.com/api/customer/current/true", token, setCustomerData, "Failed to fetch customer data.");
-    };
-
-    fetchUserData();
-    fetchCustomerData();
+    fetchAllData();
   }, [token]);
 
-  useEffect(() => {
-    if (customerData && customerData.creditAccounts) {
-      const accountNumbers = customerData.creditAccounts.map((application: CreditApplication) => application.accountNumber);
-      setAccountNumbers(accountNumbers);
-
-      customerData.creditAccounts.forEach((account: any) => {
-        if (account.patientEpisodes && account.patientEpisodes.length > 0) {
-          const creditAccountId = account.patientEpisodes[0].creditAccountId;
-          fetchData(`https://dev.ivitafi.com/api/CreditAccount/${creditAccountId}/summary`, token, (response) => {
-            console.log(response); // Log the response
-            setCurrentAmountDue(response.currentAmountDue); // Set the current amount due
-            setAccountNumber(response.paymentMethod.accountNumber); // Set the account number
-            setBalance(response.currentBalance); // Set the balance
-            setAvailableCredit(response.availableCredit); // Set the available credit
-            const date = new Date(response.nextPaymentDate);
-            setNextPaymentDate(`${date.getMonth() + 1}/${date.getDate()}`); // Set the next payment date in MM/DD format
-          }, "Failed to fetch credit account summary.");
-        }
-      });
-      setLoading(false);
-    }
-  }, [customerData]);
+  if (loading) {
+    return (
+      <View style={styles.loaderContainer}>
+        <Loader />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -82,13 +104,7 @@ const HomeScreen: React.FC = () => {
       </View>
 
       <View style={styles.boxContainer}>
-        {loading ? (
-          <View style={styles.loaderStyle}>
-            <Loader />
-          </View>
-          
-        ) : (
-          accountNumbers.length > 0 &&
+        {accountNumbers.length > 0 ? (
           accountNumbers.map((accountNum, index) => (
             <View key={index} style={styles.accountDetails}>
               <View style={styles.accountNumberContainer}>
@@ -97,39 +113,39 @@ const HomeScreen: React.FC = () => {
               <View style={styles.paymentContainer}>
                 <View>
                   <Text style={styles.paymentLabel}>Next Payment</Text>
-                  <Text style={styles.paymentAmount}>${currentAmountDue !== null ? currentAmountDue : " "}</Text>
+                  <Text style={styles.paymentAmount}>${currentAmountDue || " "}</Text>
                 </View>
                 <View>
                   <Text style={styles.paymentLabel}>Payment Date</Text>
-                  <Text style={styles.paymentDate}>{nextPaymentDate !== null ? nextPaymentDate : " "}</Text>
+                  <Text style={styles.paymentDate}>{nextPaymentDate || " "}</Text>
                 </View>
                 <View>
                   <Text style={styles.paymentLabel}>Account</Text>
-                  <Text style={styles.paymentDate}>*{accountNumber !== null ? accountNumber.slice(-4) : " "}</Text>
+                  <Text style={styles.paymentDate}>*{accountNumber?.slice(-4) || " "}</Text>
                 </View>
               </View>
             </View>
           ))
+        ) : (
+          <Text style={styles.noAccountText}>No accounts available</Text>
         )}
       </View>
+      {/* the balance and available credit */}
+      <View>
+        <Text>Balance: {balance || " "}</Text>
+      </View>
+      <View>
+        <Text>Available Credit: {availableCredit || " "}</Text>
+      </View>
 
+    {/* additional payment button */}
       <View style={styles.buttonContainer}>
         <TouchableOpacity style={styles.button}>
           <Text style={styles.additionalPaymentText}>Make Additional Payment</Text>
         </TouchableOpacity>
       </View>
 
-      <View>
-        <Text>
-          Balance: {balance !== null ? balance : " "}
-        </Text>
-      </View>
-
-      <View>
-        <Text>
-          Available Credit: {availableCredit !== null ? availableCredit : " "}
-        </Text>
-      </View>
+      
     </View>
   );
 };
@@ -181,6 +197,18 @@ const styles = StyleSheet.create({
     marginTop: 20,
     height: 150,
     justifyContent: "center",
+  },
+  loaderContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#fff",
+  },
+  noAccountText: {
+    color: "#fff",
+    fontSize: 16,
+    textAlign: "center",
+    marginTop: 20,
   },
   loaderStyle:{
     flex: 1,
