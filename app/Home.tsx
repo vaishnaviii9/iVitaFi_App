@@ -37,19 +37,35 @@ const HomeScreen: React.FC = () => {
       try {
         // Fetch user and customer data in parallel
         const [userResponse, customerResponse] = await Promise.all([
-          fetchData("https://dev.ivitafi.com/api/User/current-user", token, setUserData, "Failed to fetch user data."),
-          fetchData("https://dev.ivitafi.com/api/customer/current/true", token, setCustomerData, "Failed to fetch customer data."),
+          fetchData(
+            "https://dev.ivitafi.com/api/User/current-user",
+            token,
+            setUserData,
+            "Failed to fetch user data."
+          ),
+          fetchData(
+            "https://dev.ivitafi.com/api/customer/current/true",
+            token,
+            setCustomerData,
+            "Failed to fetch customer data."
+          ),
         ]);
 
         if (customerResponse && customerResponse.creditAccounts) {
-          const accountNumbers = customerResponse.creditAccounts.map((application: CreditApplication) => application.accountNumber);
+          const accountNumbers = customerResponse.creditAccounts.map(
+            (application: CreditApplication) => application.accountNumber
+          );
           setAccountNumbers(accountNumbers);
 
           // Fetch credit account summaries in parallel
           const creditSummaries = await Promise.all(
             customerResponse.creditAccounts.map((account: any) => {
-              if (account.patientEpisodes && account.patientEpisodes.length > 0) {
-                const creditAccountId = account.patientEpisodes[0].creditAccountId;
+              if (
+                account.patientEpisodes &&
+                account.patientEpisodes.length > 0
+              ) {
+                const creditAccountId =
+                  account.patientEpisodes[0].creditAccountId;
                 return fetchData(
                   `https://dev.ivitafi.com/api/CreditAccount/${creditAccountId}/summary`,
                   token,
@@ -62,12 +78,14 @@ const HomeScreen: React.FC = () => {
           );
 
           // Update state with the first valid summary data
-          const validSummary = creditSummaries.find((summary) => summary !== null);
+          const validSummary = creditSummaries.find(
+            (summary) => summary !== null
+          );
           if (validSummary) {
-            setCurrentAmountDue(validSummary.currentAmountDue);
+            setCurrentAmountDue(validSummary.lastPaymentAmount);
             setAccountNumber(validSummary.paymentMethod.accountNumber);
             setBalance(validSummary.currentBalance);
-            setAvailableCredit(validSummary.availableCredit);
+            setAvailableCredit(validSummary.displayAvailableCredit);
             const date = new Date(validSummary.nextPaymentDate);
             setNextPaymentDate(`${date.getMonth() + 1}/${date.getDate()}`);
           }
@@ -94,13 +112,19 @@ const HomeScreen: React.FC = () => {
     <View style={styles.container}>
       <View style={styles.headerContainer}>
         <View style={styles.iconAndTextContainer}>
-          <Image source={require("@/assets/images/profile.png")} style={styles.avatarIcon} />
+          <Image
+            source={require("@/assets/images/profile.png")}
+            style={styles.avatarIcon}
+          />
           <View style={styles.infoContainer}>
             <Text style={styles.userName}>{firstName}</Text>
             <Text style={styles.welcomeText}>Welcome to IvitaFi</Text>
           </View>
         </View>
-        <Image source={require("@/assets/images/menus.png")} style={styles.hamburgerIcon} />
+        <Image
+          source={require("@/assets/images/menus.png")}
+          style={styles.hamburgerIcon}
+        />
       </View>
 
       <View style={styles.boxContainer}>
@@ -108,20 +132,28 @@ const HomeScreen: React.FC = () => {
           accountNumbers.map((accountNum, index) => (
             <View key={index} style={styles.accountDetails}>
               <View style={styles.accountNumberContainer}>
-                <Text style={styles.accountNumberText}>Account Number: {accountNum}</Text>
+                <Text style={styles.accountNumberText}>
+                  Account Number: {accountNum}
+                </Text>
               </View>
               <View style={styles.paymentContainer}>
                 <View>
                   <Text style={styles.paymentLabel}>Next Payment</Text>
-                  <Text style={styles.paymentAmount}>${currentAmountDue || " "}</Text>
+                  <Text style={styles.paymentAmount}>
+                    ${currentAmountDue || " "}
+                  </Text>
                 </View>
                 <View>
                   <Text style={styles.paymentLabel}>Payment Date</Text>
-                  <Text style={styles.paymentDate}>{nextPaymentDate || " "}</Text>
+                  <Text style={styles.paymentDate}>
+                    {nextPaymentDate || " "}
+                  </Text>
                 </View>
                 <View>
                   <Text style={styles.paymentLabel}>Account</Text>
-                  <Text style={styles.paymentDate}>*{accountNumber?.slice(-4) || " "}</Text>
+                  <Text style={styles.paymentDate}>
+                    *{accountNumber?.slice(-4) || " "}
+                  </Text>
                 </View>
               </View>
             </View>
@@ -130,22 +162,28 @@ const HomeScreen: React.FC = () => {
           <Text style={styles.noAccountText}>No accounts available</Text>
         )}
       </View>
-      {/* the balance and available credit */}
-      <View>
-        <Text>Balance: {balance || " "}</Text>
+
+      {/* balance and available credit figma  */}
+
+      <View style={styles.balanceContainer}>
+      <View style={styles.myBalanceParent}>
+        <Text style={[styles.myBalance, styles.myBalanceTypo]}>My Balance</Text>
+        <Text style={[styles.availableCredit, styles.myBalanceTypo]}>
+          Available Credit
+        </Text>
+        <Text style={[styles.text, styles.textTypo]}>${balance || " "}</Text>
+        <Text style={[styles.text1, styles.textTypo]}>${availableCredit || " "}</Text>
       </View>
-      <View>
-        <Text>Available Credit: {availableCredit || " "}</Text>
       </View>
 
-    {/* additional payment button */}
+      {/* additional payment button */}
       <View style={styles.buttonContainer}>
         <TouchableOpacity style={styles.button}>
-          <Text style={styles.additionalPaymentText}>Make Additional Payment</Text>
+          <Text style={styles.additionalPaymentText}>
+            Make Additional Payment
+          </Text>
         </TouchableOpacity>
       </View>
-
-      
     </View>
   );
 };
@@ -210,7 +248,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginTop: 20,
   },
-  loaderStyle:{
+  loaderStyle: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
@@ -249,6 +287,53 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     marginBottom: 5,
   },
+
+  balanceContainer: {
+    width: "90%",
+    padding: 10,
+    marginTop: 10,
+    height: 100,
+    justifyContent: "center",
+  },
+
+  myBalanceTypo: {
+    textAlign: "left",
+    color: "#000",
+    // fontFamily: "Poppins-SemiBold",
+    fontWeight: "600",
+    fontSize: 20,
+    left: 10,
+    position: "absolute"
+    },
+    textTypo: {
+    fontFamily: "Poppins-Bold",
+    fontWeight: "700",
+    fontSize: 30,
+    textAlign: "left",
+    color: "#000",
+    position: "absolute"
+    },
+    myBalance: {
+    top: 6,
+    },
+    availableCredit: {
+    top: 53
+    },
+    text: {
+    top: 0,
+    left: 200,
+    width: "100%",
+    height: 42
+    },
+    text1: {
+    top: 49,
+    left: 200
+    },
+    myBalanceParent: {
+    flex: 1,
+    width: "100%",
+    height: 94
+    },
   buttonContainer: {
     marginTop: 20,
     alignItems: "center",
