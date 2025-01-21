@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Alert, Image } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Image, ActivityIndicator } from "react-native";
 import { RouteProp, useRoute } from "@react-navigation/native";
-import axios from "axios";
 import { fetchData } from "../api/api"; // Import the fetchData function
+import Loader from "./Loader"; // Import the Loader component
 
 type RootStackParamList = {
   Home: {
@@ -16,10 +16,6 @@ type HomeScreenRouteProp = RouteProp<RootStackParamList, "Home">;
 
 interface CreditApplication {
   accountNumber: string;
-}
-
-interface CreditAccount {
-  creditAccountId: string;
 }
 
 const HomeScreen: React.FC = () => {
@@ -83,25 +79,26 @@ const HomeScreen: React.FC = () => {
 
       <View style={styles.boxContainer}>
         {loading ? (
-          <Text style={styles.loadingText}>Loading...</Text> // Show loading text
+          <View style={styles.loaderStyle}>
+            <Loader />
+          </View>
+          
         ) : (
-          accountNumbers.length > 0 && accountNumbers.map((accountNum, index) => (
+          accountNumbers.length > 0 &&
+          accountNumbers.map((accountNum, index) => (
             <View key={index} style={styles.accountDetails}>
               <View style={styles.accountNumberContainer}>
                 <Text style={styles.accountNumberText}>Account Number: {accountNum}</Text>
               </View>
-
               <View style={styles.paymentContainer}>
                 <View>
                   <Text style={styles.paymentLabel}>Next Payment</Text>
                   <Text style={styles.paymentAmount}>${currentAmountDue !== null ? currentAmountDue : " "}</Text>
                 </View>
-
                 <View>
                   <Text style={styles.paymentLabel}>Payment Date</Text>
                   <Text style={styles.paymentDate}>{nextPaymentDate !== null ? nextPaymentDate : " "}</Text>
                 </View>
-
                 <View>
                   <Text style={styles.paymentLabel}>Account</Text>
                   <Text style={styles.paymentDate}>*{accountNumber !== null ? accountNumber.slice(-4) : " "}</Text>
@@ -166,14 +163,19 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 15,
     marginTop: 20,
-    height: 150, // Set a minimum height for the box container
-    justifyContent: "center", // Center content vertically
+    height: 150,
+    justifyContent: "center",
+  },
+  loaderStyle:{
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#0000",
   },
   accountDetails: {
     marginBottom: 15,
   },
   accountNumberContainer: {
-    display: "flex",
     alignContent: "flex-start",
   },
   accountNumberText: {
@@ -181,14 +183,11 @@ const styles = StyleSheet.create({
     fontSize: 18,
     marginBottom: 5,
   },
-
   paymentContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignContent: "center",
     marginTop: 25,
   },
-
   paymentLabel: {
     color: "#fff",
     fontSize: 14,
@@ -206,13 +205,9 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     marginBottom: 5,
   },
-  loadingText: {
-    color: "#fff",
-    fontSize: 16,
-    textAlign: "center",
-  },
   buttonContainer: {
     marginTop: 20,
+    alignItems: "center",
   },
   button: {
     backgroundColor: "#2D4768",
