@@ -31,6 +31,8 @@ const HomeScreen: React.FC = () => {
   const [accountNumbers, setAccountNumbers] = useState<string[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [currentAmountDue, setCurrentAmountDue] = useState<number | null>(null);
+  const [balance, setBalance] = useState<number | null>(null);
+  const [availableCredit, setAvailableCredit] = useState<number | null>(null);
   const [accountNumber, setAccountNumber] = useState<string | null>(null);
   const [nextPaymentDate, setNextPaymentDate] = useState<string | null>(null);
 
@@ -59,6 +61,8 @@ const HomeScreen: React.FC = () => {
             console.log(response); // Log the response
             setCurrentAmountDue(response.currentAmountDue); // Set the current amount due
             setAccountNumber(response.paymentMethod.accountNumber); // Set the account number
+            setBalance(response.currentBalance); // Set the balance
+            setAvailableCredit(response.availableCredit); // Set the available credit
             const date = new Date(response.nextPaymentDate);
             setNextPaymentDate(`${date.getMonth() + 1}/${date.getDate()}`); // Set the next payment date in MM/DD format
           }, "Failed to fetch credit account summary.");
@@ -116,6 +120,18 @@ const HomeScreen: React.FC = () => {
         <TouchableOpacity style={styles.button}>
           <Text style={styles.additionalPaymentText}>Make Additional Payment</Text>
         </TouchableOpacity>
+      </View>
+
+      <View>
+        <Text>
+          Balance: {balance !== null ? balance : " "}
+        </Text>
+      </View>
+
+      <View>
+        <Text>
+          Available Credit: {availableCredit !== null ? availableCredit : " "}
+        </Text>
       </View>
     </View>
   );
