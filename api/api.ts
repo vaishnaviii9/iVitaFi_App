@@ -1,6 +1,7 @@
 import axios from "axios";
 import { Alert } from "react-native";
 
+// Function to fetch data from a given URL with a token and set the data to a state variable
 export const fetchData = async (url: string, token: string, setData: React.Dispatch<React.SetStateAction<any>>, errorMessage: string) => {
   try {
     const response = await axios.get(url, {

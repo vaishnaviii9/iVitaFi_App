@@ -2,9 +2,11 @@ import React, { useEffect, useRef } from 'react';
 import { Animated, StyleSheet, View } from 'react-native';
 
 const Loader: React.FC = () => {
+  // Create three animated values for the dots
   const animations = [useRef(new Animated.Value(0)).current, useRef(new Animated.Value(0)).current, useRef(new Animated.Value(0)).current];
 
   useEffect(() => {
+    // Loop through each animation and start the bouncing effect
     animations.forEach((animation, index) => {
       Animated.loop(
         Animated.sequence([

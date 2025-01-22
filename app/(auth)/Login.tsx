@@ -5,26 +5,28 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useNavigation } from '@react-navigation/native';
 
 const LoginScreen = () => {
+  // State variables for email, password, loading, and password visibility
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [passwordVisible, setPasswordVisible] = useState(false);
   const navigation = useNavigation<any>();
 
+  // Handle login button press
   const handleLogin = async () => {
     if (!email || !password) {
       Alert.alert('Error', 'Please fill in both fields');
       return;
     }
 
-   setLoading(true);
+    setLoading(true);
 
     try {
       const response = await axios.post('https://dev.ivitafi.com/api/User/authenticate', {
         email,
         password,
       });
-  
+
       if (response.data.token) {
         const { firstName, lastName } = response.data.user;
         navigation.navigate('Home', { firstName, lastName, token: response.data.token }); // Pass the token to Home
@@ -38,20 +40,23 @@ const LoginScreen = () => {
       setLoading(false);
     }
   };
-  
 
+  // Handle forgot password link press
   const handleForgotPassword = () => {
     Alert.alert('Forgot Password', 'Redirect to password recovery page.');
   };
 
+  // Handle terms of service link press
   const handleTermsOfService = () => {
     Linking.openURL('https://ivitafinancial.com/terms-of-service/');
   };
 
+  // Handle privacy policy link press
   const handlePrivacyPolicy = () => {
     Linking.openURL('https://ivitafinancial.com/privacy-policy/');
   };
 
+  // Handle FAQ link press
   const handleFAQ = () => {
     Linking.openURL('https://ivitafinancial.com/faq/#faq');
   };
