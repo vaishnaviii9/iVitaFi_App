@@ -158,6 +158,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
   },
+  RecentTransactionsContainer:{
+    flex: 1,
+    marginTop: 30,
+  }
 });
 
 export default styles;

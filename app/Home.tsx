@@ -4,6 +4,7 @@ import { RouteProp, useRoute } from "@react-navigation/native";
 import { fetchData } from "../api/api";
 import Loader from "./Loader";
 import styles from './HomeStyles'; // Import the styles
+import RecentTransactions from "./RecentTransactions";
 
 // Define the types for the route parameters
 type RootStackParamList = {
@@ -188,9 +189,14 @@ const HomeScreen: React.FC = () => {
           </Text>
         </TouchableOpacity>
       </View>
+
+
+        <View style={styles.RecentTransactionsContainer}>
+          <RecentTransactions />
+        </View>
+
     </View>
 
-    
   );
 };
 
