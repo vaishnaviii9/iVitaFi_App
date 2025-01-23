@@ -4,6 +4,7 @@ import { RouteProp, useRoute } from "@react-navigation/native";
 import { fetchData } from "../api/api";
 import Loader from "./Loader";
 
+// Define the types for the route parameters
 type RootStackParamList = {
   Home: {
     firstName: string;
@@ -22,6 +23,7 @@ const HomeScreen: React.FC = () => {
   const route = useRoute<HomeScreenRouteProp>();
   const { firstName, token } = route.params;
 
+  // Define state variables
   const [userData, setUserData] = useState<any>(null);
   const [customerData, setCustomerData] = useState<any>(null);
   const [accountNumbers, setAccountNumbers] = useState<string[]>([]);
@@ -110,6 +112,7 @@ const HomeScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
+      {/* Header section */}
       <View style={styles.headerContainer}>
         <View style={styles.iconAndTextContainer}>
           <Image
@@ -127,6 +130,7 @@ const HomeScreen: React.FC = () => {
         />
       </View>
 
+      {/* Account details section */}
       <View style={styles.boxContainer}>
         {accountNumbers.length > 0 ? (
           accountNumbers.map((accountNum, index) => (
@@ -163,20 +167,19 @@ const HomeScreen: React.FC = () => {
         )}
       </View>
 
-      {/* balance and available credit figma  */}
-
+      {/* Balance and available credit section */}
       <View style={styles.balanceContainer}>
-      <View style={styles.myBalanceParent}>
-        <Text style={[styles.myBalance, styles.myBalanceTypo]}>My Balance</Text>
-        <Text style={[styles.availableCredit, styles.myBalanceTypo]}>
-          Available Credit
-        </Text>
-        <Text style={[styles.text, styles.textTypo]}>${balance || " "}</Text>
-        <Text style={[styles.text1, styles.textTypo]}>${availableCredit || " "}</Text>
-      </View>
+        <View style={styles.myBalanceParent}>
+          <Text style={[styles.myBalance, styles.myBalanceTypo]}>My Balance</Text>
+          <Text style={[styles.availableCredit, styles.myBalanceTypo]}>
+            Available Credit
+          </Text>
+          <Text style={[styles.text, styles.textTypo]}>${balance || " "}</Text>
+          <Text style={[styles.text1, styles.textTypo]}>${availableCredit || " "}</Text>
+        </View>
       </View>
 
-      {/* additional payment button */}
+      {/* Additional payment button */}
       <View style={styles.buttonContainer}>
         <TouchableOpacity style={styles.button}>
           <Text style={styles.additionalPaymentText}>
@@ -185,6 +188,8 @@ const HomeScreen: React.FC = () => {
         </TouchableOpacity>
       </View>
     </View>
+
+    
   );
 };
 
@@ -287,7 +292,6 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     marginBottom: 5,
   },
-
   balanceContainer: {
     width: "90%",
     padding: 10,
@@ -295,45 +299,43 @@ const styles = StyleSheet.create({
     height: 100,
     justifyContent: "center",
   },
-
   myBalanceTypo: {
     textAlign: "left",
     color: "#000",
-    // fontFamily: "Poppins-SemiBold",
     fontWeight: "600",
     fontSize: 20,
     left: 10,
     position: "absolute"
-    },
-    textTypo: {
+  },
+  textTypo: {
     fontFamily: "Poppins-Bold",
     fontWeight: "700",
     fontSize: 30,
     textAlign: "left",
     color: "#000",
     position: "absolute"
-    },
-    myBalance: {
+  },
+  myBalance: {
     top: 6,
-    },
-    availableCredit: {
+  },
+  availableCredit: {
     top: 53
-    },
-    text: {
+  },
+  text: {
     top: 0,
     left: 200,
     width: "100%",
     height: 42
-    },
-    text1: {
+  },
+  text1: {
     top: 49,
     left: 200
-    },
-    myBalanceParent: {
+  },
+  myBalanceParent: {
     flex: 1,
     width: "100%",
     height: 94
-    },
+  },
   buttonContainer: {
     marginTop: 20,
     alignItems: "center",
