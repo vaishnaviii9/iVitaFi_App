@@ -99,52 +99,47 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     marginBottom: 5,
   },
-  balanceContainer: {
-    width: "90%",
-    padding: 10,
-    marginTop: 10,
-    height: 100,
-    justifyContent: "center",
-  },
-  myBalanceTypo: {
-    textAlign: "left",
-    color: "#000",
-    fontWeight: "600",
-    fontSize: 20,
-    left: 10,
-    position: "absolute"
-  },
-  textTypo: {
-    fontFamily: "Poppins-Bold",
-    fontWeight: "700",
-    fontSize: 30,
-    textAlign: "left",
-    color: "#000",
-    position: "absolute"
-  },
-  myBalance: {
-    top: 6,
-  },
-  availableCredit: {
-    top: 53
-  },
-  text: {
-    top: 0,
-    left: 200,
-    width: "100%",
-    height: 42
-  },
-  text1: {
-    top: 49,
-    left: 200
-  },
-  myBalanceParent: {
-    flex: 1,
-    width: "100%",
-    height: 94
-  },
+    balanceContainer: {
+      width: "90%",
+      padding: 10,
+      marginTop: 20,
+      height: 90,
+      justifyContent: "center",
+    },
+    balanceRow: {
+      flexDirection: "row",
+      justifyContent: "space-between", // Space between the label and amount
+      alignItems: "center", // Align items vertically centered
+      marginBottom: 10, // Spacing between rows
+    },
+    myBalance: {
+      fontWeight: "600",
+      fontSize: 20,
+      color: "#000",
+      fontFamily: "Poppins-Medium",
+    },
+    availableCredit: {
+      fontWeight: "600",
+      fontSize: 20,
+      color: "#000",
+      fontFamily: "Poppins-Medium",
+    },
+    text: {
+      fontWeight: "700",
+      fontSize: 25,
+      color: "#000",
+      fontFamily: "Poppins-Bold",
+      textAlign: "right",
+    },
+    text1: {
+      fontWeight: "700",
+      fontSize: 25,
+      color: "#000",
+      fontFamily: "Poppins-Bold",
+      textAlign: "right",
+    },
   buttonContainer: {
-    marginTop: 20,
+    marginTop: 10,
     alignItems: "center",
   },
   button: {
@@ -159,8 +154,8 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   RecentTransactionsContainer:{
-    flex: 1,
     marginTop: 30,
+    width: "90%",
   }
 });
 

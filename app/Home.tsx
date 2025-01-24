@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, Image } from "react-native";
 import { RouteProp, useRoute } from "@react-navigation/native";
 import { fetchData } from "../api/api";
 import Loader from "./Loader";
-import styles from './HomeStyles'; // Import the styles
+import styles from "./HomeStyles"; // Import the styles
 import RecentTransactions from "./RecentTransactions";
 
 // Define the types for the route parameters
@@ -171,13 +171,13 @@ const HomeScreen: React.FC = () => {
 
       {/* Balance and available credit section */}
       <View style={styles.balanceContainer}>
-        <View style={styles.myBalanceParent}>
-          <Text style={[styles.myBalance, styles.myBalanceTypo]}>My Balance</Text>
-          <Text style={[styles.availableCredit, styles.myBalanceTypo]}>
-            Available Credit
-          </Text>
-          <Text style={[styles.text, styles.textTypo]}>${balance || " "}</Text>
-          <Text style={[styles.text1, styles.textTypo]}>${availableCredit || " "}</Text>
+        <View style={styles.balanceRow}>
+          <Text style={styles.myBalance}>My Balance</Text>
+          <Text style={styles.text}>${balance || " "}</Text>
+        </View>
+        <View style={styles.balanceRow}>
+          <Text style={styles.availableCredit}>Available Credit</Text>
+          <Text style={styles.text1}>${availableCredit || " "}</Text>
         </View>
       </View>
 
@@ -190,13 +190,10 @@ const HomeScreen: React.FC = () => {
         </TouchableOpacity>
       </View>
 
-
-        <View style={styles.RecentTransactionsContainer}>
-          <RecentTransactions />
-        </View>
-
+      <View style={styles.RecentTransactionsContainer}>
+        <RecentTransactions />
+      </View>
     </View>
-
   );
 };
 
