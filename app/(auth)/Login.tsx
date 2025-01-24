@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Alert, ActivityIndicator, StyleSheet, Image, TouchableOpacity, Linking } from 'react-native';
+import { View, Text, TextInput, Alert, Image, TouchableOpacity, Linking } from 'react-native';
 import axios from 'axios';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useNavigation } from '@react-navigation/native';
+import styles from './LoginStyles'; // Import the styles
 
 const LoginScreen = () => {
   // State variables for email, password, loading, and password visibility
@@ -96,13 +97,9 @@ const LoginScreen = () => {
       <TouchableOpacity onPress={handleForgotPassword}>
         <Text style={styles.forgotPassword}>Forgot Password?</Text>
       </TouchableOpacity>
-      {loading ? (
-        <ActivityIndicator size="large" color="#0000ff" />
-      ) : (
-        <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
-          <Text style={styles.loginButtonText}>Sign In</Text>
-        </TouchableOpacity>
-      )}
+      <TouchableOpacity style={styles.loginButton} onPress={handleLogin} disabled={loading}>
+        <Text style={styles.loginButtonText}>Sign In</Text>
+      </TouchableOpacity>
       <View style={styles.footerContainer}>
         <TouchableOpacity onPress={handleTermsOfService}>
           <Text style={styles.footerText}>Terms of Service</Text>
@@ -124,108 +121,5 @@ const LoginScreen = () => {
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  outerContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#FEFFFF',
-    padding: 16,
-  },
-  logo: {
-    width: 91,
-    height: 95,
-    marginBottom: 20,
-  },
-  title: {
-    textAlign: 'center',
-    color: '#141218',
-    fontSize: 24,
-    fontFamily: 'Montserrat',
-    fontWeight: '700',
-    lineHeight: 30,
-    letterSpacing: 0.20,
-    marginBottom: 20,
-  },
-  input: {
-    width: '100%',
-    height: 60,
-    backgroundColor: '#FEFFFF',
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: 'black',
-    paddingHorizontal: 16,
-    marginBottom: 16,
-  },
-  passwordContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    width: '100%',
-  },
-  eyeIcon: {
-    position: 'absolute', // Use absolute positioning to place the icon
-    right: 10, // Adjust this value based on your layout
-    top: '40%', // Center vertically within the parent container
-    transform: [{ translateY: -12 }], // Offset by half the icon's height to align vertically
-    zIndex: 1, // Ensure it's above other elements if overlapping occurs
-  },
-  forgotPassword: {
-    textAlign: 'center',
-    color: '#232126',
-    fontSize: 15,
-    fontFamily: 'Montserrat',
-    fontWeight: '400',
-    lineHeight: 30,
-    letterSpacing: 0.20,
-    marginBottom: 20,
-  },
-  loginButton: {
-    width: '100%',
-    height: 56,
-    backgroundColor: '#1F3644',
-    borderRadius: 15,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  loginButtonText: {
-    color: 'white',
-    fontSize: 15,
-    fontFamily: 'Montserrat',
-    fontWeight: '700',
-    lineHeight: 30,
-    letterSpacing: 0.20,
-  },
-  footerContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  footerText: {
-    textAlign: 'center',
-    color: '#151616',
-    fontSize: 15,
-    fontFamily: 'Montserrat',
-    fontWeight: '700',
-    lineHeight: 30,
-    letterSpacing: 0.20,
-  },
-  poweredBy: {
-    textAlign: 'center',
-    color: 'black',
-    fontSize: 15,
-    fontFamily: 'Montserrat',
-    fontWeight: '400',
-    lineHeight: 30,
-    letterSpacing: 0.20,
-    marginBottom: 10,
-  },
-  poweredByLogo: {
-    width: 102,
-    height: 37,
-  },
-});
 
 export default LoginScreen;
