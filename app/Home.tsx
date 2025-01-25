@@ -20,7 +20,6 @@ type HomeScreenRouteProp = RouteProp<RootStackParamList, "Home">;
 interface CreditApplication {
   accountNumber: string;
 }
-
 const HomeScreen: React.FC = () => {
   const route = useRoute<HomeScreenRouteProp>();
   const { firstName, token } = route.params;
@@ -35,6 +34,7 @@ const HomeScreen: React.FC = () => {
   const [availableCredit, setAvailableCredit] = useState<number | null>(null);
   const [accountNumber, setAccountNumber] = useState<string | null>(null);
   const [nextPaymentDate, setNextPaymentDate] = useState<string | null>(null);
+  const [creditAccountId, setCreditAccountId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchAllData = async () => {
@@ -79,7 +79,12 @@ const HomeScreen: React.FC = () => {
               }
               return null;
             })
+            
           );
+          const firstAccount = customerResponse.creditAccounts[0];
+          if (firstAccount && firstAccount.patientEpisodes.length > 0) {
+            setCreditAccountId(firstAccount.patientEpisodes[0].creditAccountId);
+          }
 
           // Update state with the first valid summary data
           const validSummary = creditSummaries.find(
@@ -189,10 +194,14 @@ const HomeScreen: React.FC = () => {
           </Text>
         </TouchableOpacity>
       </View>
-
       <View style={styles.RecentTransactionsContainer}>
-        <RecentTransactions />
-      </View>
+  {creditAccountId ? (
+    <RecentTransactions creditAccountId={creditAccountId} token={token} />
+  ) : (
+    <Text style={styles.noAccountText}>No transactions available</Text>
+  )}
+</View>
+
     </View>
   );
 };

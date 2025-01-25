@@ -1,85 +1,95 @@
-import * as React from "react";
-import { StyleSheet, View, Text, Image } from "react-native";
+import React, { useEffect, useState } from "react";
+import { StyleSheet, View, Text } from "react-native";
+import { fetchData } from "../api/api";
 
-const RecentTransactions = () => {
+interface RecentTransactionsProps {
+  creditAccountId: string;
+  token: string;
+}
+
+const RecentTransactions: React.FC<RecentTransactionsProps> = ({
+  creditAccountId,
+  token,
+}) => {
+  const [transactions, setTransactions] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchTransactions = async () => {
+      try {
+        const response = await fetchData(
+          `https://dev.ivitafi.com/api/creditaccount/${creditAccountId}/pending-transactions`,
+          token, // Use token here
+          (data) => data,
+          "Failed to fetch transactions."
+        );
+        setTransactions(response || []);
+        console.log(response);
+      } catch (error) {
+        console.error("Error fetching transactions:", error);
+      }
+    };
+
+    fetchTransactions();
+  }, [creditAccountId, token]);
+
   return (
-
-    // View for Recent Transactions
     <View style={styles.recentTransactions}>
       <View style={styles.baseBlackParent}>
         <View style={[styles.baseBlack, styles.absoluteFill]} />
         <View style={styles.frameParent}>
           <View style={[styles.titleParent, styles.rowCenter]}>
-            <Text style={[styles.title, styles.textBold]}>Pending Transactions</Text>
-            <View style={styles.iconBack}>
-              <Image
-                style={[styles.icon]}
-                resizeMode="cover"
-                source={require('@/assets/images/next.png')}
-              />
-            </View>
+            <Text style={[styles.title, styles.textBold]}>
+              Recent Transactions
+            </Text>
           </View>
 
-            {/* Transaction Rows */}
-            <View style={styles.transactionRow}>
-              <Text style={[styles.transactionDetails, styles.textSmall]}>
-                <Text style={styles.textBold}>{`25587\n`}</Text>
-                <Text style={styles.textSecondary}>{`Downward Adjustment\n12/18/2024`}</Text>
-              </Text>
-              <Text style={styles.amountText}>$180.00</Text>
-              <Image
-                source={require('@/assets/images/Trash.png')}
-                style={styles.trashIcon}
-              />
-            </View>
-
-            <View style={styles.transactionRow}>
-              <Text style={[styles.transactionDetails, styles.textSmall]}>
-                <Text style={styles.textBold}>{`26007\n`}</Text>
-                <Text style={styles.textSecondary}>{`Debit Card\n01/31/2025`}</Text>
-              </Text>
-              <Text style={styles.amountText}>$46.00</Text>
-              <Image
-                source={require('@/assets/images/Trash.png')}
-                style={styles.trashIcon}
-              />
-            </View>
-
-          
-            <View style={styles.transactionRow}>
-              <Text style={[styles.transactionDetails, styles.textSmall]}>
-                <Text style={styles.textBold}>{`26005\n`}</Text>
-                <Text style={styles.textSecondary}>{`Upward Adjustment\n12/18/2024`}</Text>
-              </Text>
-              <Text style={styles.amountText}>---</Text>
-              <View style={styles.twoiconstyle}>
-              <Image
-                source={require('@/assets/images/Check01.png')}
-                style={styles.icon}
-              />
-              <Image
-                source={require('@/assets/images/X02.png')}
-                style={styles.icon}
-              />
+          {transactions.length > 0 ? (
+            transactions.map((transaction, index) => (
+              <View key={index} style={styles.transactionRow}>
+                <Text style={[styles.transactionDetails, styles.textSmall]}>
+                  <Text style={styles.textBold}>
+                    {transaction.id}
+                  </Text>
+                  {"\n"}
+                  <Text style={styles.textSecondary}>
+                    {" "}
+                    {transaction.transactionType || "No type available"}
+                  </Text>
+                  {"\n"}
+                  <Text style={styles.textSecondary}>
+                   {" "}
+                    {new Date(transaction.pendingTransactionDate).toLocaleDateString()}
+                  </Text>
+                </Text>
+                <Text style={styles.amountText}>
+                  ${transaction.requestedAmount.toFixed(2)}
+                </Text>
               </View>
-             
-            </View>
-          </View>
+            ))
+          ) : (
+            <Text style={styles.noTransactionsText}>
+              No recent transactions available.
+            </Text>
+          )}
         </View>
       </View>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
+  noTransactionsText: {
+    color: "#fff",
+    fontSize: 14,
+    textAlign: "center",
+    marginTop: 10,
+  },
   absoluteFill: {
     position: "absolute",
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-  },
-  nextIcon:{
-    color: "#fff",
   },
   rowCenter: {
     flexDirection: "row",
@@ -127,49 +137,21 @@ const styles = StyleSheet.create({
     color: "#fff",
     letterSpacing: -0.1,
   },
-  iconBack: {
-    width: 25,
-    height: 20,
-  },
-  icon: {
-    height: 24,
-    width: 24,
-    resizeMode: "cover",
-  },
   transactionRow: {
     flexDirection: "row",
     alignItems: "center",
     width: 305,
-    height: 45,
+    height: 65,
     justifyContent: "space-between",
   },
-  
   transactionDetails: {
-    // flex: 1,
     color: "#fffbfb",
-    width: 150,
+    width: 200,
   },
-
   amountText: {
     color: "#feeeee",
-    width: 60,
-    height: 18,
     textAlign: "center",
-    alignContent: "center",
-    justifyContent: "center",
   },
-  trashIcon: {
-    height: 24,
-    width: 24,
-    marginLeft: 10,
-  },
-    twoiconstyle: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        width: 50,
-        gap: 10,
-        height: 28,
-    },
 });
 
 export default RecentTransactions;
