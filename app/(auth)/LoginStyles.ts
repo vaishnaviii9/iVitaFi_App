@@ -101,6 +101,10 @@ const styles = StyleSheet.create({
     width: 102,
     height: 37,
   },
+  errorText:{
+    color: '#FF0000',
+  
+  }
 });
 
 export default styles;
