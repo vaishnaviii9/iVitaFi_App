@@ -45,8 +45,44 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 15,
     marginTop: 20,
-    height: 150,
-    justifyContent: "center",
+    justifyContent: "space-between",
+  },
+
+  accountDetails: {
+    marginBottom: 15,
+  },
+
+  accountNumberContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+
+  accountNumberText: {
+    color: "white",
+    fontSize: 16, // Slightly larger font size for emphasis
+    fontWeight: "bold",
+  },
+
+  autoPayParent: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 5,
+    borderRadius: 15,
+    backgroundColor: "#1E3553", // Subtle background color for the AutoPay section
+  },
+
+  autoPay: {
+    fontSize: 12,
+    fontWeight: "600",
+    fontFamily: "Inter-SemiBold",
+    color: "#fff",
+    marginRight: 5, // Space between text and icon
+  },
+
+  autopayIcon: {
+    width: 20,
+    height: 20,
   },
   loaderContainer: {
     flex: 1,
@@ -66,17 +102,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "#0000",
   },
-  accountDetails: {
-    marginBottom: 15,
-  },
-  accountNumberContainer: {
-    alignContent: "flex-start",
-  },
-  accountNumberText: {
-    color: "white",
-    fontSize: 18,
-    marginBottom: 5,
-  },
+
   paymentContainer: {
     flexDirection: "row",
     justifyContent: "space-between",

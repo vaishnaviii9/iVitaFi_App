@@ -46,18 +46,26 @@ const RecentTransactions: React.FC<RecentTransactionsProps> = ({
 
           {transactions.length > 0 ? (
             transactions.map((transaction, index) => (
-              <View key={index} style={styles.transactionRow}>
-                <Text style={[styles.transactionDetails, styles.textSmall]}>
-                  <Text style={styles.textBold}>{transaction.id}</Text>
-                  {"\n"}
-                  <Text style={styles.textSecondary}>
-                    {CreditAccountTransactionTypeUtil.toString(transaction.transactionType) || "Unknown Type"}
+              <View
+                key={index}
+                style={[
+                  styles.transactionRow,
+                  index % 2 === 0 ? styles.rowLight : styles.rowDark,
+                ]}
+              >
+                <View style={styles.transactionDetailsContainer}>
+                  <Text style={[styles.transactionDetails, styles.textSmall]}>
+                    <Text style={styles.textBold}>{transaction.id}</Text>
+                    {"\n"}
+                    <Text style={styles.textSecondary}>
+                      {CreditAccountTransactionTypeUtil.toString(transaction.transactionType) || "Unknown Type"}
+                    </Text>
+                    {"\n"}
+                    <Text style={styles.textSecondary}>
+                      {new Date(transaction.pendingTransactionDate).toLocaleDateString()}
+                    </Text>
                   </Text>
-                  {"\n"}
-                  <Text style={styles.textSecondary}>
-                    {new Date(transaction.pendingTransactionDate).toLocaleDateString()}
-                  </Text>
-                </Text>
+                </View>
                 <Text style={styles.amountText}>
                   ${transaction.requestedAmount.toFixed(2)}
                 </Text>
@@ -112,7 +120,7 @@ const styles = StyleSheet.create({
   },
   baseBlackParent: {
     width: 335,
-    height: 229,
+    height: 300,
   },
   baseBlack: {
     borderRadius: 10,
@@ -124,10 +132,12 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 10,
     left: 16,
+    right: 16,
     gap: 1,
   },
   titleParent: {
     justifyContent: "space-between",
+    marginBottom: 12,
   },
   title: {
     fontSize: 18,
@@ -137,16 +147,28 @@ const styles = StyleSheet.create({
   transactionRow: {
     flexDirection: "row",
     alignItems: "center",
-    width: 305,
-    height: 65,
     justifyContent: "space-between",
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 8,
+  },
+  rowLight: {
+    backgroundColor: "#3a4466",
+  },
+  rowDark: {
+    backgroundColor: "#2f3954",
+  },
+  transactionDetailsContainer: {
+    flex: 1,
+    paddingRight: 10,
   },
   transactionDetails: {
     color: "#fffbfb",
-    width: 200,
+    lineHeight: 18,
   },
   amountText: {
     color: "#feeeee",
+    fontWeight: "bold",
     textAlign: "center",
   },
 });

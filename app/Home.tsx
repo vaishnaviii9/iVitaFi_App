@@ -139,40 +139,55 @@ const HomeScreen: React.FC = () => {
 
       {/* Account details section */}
       <View style={styles.boxContainer}>
-        {accountNumbers.length > 0 ? (
-          accountNumbers.map((accountNum, index) => (
-            <View key={index} style={styles.accountDetails}>
-              <View style={styles.accountNumberContainer}>
-                <Text style={styles.accountNumberText}>
-                  Account Number: {accountNum}
-                </Text>
-              </View>
-              <View style={styles.paymentContainer}>
-                <View>
-                  <Text style={styles.paymentLabel}>Next Payment</Text>
-                  <Text style={styles.paymentAmount}>
-                    ${currentAmountDue || " "}
-                  </Text>
-                </View>
-                <View>
-                  <Text style={styles.paymentLabel}>Payment Date</Text>
-                  <Text style={styles.paymentDate}>
-                    {nextPaymentDate || " "}
-                  </Text>
-                </View>
-                <View>
-                  <Text style={styles.paymentLabel}>Account</Text>
-                  <Text style={styles.paymentDate}>
-                    *{accountNumber?.slice(-4) || " "}
-                  </Text>
-                </View>
-              </View>
+  {accountNumbers.length > 0 ? (
+    accountNumbers.map((accountNum, index) => (
+      <View key={index} style={styles.accountDetails}>
+        <View style={styles.accountNumberContainer}>
+          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+            <Text style={styles.accountNumberText}>
+              Account Number: {accountNum}
+            </Text>
+            {/* Auto Pay Section */}
+          </View>
+          <View style={styles.autoPayParent}>
+            {/* <Image
+                source={require("@/assets/images/autopay.png")} // Replace with the correct autopay icon path
+                style={styles.autopayIcon}
+              /> */}
+              <Image
+                source={require("@/assets/images/Cross Circle.png")} // Replace with the correct autopay icon path
+                style={styles.autopayIcon}
+              />
+              <Text style={styles.autoPay}>{`Auto Pay `}</Text>
             </View>
-          ))
-        ) : (
-          <Text style={styles.noAccountText}>No accounts available</Text>
-        )}
+        </View>
+        <View style={styles.paymentContainer}>
+          <View>
+            <Text style={styles.paymentLabel}>Next Payment</Text>
+            <Text style={styles.paymentAmount}>
+              ${currentAmountDue || " "}
+            </Text>
+          </View>
+          <View>
+            <Text style={styles.paymentLabel}>Payment Date</Text>
+            <Text style={styles.paymentDate}>
+              {nextPaymentDate || " "}
+            </Text>
+          </View>
+          <View>
+            <Text style={styles.paymentLabel}>Account</Text>
+            <Text style={styles.paymentDate}>
+              *{accountNumber?.slice(-4) || " "}
+            </Text>
+          </View>
+        </View>
       </View>
+    ))
+  ) : (
+    <Text style={styles.noAccountText}>No accounts available</Text>
+  )}
+</View>
+
 
       {/* Balance and available credit section */}
       <View style={styles.balanceContainer}>
