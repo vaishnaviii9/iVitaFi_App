@@ -90,8 +90,10 @@ const HomeScreen: React.FC = () => {
           const validSummary = creditSummaries.find(
             (summary) => summary !== null
           );
+          console.log(validSummary);
+          
           if (validSummary) {
-            setCurrentAmountDue(validSummary.lastPaymentAmount);
+            setCurrentAmountDue(validSummary.detail.creditAccount.paymentSchedule.paymentAmount);
             setAccountNumber(validSummary.paymentMethod.accountNumber);
             setBalance(validSummary.currentBalance);
             setAvailableCredit(validSummary.displayAvailableCredit);
