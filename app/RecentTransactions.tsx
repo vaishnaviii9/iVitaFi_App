@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { StyleSheet, View, Text } from "react-native";
 import { fetchData } from "../api/api";
+import { CreditAccountTransactionTypeUtil } from "../utils/CreditAccountTransactionTypeUtil"; // Import the utility
 
 interface RecentTransactionsProps {
   creditAccountId: string;
@@ -39,7 +40,7 @@ const RecentTransactions: React.FC<RecentTransactionsProps> = ({
         <View style={styles.frameParent}>
           <View style={[styles.titleParent, styles.rowCenter]}>
             <Text style={[styles.title, styles.textBold]}>
-              Recent Transactions
+              Pending Transactions
             </Text>
           </View>
 
@@ -47,17 +48,13 @@ const RecentTransactions: React.FC<RecentTransactionsProps> = ({
             transactions.map((transaction, index) => (
               <View key={index} style={styles.transactionRow}>
                 <Text style={[styles.transactionDetails, styles.textSmall]}>
-                  <Text style={styles.textBold}>
-                    {transaction.id}
+                  <Text style={styles.textBold}>{transaction.id}</Text>
+                  {"\n"}
+                  <Text style={styles.textSecondary}>
+                    {CreditAccountTransactionTypeUtil.toString(transaction.transactionType) || "Unknown Type"}
                   </Text>
                   {"\n"}
                   <Text style={styles.textSecondary}>
-                    {" "}
-                    {transaction.transactionType || "No type available"}
-                  </Text>
-                  {"\n"}
-                  <Text style={styles.textSecondary}>
-                   {" "}
                     {new Date(transaction.pendingTransactionDate).toLocaleDateString()}
                   </Text>
                 </Text>
@@ -125,9 +122,9 @@ const styles = StyleSheet.create({
   },
   frameParent: {
     position: "absolute",
-    top: 16,
+    top: 10,
     left: 16,
-    gap: 13,
+    gap: 1,
   },
   titleParent: {
     justifyContent: "space-between",
