@@ -165,7 +165,7 @@ const styles = StyleSheet.create({
       textAlign: "right",
     },
   buttonContainer: {
-    marginTop: 10,
+    marginTop: 5,
     alignItems: "center",
   },
   button: {
@@ -180,7 +180,7 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   RecentTransactionsContainer:{
-    marginTop: 30,
+    marginTop: 20,
     width: "90%",
   }
 });

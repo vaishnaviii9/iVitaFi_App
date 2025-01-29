@@ -152,14 +152,14 @@ const HomeScreen: React.FC = () => {
             {/* Auto Pay Section */}
           </View>
           <View style={styles.autoPayParent}>
-            {/* <Image
+            <Image
                 source={require("@/assets/images/autopay.png")} // Replace with the correct autopay icon path
                 style={styles.autopayIcon}
-              /> */}
-              <Image
+              />
+              {/* <Image
                 source={require("@/assets/images/Cross Circle.png")} // Replace with the correct autopay icon path
                 style={styles.autopayIcon}
-              />
+              /> */}
               <Text style={styles.autoPay}>{`Auto Pay `}</Text>
             </View>
         </View>

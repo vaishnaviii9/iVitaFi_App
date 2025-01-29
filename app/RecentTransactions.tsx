@@ -19,7 +19,7 @@ const RecentTransactions: React.FC<RecentTransactionsProps> = ({
       try {
         const response = await fetchData(
           `https://dev.ivitafi.com/api/creditaccount/${creditAccountId}/pending-transactions`,
-          token, // Use token here
+          token,
           (data) => data,
           "Failed to fetch transactions."
         );
@@ -58,11 +58,17 @@ const RecentTransactions: React.FC<RecentTransactionsProps> = ({
                     <Text style={styles.textBold}>{transaction.id}</Text>
                     {"\n"}
                     <Text style={styles.textSecondary}>
-                      {CreditAccountTransactionTypeUtil.toString(transaction.transactionType) || "Unknown Type"}
+                      {CreditAccountTransactionTypeUtil.toString(
+                        transaction.transactionType
+                      ) || "Unknown Type"}
                     </Text>
                     {"\n"}
                     <Text style={styles.textSecondary}>
-                      {new Date(transaction.pendingTransactionDate).toLocaleDateString()}
+                      {transaction.pendingTransactionDate === null
+                        ? "---"
+                        : new Date(
+                            transaction.pendingTransactionDate
+                          ).toLocaleDateString()}
                     </Text>
                   </Text>
                 </View>
