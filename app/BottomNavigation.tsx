@@ -35,6 +35,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: 10,
     backgroundColor: "#fff",
+    borderRadius: 10,
   },
   bottomNavigation: {
     flexDirection: "row",
@@ -45,10 +46,11 @@ const styles = StyleSheet.create({
     borderTopColor: "#ddd",
     backgroundColor: "#fff",
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: -5 },
-    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: -9 },
+    shadowOpacity: 0.2,
     shadowRadius: 10,
-    elevation: 5,
+    elevation: 40,
+    borderRadius: 30,
   },
   navItem: {
     alignItems: "center",

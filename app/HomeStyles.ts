@@ -185,8 +185,10 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   BottomNavigationConatiner:{
-    width: "95%",
+    width: "90%",
     flex:1,
+    marginBottom: 10,
+
   }
 });
 
