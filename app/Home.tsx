@@ -35,6 +35,7 @@ const HomeScreen: React.FC = () => {
   const [accountNumber, setAccountNumber] = useState<string | null>(null);
   const [nextPaymentDate, setNextPaymentDate] = useState<string | null>(null);
   const [creditAccountId, setCreditAccountId] = useState<string | null>(null);
+  const [autoPay, setAutopay] = useState<boolean | null>(null);
 
   useEffect(() => {
     const fetchAllData = async () => {
@@ -86,11 +87,13 @@ const HomeScreen: React.FC = () => {
             setCreditAccountId(firstAccount.patientEpisodes[0].creditAccountId);
           }
 
+          
+
           // Update state with the first valid summary data
           const validSummary = creditSummaries.find(
             (summary) => summary !== null
           );
-          console.log(validSummary);
+          console.log("validSummary", validSummary);
           
           if (validSummary) {
             setCurrentAmountDue(validSummary.detail.creditAccount.paymentSchedule.paymentAmount);
@@ -99,7 +102,10 @@ const HomeScreen: React.FC = () => {
             setAvailableCredit(validSummary.displayAvailableCredit);
             const date = new Date(validSummary.nextPaymentDate);
             setNextPaymentDate(`${date.getMonth() + 1}/${date.getDate()}`);
+            setAutopay(validSummary.detail?.creditAccount?.paymentSchedule?.autoPayEnabled)
           }
+          console.log("autoPay",autoPay);
+          
         }
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -152,10 +158,13 @@ const HomeScreen: React.FC = () => {
             {/* Auto Pay Section */}
           </View>
           <View style={styles.autoPayParent}>
-            <Image
-                source={require("@/assets/images/autopay.png")} // Replace with the correct autopay icon path
+           {autoPay?  <Image
+                source={require("@/assets/images/autopayOn.png")} // Replace with the correct autopay icon path
                 style={styles.autopayIcon}
-              />
+              /> :  <Image
+              source={require("@/assets/images/autopayOff.png")} // Replace with the correct autopay icon path
+              style={styles.autopayIcon}
+            />}
               {/* <Image
                 source={require("@/assets/images/Cross Circle.png")} // Replace with the correct autopay icon path
                 style={styles.autopayIcon}
