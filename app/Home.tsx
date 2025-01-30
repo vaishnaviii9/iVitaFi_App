@@ -176,7 +176,7 @@ const HomeScreen: React.FC = () => {
           <View>
             <Text style={styles.paymentLabel}>Next Payment</Text>
             <Text style={styles.paymentAmount}>
-              ${currentAmountDue || " "}
+              ${currentAmountDue?.toFixed(2) || " "}
             </Text>
           </View>
           <View>
