@@ -1,4 +1,5 @@
 import { StyleSheet } from 'react-native';
+import BottomNavigation from './BottomNavigation';
 
 const styles = StyleSheet.create({
   container: {
@@ -12,7 +13,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     width: "100%",
     paddingHorizontal: 20,
-    marginTop: 25,
+    marginTop: 20,
   },
   iconAndTextContainer: {
     flexDirection: "row",
@@ -44,7 +45,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#2D4768",
     borderRadius: 20,
     padding: 15,
-    marginTop: 20,
+    marginTop: 15,
     justifyContent: "space-between",
   },
 
@@ -128,7 +129,7 @@ const styles = StyleSheet.create({
     balanceContainer: {
       width: "90%",
       padding: 10,
-      marginTop: 20,
+      marginTop: 15,
       height: 90,
       justifyContent: "center",
     },
@@ -181,7 +182,11 @@ const styles = StyleSheet.create({
   },
   RecentTransactionsContainer:{
     marginTop: 20,
-    width: "90%",
+    width: "100%",
+  },
+  BottomNavigationConatiner:{
+    width: "95%",
+    flex:1,
   }
 });
 

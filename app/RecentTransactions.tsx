@@ -100,11 +100,13 @@ const RecentTransactions: React.FC<RecentTransactionsProps> = ({
                           ).toLocaleDateString()}
                     </Text>
                   </Text>
+
                 </View>
-                <Text style={styles.amountText}>
+                <View><Text style={styles.amountText}>
                   ${transaction.requestedAmount.toFixed(2)}
                 </Text>
-                {renderTransactionIcon(transaction.transactionType)}
+                </View>
+                <View>{renderTransactionIcon(transaction.transactionType)}</View>                
               </View>
             ))
           ) : (

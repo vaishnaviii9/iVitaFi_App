@@ -5,6 +5,7 @@ import { fetchData } from "../api/api";
 import Loader from "./Loader";
 import styles from "./HomeStyles"; // Import the styles
 import RecentTransactions from "./RecentTransactions";
+import BottomNavigation from "./BottomNavigation";
 
 // Define the types for the route parameters
 type RootStackParamList = {
@@ -80,32 +81,33 @@ const HomeScreen: React.FC = () => {
               }
               return null;
             })
-            
           );
           const firstAccount = customerResponse.creditAccounts[0];
           if (firstAccount && firstAccount.patientEpisodes.length > 0) {
             setCreditAccountId(firstAccount.patientEpisodes[0].creditAccountId);
           }
 
-          
-
           // Update state with the first valid summary data
           const validSummary = creditSummaries.find(
             (summary) => summary !== null
           );
           // console.log("validSummary", validSummary);
-          
+
           if (validSummary) {
-            setCurrentAmountDue(validSummary.detail.creditAccount.paymentSchedule.paymentAmount);
+            setCurrentAmountDue(
+              validSummary.detail.creditAccount.paymentSchedule.paymentAmount
+            );
             setAccountNumber(validSummary.paymentMethod.accountNumber);
             setBalance(validSummary.currentBalance);
             setAvailableCredit(validSummary.displayAvailableCredit);
             const date = new Date(validSummary.nextPaymentDate);
             setNextPaymentDate(`${date.getMonth() + 1}/${date.getDate()}`);
-            setAutopay(validSummary.detail?.creditAccount?.paymentSchedule?.autoPayEnabled)
+            setAutopay(
+              validSummary.detail?.creditAccount?.paymentSchedule
+                ?.autoPayEnabled
+            );
           }
           // console.log("autoPay",autoPay);
-          
         }
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -147,58 +149,67 @@ const HomeScreen: React.FC = () => {
 
       {/* Account details section */}
       <View style={styles.boxContainer}>
-  {accountNumbers.length > 0 ? (
-    accountNumbers.map((accountNum, index) => (
-      <View key={index} style={styles.accountDetails}>
-        <View style={styles.accountNumberContainer}>
-          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-            <Text style={styles.accountNumberText}>
-              Account Number: {accountNum}
-            </Text>
-            {/* Auto Pay Section */}
-          </View>
-          <View style={styles.autoPayParent}>
-           {autoPay?  <Image
-                source={require("@/assets/images/autopayOn.png")} // Replace with the correct autopay icon path
-                style={styles.autopayIcon}
-              /> :  <Image
-              source={require("@/assets/images/autopayOff.png")} // Replace with the correct autopay icon path
-              style={styles.autopayIcon}
-            />}
-              {/* <Image
+        {accountNumbers.length > 0 ? (
+          accountNumbers.map((accountNum, index) => (
+            <View key={index} style={styles.accountDetails}>
+              <View style={styles.accountNumberContainer}>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                  }}
+                >
+                  <Text style={styles.accountNumberText}>
+                    Account Number: {accountNum}
+                  </Text>
+                  {/* Auto Pay Section */}
+                </View>
+                <View style={styles.autoPayParent}>
+                  {autoPay ? (
+                    <Image
+                      source={require("@/assets/images/autopayOn.png")} // Replace with the correct autopay icon path
+                      style={styles.autopayIcon}
+                    />
+                  ) : (
+                    <Image
+                      source={require("@/assets/images/autopayOff.png")} // Replace with the correct autopay icon path
+                      style={styles.autopayIcon}
+                    />
+                  )}
+                  {/* <Image
                 source={require("@/assets/images/Cross Circle.png")} // Replace with the correct autopay icon path
                 style={styles.autopayIcon}
               /> */}
-              <Text style={styles.autoPay}>{`Auto Pay `}</Text>
+                  <Text style={styles.autoPay}>{`Auto Pay `}</Text>
+                </View>
+              </View>
+              <View style={styles.paymentContainer}>
+                <View>
+                  <Text style={styles.paymentLabel}>Next Payment</Text>
+                  <Text style={styles.paymentAmount}>
+                    ${currentAmountDue?.toFixed(2) || " "}
+                  </Text>
+                </View>
+                <View>
+                  <Text style={styles.paymentLabel}>Payment Date</Text>
+                  <Text style={styles.paymentDate}>
+                    {nextPaymentDate || " "}
+                  </Text>
+                </View>
+                <View>
+                  <Text style={styles.paymentLabel}>Account</Text>
+                  <Text style={styles.paymentDate}>
+                    *{accountNumber?.slice(-4) || " "}
+                  </Text>
+                </View>
+              </View>
             </View>
-        </View>
-        <View style={styles.paymentContainer}>
-          <View>
-            <Text style={styles.paymentLabel}>Next Payment</Text>
-            <Text style={styles.paymentAmount}>
-              ${currentAmountDue || " "}
-            </Text>
-          </View>
-          <View>
-            <Text style={styles.paymentLabel}>Payment Date</Text>
-            <Text style={styles.paymentDate}>
-              {nextPaymentDate || " "}
-            </Text>
-          </View>
-          <View>
-            <Text style={styles.paymentLabel}>Account</Text>
-            <Text style={styles.paymentDate}>
-              *{accountNumber?.slice(-4) || " "}
-            </Text>
-          </View>
-        </View>
+          ))
+        ) : (
+          <Text style={styles.noAccountText}>No accounts available</Text>
+        )}
       </View>
-    ))
-  ) : (
-    <Text style={styles.noAccountText}>No accounts available</Text>
-  )}
-</View>
-
 
       {/* Balance and available credit section */}
       <View style={styles.balanceContainer}>
@@ -220,14 +231,23 @@ const HomeScreen: React.FC = () => {
           </Text>
         </TouchableOpacity>
       </View>
-      <View style={styles.RecentTransactionsContainer}>
-  {creditAccountId ? (
-    <RecentTransactions creditAccountId={creditAccountId} token={token} />
-  ) : (
-    <Text style={styles.noAccountText}>No transactions available</Text>
-  )}
-</View>
 
+
+      {/* Pending transactions section */}
+      <View style={styles.RecentTransactionsContainer}>
+        {creditAccountId ? (
+          <RecentTransactions creditAccountId={creditAccountId} token={token} />
+        ) : (
+          <Text style={styles.noAccountText}>No transactions available</Text>
+        )}
+
+        
+      </View>
+
+      {/* Bottom Navigation pannel*/}
+      <View style={styles.BottomNavigationConatiner}>
+        <BottomNavigation/>
+      </View>
     </View>
   );
 };
