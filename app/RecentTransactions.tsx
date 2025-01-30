@@ -45,7 +45,7 @@ const RecentTransactions: React.FC<RecentTransactionsProps> = ({
           </View>
 
           {transactions.length > 0 ? (
-            transactions.map((transaction, index) => (
+            transactions.slice(-3).reverse().map((transaction, index) => (
               <View
                 key={index}
                 style={[
