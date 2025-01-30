@@ -93,7 +93,7 @@ const HomeScreen: React.FC = () => {
           const validSummary = creditSummaries.find(
             (summary) => summary !== null
           );
-          console.log("validSummary", validSummary);
+          // console.log("validSummary", validSummary);
           
           if (validSummary) {
             setCurrentAmountDue(validSummary.detail.creditAccount.paymentSchedule.paymentAmount);
@@ -104,7 +104,7 @@ const HomeScreen: React.FC = () => {
             setNextPaymentDate(`${date.getMonth() + 1}/${date.getDate()}`);
             setAutopay(validSummary.detail?.creditAccount?.paymentSchedule?.autoPayEnabled)
           }
-          console.log("autoPay",autoPay);
+          // console.log("autoPay",autoPay);
           
         }
       } catch (error) {

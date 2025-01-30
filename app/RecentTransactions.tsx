@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { StyleSheet, View, Text } from "react-native";
+import { StyleSheet, View, Text, Image } from "react-native";
 import { fetchData } from "../api/api";
 import { CreditAccountTransactionTypeUtil } from "../utils/CreditAccountTransactionTypeUtil"; // Import the utility
 
@@ -7,6 +7,30 @@ interface RecentTransactionsProps {
   creditAccountId: string;
   token: string;
 }
+
+const renderTransactionIcon = (transactionType: number) => {
+  if (transactionType !== 404 && transactionType !== 481) {
+    return (
+      <Image
+        source={require('@/assets/images/Trash.png')}
+        style={styles.trashIcon}
+      />
+    );
+  } else {
+    return (
+      <View style={{ flexDirection: 'row' }}>
+        <Image
+          source={require('@/assets/images/Check01.png')}
+          style={styles.icon}
+        />
+        <Image
+          source={require('@/assets/images/X02.png')}
+          style={styles.icon}
+        />
+      </View>
+    );
+  }
+};
 
 const RecentTransactions: React.FC<RecentTransactionsProps> = ({
   creditAccountId,
@@ -30,8 +54,13 @@ const RecentTransactions: React.FC<RecentTransactionsProps> = ({
       }
     };
 
+    
     fetchTransactions();
   }, [creditAccountId, token]);
+  
+  const shouldShowTrashIcon = (transactionType: number) => {
+    return transactionType !== 404 && transactionType !== 481;
+  };
 
   return (
     <View style={styles.recentTransactions}>
@@ -75,6 +104,7 @@ const RecentTransactions: React.FC<RecentTransactionsProps> = ({
                 <Text style={styles.amountText}>
                   ${transaction.requestedAmount.toFixed(2)}
                 </Text>
+                {renderTransactionIcon(transaction.transactionType)}
               </View>
             ))
           ) : (
@@ -176,6 +206,16 @@ const styles = StyleSheet.create({
     color: "#feeeee",
     fontWeight: "bold",
     textAlign: "center",
+  },
+  trashIcon: {
+    height: 24,
+    width: 24,
+    marginLeft: 10,
+  },
+  icon: {
+    height: 24,
+    width: 24,
+    marginLeft: 10,
   },
 });
 
