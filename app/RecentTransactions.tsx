@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { StyleSheet, View, Text, Image } from "react-native";
 import { fetchData } from "../api/api";
 import { CreditAccountTransactionTypeUtil } from "../utils/CreditAccountTransactionTypeUtil"; // Import the utility
-
+import AntDesign from '@expo/vector-icons/AntDesign';
 interface RecentTransactionsProps {
   creditAccountId: string;
   token: string;
@@ -71,6 +71,7 @@ const RecentTransactions: React.FC<RecentTransactionsProps> = ({
             <Text style={[styles.title, styles.textBold]}>
               Pending Transactions
             </Text>
+            <AntDesign name="rightcircleo" size={18} color="white" />
           </View>
 
           {transactions.length > 0 ? (
