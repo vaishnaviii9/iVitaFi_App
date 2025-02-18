@@ -46,7 +46,7 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   forgotPassword: {
-    textAlign: 'center',
+    alignItems:'flex-end',
     color: '#232126',
     fontSize: 15,
     fontFamily: 'Montserrat',
@@ -63,6 +63,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 20,
+  },
+  submitButton:{
+    width: '50%',
+    height: 56,
+    backgroundColor: '#1F3644',
+    borderRadius: 15,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 10,
   },
   loginButtonText: {
     color: 'white',
