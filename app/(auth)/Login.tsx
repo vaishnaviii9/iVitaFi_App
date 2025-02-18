@@ -12,6 +12,7 @@ const LoginScreen = () => {
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [isForgotPassword, setIsForgotPassword] = useState(false); // New state for forgot password flow
+  const [forgotPasswordMessage, setForgotPasswordMessage] = useState('Enter your email to receive a reset password link.'); // New state for forgot password message
   const navigation = useNavigation<any>();
 
   const handleLogin = async () => {
@@ -60,7 +61,7 @@ const LoginScreen = () => {
 
   const handleForgotPasswordSubmit = async () => {
     if (!email) {
-      setErrorMessage('Please enter your email address.');
+      setForgotPasswordMessage('Please enter your email address.');
       return;
     }
 
@@ -68,19 +69,15 @@ const LoginScreen = () => {
 
     try {
       // Replace with your actual forgot password API endpoint
-      const response = await axios.post('https://dev.ivitafi.com/api/User/forgot-password', {
-        email,
+      const response = await axios.get(`https://dev.ivitafi.com/api/User/create-reset-password/${email}`, {
       });
 
-      if (response.data.success) {
-        Alert.alert('Success', 'A password reset link has been sent to your email.');
-        setIsForgotPassword(false); // Return to login screen
-      } else {
-        setErrorMessage('Failed to send reset link. Please try again.');
-      }
+      setForgotPasswordMessage(`Email sent if the account exists.`);
+        setEmail('')
+    
     } catch (error) {
       console.error('Forgot password error:', error);
-      setErrorMessage('Network error. Please check your connection.');
+      setForgotPasswordMessage('Network error. Please check your connection.');
     } finally {
       setLoading(false);
     }
@@ -109,7 +106,7 @@ const LoginScreen = () => {
       {isForgotPassword ? (
         // Forgot Password UI
         <>
-        <Text style={styles.forgotPassword}>Enter your email to receive a reset password link.</Text>
+          <Text style={styles.forgotPassword}>{forgotPasswordMessage}</Text>
           <TextInput
             style={styles.input}
             placeholder="Email ID"
@@ -121,7 +118,7 @@ const LoginScreen = () => {
           />
           {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
           <TouchableOpacity
-            style={styles.submitButton}
+            style={styles.loginButton}
             onPress={handleForgotPasswordSubmit}
             disabled={loading}
           >
