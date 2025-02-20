@@ -69,7 +69,8 @@ const LoginScreen = () => {
 
     try {
       // Replace with your actual forgot password API endpoint
-      const response = await axios.get(`https://dev.ivitafi.com/api/User/create-reset-password/${email}`, {
+      const response = await axios.get(`https://dev.ivitafi.com/api/User/create-reset-password`, {
+        params:{email}
       });
 
         setForgotPasswordMessage(`An email has been sent to ${email} if the account exists.`);
