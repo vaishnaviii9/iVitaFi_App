@@ -1,89 +1,83 @@
 import { StyleSheet } from 'react-native';
-import BottomNavigation from './BottomNavigation';
+import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: "center",
     backgroundColor: "#fff",
-    paddingTop: 20,
+    paddingTop: hp('2.5%'),
   },
   headerContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
     width: "100%",
-    paddingHorizontal: 20,
-    marginTop: 20,
+    paddingHorizontal: wp('5%'),
+    marginTop: hp('2.5%'),
   },
   iconAndTextContainer: {
     flexDirection: "row",
     alignItems: "center",
   },
   avatarIcon: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+    width: wp('12%'),
+    height: wp('12%'),
+    borderRadius: wp('6%'),
   },
   hamburgerIcon: {
-    width: 30,
-    height: 30,
-    marginTop: 10,
+    width: wp('7%'),
+    height: wp('7%'),
+    marginTop: hp('1%'),
   },
   infoContainer: {
-    marginLeft: 10,
+    marginLeft: wp('2.5%'),
   },
   userName: {
-    fontSize: 18,
+    fontSize: wp('4.5%'),
     fontWeight: "600",
   },
   welcomeText: {
-    fontSize: 16,
+    fontSize: wp('4%'),
     color: "#757575",
   },
   boxContainer: {
-    width: "90%",
+    width: wp('90%'),
     backgroundColor: "#2D4768",
-    borderRadius: 20,
-    padding: 15,
-    marginTop: 15,
+    borderRadius: wp('5%'),
+    padding: wp('4%'),
+    marginTop: hp('2%'),
     justifyContent: "space-between",
   },
-
   accountDetails: {
-    marginBottom: 15,
+    marginBottom: hp('2%'),
   },
-
   accountNumberContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
   },
-
   accountNumberText: {
     color: "white",
-    fontSize: 16, // Slightly larger font size for emphasis
+    fontSize: wp('4%'),
     fontWeight: "bold",
   },
-
   autoPayParent: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 5,
-    borderRadius: 15,
-    backgroundColor: "#1E3553", // Subtle background color for the AutoPay section
+    padding: wp('1.2%'),
+    borderRadius: wp('4%'),
+    backgroundColor: "#1E3553",
   },
-
   autoPay: {
-    fontSize: 12,
+    fontSize: wp('3%'),
     fontWeight: "600",
     fontFamily: "Inter-SemiBold",
     color: "#fff",
-    marginRight: 5, // Space between text and icon
+    marginRight: wp('1.2%'),
   },
-
   autopayIcon: {
-    width: 20,
-    height: 20,
+    width: wp('5%'),
+    height: wp('5%'),
   },
   loaderContainer: {
     flex: 1,
@@ -93,102 +87,94 @@ const styles = StyleSheet.create({
   },
   noAccountText: {
     color: "#fff",
-    fontSize: 16,
+    fontSize: wp('4%'),
     textAlign: "center",
-    marginTop: 20,
+    marginTop: hp('2.5%'),
   },
-  loaderStyle: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#0000",
-  },
-
   paymentContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginTop: 25,
+    marginTop: hp('3%'),
   },
   paymentLabel: {
     color: "#fff",
-    fontSize: 14,
+    fontSize: wp('3.5%'),
     fontWeight: "600",
   },
   paymentAmount: {
     color: "#fff",
-    fontSize: 22,
+    fontSize: wp('5.5%'),
     fontWeight: "700",
-    marginBottom: 5,
+    marginBottom: hp('0.6%'),
   },
   paymentDate: {
     color: "#fff",
-    fontSize: 22,
+    fontSize: wp('5.5%'),
     fontWeight: "700",
-    marginBottom: 5,
+    marginBottom: hp('0.6%'),
   },
-    balanceContainer: {
-      width: "90%",
-      padding: 10,
-      marginTop: 15,
-      height: 90,
-      justifyContent: "center",
-    },
-    balanceRow: {
-      flexDirection: "row",
-      justifyContent: "space-between", // Space between the label and amount
-      alignItems: "center", // Align items vertically centered
-      marginBottom: 10, // Spacing between rows
-    },
-    myBalance: {
-      fontWeight: "600",
-      fontSize: 20,
-      color: "#000",
-      fontFamily: "Poppins-Medium",
-    },
-    availableCredit: {
-      fontWeight: "600",
-      fontSize: 20,
-      color: "#000",
-      fontFamily: "Poppins-Medium",
-    },
-    text: {
-      fontWeight: "700",
-      fontSize: 25,
-      color: "#000",
-      fontFamily: "Poppins-Bold",
-      textAlign: "right",
-    },
-    text1: {
-      fontWeight: "700",
-      fontSize: 25,
-      color: "#000",
-      fontFamily: "Poppins-Bold",
-      textAlign: "right",
-    },
+  balanceContainer: {
+    width: wp('90%'),
+    padding: wp('2.5%'),
+    marginTop: hp('2%'),
+    height: hp('11%'),
+    justifyContent: "center",
+  },
+  balanceRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: hp('1.2%'),
+  },
+  myBalance: {
+    fontWeight: "600",
+    fontSize: wp('5%'),
+    color: "#000",
+    fontFamily: "Poppins-Medium",
+  },
+  availableCredit: {
+    fontWeight: "600",
+    fontSize: wp('5%'),
+    color: "#000",
+    fontFamily: "Poppins-Medium",
+  },
+  text: {
+    fontWeight: "700",
+    fontSize: wp('6%'),
+    color: "#000",
+    fontFamily: "Poppins-Bold",
+    textAlign: "right",
+  },
+  text1: {
+    fontWeight: "700",
+    fontSize: wp('6%'),
+    color: "#000",
+    fontFamily: "Poppins-Bold",
+    textAlign: "right",
+  },
   buttonContainer: {
-    marginTop: 5,
+    marginTop: hp('0.6%'),
     alignItems: "center",
   },
   button: {
     backgroundColor: "#2D4768",
-    paddingVertical: 15,
-    paddingHorizontal: 40,
-    borderRadius: 10,
+    paddingVertical: hp('1.8%'),
+    paddingHorizontal: wp('10%'),
+    borderRadius: wp('2.5%'),
   },
   additionalPaymentText: {
     color: "white",
-    fontSize: 16,
+    fontSize: wp('4%'),
     fontWeight: "600",
   },
-  RecentTransactionsContainer:{
-    marginTop: 20,
+  RecentTransactionsContainer: {
+    marginTop: hp('2.5%'),
     width: "100%",
   },
-  BottomNavigationConatiner:{
-    width: "90%",
-    flex:1,
-    marginBottom: 10,
-
+  BottomNavigationConatiner: {
+    width: wp('90%'),
+    flex: 1,
+    marginBottom: hp('1.2%'),
   }
 });
 

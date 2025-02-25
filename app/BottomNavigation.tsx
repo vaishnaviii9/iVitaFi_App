@@ -3,7 +3,7 @@ import { StyleSheet, Text, View } from "react-native";
 import Entypo from "@expo/vector-icons/Entypo";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
-
+import styles from "./BottomNavigationStyles";
 const BottomNavigation = () => {
   return (
     <View style={styles.container}>
@@ -29,47 +29,6 @@ const BottomNavigation = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    width: "100%",
-    position: "absolute",
-    bottom: 10,
-    backgroundColor: "#fff",
-    borderRadius: 10,
-  },
-  bottomNavigation: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    alignItems: "center",
-    paddingVertical: 12,
-    borderTopWidth: .5,
-    borderTopColor: "#ddd",
-    backgroundColor: "#fff",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: -9 },
-    shadowOpacity: 0.2,
-    shadowRadius: 10,
-    elevation: 40,
-    borderRadius: 30,
-  },
-  navItem: {
-    alignItems: "center",
-    flex: 1,
-  },
-  label: {
-    fontSize: 12,
-    color: "#5e5f60",
-    marginTop: 4,
-    fontFamily: "Figtree-Regular",
-  },
-  activeTab: {
-    borderBottomWidth: 2,
-    borderBottomColor: "black",
-  },
-  activeLabel: {
-    color: "black",
-    fontWeight: "bold",
-  },
-});
+
 
 export default BottomNavigation;
