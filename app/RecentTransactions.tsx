@@ -1,41 +1,31 @@
 import React, { useEffect, useState } from "react";
-import { StyleSheet, View, Text, Image } from "react-native";
+import { StyleSheet, View, Text, Image, ScrollView, Dimensions } from "react-native";
 import { fetchData } from "../api/api";
-import { CreditAccountTransactionTypeUtil } from "../utils/CreditAccountTransactionTypeUtil"; // Import the utility
+import { CreditAccountTransactionTypeUtil } from "../utils/CreditAccountTransactionTypeUtil";
 import AntDesign from '@expo/vector-icons/AntDesign';
+import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
+
 interface RecentTransactionsProps {
   creditAccountId: string;
   token: string;
 }
 
+const { height: screenHeight } = Dimensions.get("window"); // Get screen height
+
 const renderTransactionIcon = (transactionType: number) => {
   if (transactionType !== 404 && transactionType !== 481) {
-    return (
-      <Image
-        source={require('@/assets/images/Trash.png')}
-        style={styles.trashIcon}
-      />
-    );
+    return <Image source={require('@/assets/images/Trash.png')} style={styles.trashIcon} />;
   } else {
     return (
       <View style={{ flexDirection: 'row' }}>
-        <Image
-          source={require('@/assets/images/Check01.png')}
-          style={styles.icon}
-        />
-        <Image
-          source={require('@/assets/images/X02.png')}
-          style={styles.icon}
-        />
+        <Image source={require('@/assets/images/Check01.png')} style={styles.icon} />
+        <Image source={require('@/assets/images/X02.png')} style={styles.icon} />
       </View>
     );
   }
 };
 
-const RecentTransactions: React.FC<RecentTransactionsProps> = ({
-  creditAccountId,
-  token,
-}) => {
+const RecentTransactions: React.FC<RecentTransactionsProps> = ({ creditAccountId, token }) => {
   const [transactions, setTransactions] = useState<any[]>([]);
 
   useEffect(() => {
@@ -48,19 +38,14 @@ const RecentTransactions: React.FC<RecentTransactionsProps> = ({
           "Failed to fetch transactions."
         );
         setTransactions(response || []);
-        console.log(response);
       } catch (error) {
         console.error("Error fetching transactions:", error);
       }
     };
-
-    
     fetchTransactions();
   }, [creditAccountId, token]);
-  
-  const shouldShowTrashIcon = (transactionType: number) => {
-    return transactionType !== 404 && transactionType !== 481;
-  };
+
+  const isSmallScreen = screenHeight < 700; // Detect small screens
 
   return (
     <View style={styles.recentTransactions}>
@@ -68,52 +53,70 @@ const RecentTransactions: React.FC<RecentTransactionsProps> = ({
         <View style={[styles.baseBlack, styles.absoluteFill]} />
         <View style={styles.frameParent}>
           <View style={[styles.titleParent, styles.rowCenter]}>
-            <Text style={[styles.title, styles.textBold]}>
-              Pending Transactions
-            </Text>
-            <AntDesign name="rightcircleo" size={18} color="white" />
+            <Text style={[styles.title, styles.textBold]}>Pending Transactions</Text>
+            <AntDesign name="rightcircleo" size={hp(2.5)} color="white" />
           </View>
 
           {transactions.length > 0 ? (
-            transactions.slice(-3).reverse().map((transaction, index) => (
-              <View
-                key={index}
-                style={[
-                  styles.transactionRow,
-                  index % 2 === 0 ? styles.rowLight : styles.rowDark,
-                ]}
+            isSmallScreen ? (
+              <ScrollView 
+                style={styles.scrollView} 
+                nestedScrollEnabled={true} 
+                showsVerticalScrollIndicator={true}
               >
-                <View style={styles.transactionDetailsContainer}>
-                  <Text style={[styles.transactionDetails, styles.textSmall]}>
-                    <Text style={styles.textBold}>{transaction.id}</Text>
-                    {"\n"}
-                    <Text style={styles.textSecondary}>
-                      {CreditAccountTransactionTypeUtil.toString(
-                        transaction.transactionType
-                      ) || "Unknown Type"}
-                    </Text>
-                    {"\n"}
-                    <Text style={styles.textSecondary}>
-                      {transaction.pendingTransactionDate === null
-                        ? "---"
-                        : new Date(
-                            transaction.pendingTransactionDate
-                          ).toLocaleDateString()}
-                    </Text>
-                  </Text>
-
-                </View>
-                <View><Text style={styles.amountText}>
-                  ${transaction.requestedAmount.toFixed(2)}
-                </Text>
-                </View>
-                <View>{renderTransactionIcon(transaction.transactionType)}</View>                
+                {transactions.slice(-3).reverse().map((transaction, index) => (
+                  <View key={index} style={[styles.transactionRow, index % 2 === 0 ? styles.rowLight : styles.rowDark]}>
+                    <View style={styles.transactionDetailsContainer}>
+                      <Text style={[styles.transactionDetails, styles.textSmall]}>
+                        <Text style={styles.textBold}>{transaction.id}</Text>
+                        {"\n"}
+                        <Text style={styles.textSecondary}>
+                          {CreditAccountTransactionTypeUtil.toString(transaction.transactionType) || "Unknown Type"}
+                        </Text>
+                        {"\n"}
+                        <Text style={styles.textSecondary}>
+                          {transaction.pendingTransactionDate === null
+                            ? "---"
+                            : new Date(transaction.pendingTransactionDate).toLocaleDateString()}
+                        </Text>
+                      </Text>
+                    </View>
+                    <View>
+                      <Text style={styles.amountText}>${transaction.requestedAmount.toFixed(2)}</Text>
+                    </View>
+                    <View>{renderTransactionIcon(transaction.transactionType)}</View>
+                  </View>
+                ))}
+              </ScrollView>
+            ) : (
+              <View>
+                {transactions.slice(-3).reverse().map((transaction, index) => (
+                  <View key={index} style={[styles.transactionRow, index % 2 === 0 ? styles.rowLight : styles.rowDark]}>
+                    <View style={styles.transactionDetailsContainer}>
+                      <Text style={[styles.transactionDetails, styles.textSmall]}>
+                        <Text style={styles.textBold}>{transaction.id}</Text>
+                        {"\n"}
+                        <Text style={styles.textSecondary}>
+                          {CreditAccountTransactionTypeUtil.toString(transaction.transactionType) || "Unknown Type"}
+                        </Text>
+                        {"\n"}
+                        <Text style={styles.textSecondary}>
+                          {transaction.pendingTransactionDate === null
+                            ? "---"
+                            : new Date(transaction.pendingTransactionDate).toLocaleDateString()}
+                        </Text>
+                      </Text>
+                    </View>
+                    <View>
+                      <Text style={styles.amountText}>${transaction.requestedAmount.toFixed(2)}</Text>
+                    </View>
+                    <View>{renderTransactionIcon(transaction.transactionType)}</View>
+                  </View>
+                ))}
               </View>
-            ))
+            )
           ) : (
-            <Text style={styles.noTransactionsText}>
-              No recent transactions available.
-            </Text>
+            <Text style={styles.noTransactionsText}>No recent transactions available.</Text>
           )}
         </View>
       </View>
@@ -124,9 +127,9 @@ const RecentTransactions: React.FC<RecentTransactionsProps> = ({
 const styles = StyleSheet.create({
   noTransactionsText: {
     color: "#fff",
-    fontSize: 14,
+    fontSize: hp(2),
     textAlign: "center",
-    marginTop: 10,
+    marginTop: hp(1),
   },
   absoluteFill: {
     position: "absolute",
@@ -144,7 +147,7 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   textSmall: {
-    fontSize: 12,
+    fontSize: hp(1.8),
     letterSpacing: -0.1,
     textAlign: "left",
   },
@@ -153,13 +156,13 @@ const styles = StyleSheet.create({
   },
   recentTransactions: {
     flex: 1,
-    height: 228,
+    height: hp(40), 
     alignItems: "center",
     width: "100%",
   },
   baseBlackParent: {
-    width: 335,
-    height: 300,
+    width: wp(90),
+    height: hp(40), 
   },
   baseBlack: {
     borderRadius: 10,
@@ -169,27 +172,31 @@ const styles = StyleSheet.create({
   },
   frameParent: {
     position: "absolute",
-    top: 10,
-    left: 16,
-    right: 16,
+    top: hp(1),
+    left: wp(4),
+    right: wp(4),
     gap: 1,
   },
   titleParent: {
     justifyContent: "space-between",
-    marginBottom: 12,
+    marginBottom: hp(1.5),
   },
   title: {
-    fontSize: 18,
+    fontSize: hp(2.5),
     color: "#fff",
     letterSpacing: -0.1,
+  },
+  scrollView: {
+    maxHeight: hp(25), 
+    flexShrink: 1, 
   },
   transactionRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     borderRadius: 8,
-    padding: 10,
-    marginBottom: 8,
+    padding: hp(1.2),
+    marginBottom: hp(1),
   },
   rowLight: {
     backgroundColor: "#3a4466",
@@ -199,11 +206,11 @@ const styles = StyleSheet.create({
   },
   transactionDetailsContainer: {
     flex: 1,
-    paddingRight: 10,
+    paddingRight: wp(2),
   },
   transactionDetails: {
     color: "#fffbfb",
-    lineHeight: 18,
+    lineHeight: hp(2.2),
   },
   amountText: {
     color: "#feeeee",
@@ -211,14 +218,14 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   trashIcon: {
-    height: 24,
-    width: 24,
-    marginLeft: 10,
+    height: hp(3),
+    width: hp(3),
+    marginLeft: wp(2),
   },
   icon: {
-    height: 24,
-    width: 24,
-    marginLeft: 10,
+    height: hp(3),
+    width: hp(3),
+    marginLeft: wp(2),
   },
 });
 

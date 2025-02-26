@@ -169,8 +169,13 @@ const styles = StyleSheet.create({
   },
   RecentTransactionsContainer: {
     marginTop: hp('2.5%'),
-    width: "100%",
+    width: wp('90%'),
+    minHeight: hp('25%'), 
+    maxHeight: hp('50%'), 
+    flexGrow: 1, 
+    overflow: "hidden",
   },
+  
   BottomNavigationConatiner: {
     width: wp('90%'),
     flex: 1,
