@@ -46,9 +46,10 @@ const RecentTransactions: React.FC<RecentTransactionsProps> = ({ creditAccountId
   }, [creditAccountId, token]);
 
   const isSmallScreen = screenHeight < 700; // Detect small screens
+  const ismediumScreen = screenHeight < 800; // Detect medium screens
 
   return (
-    <View style={styles.recentTransactions}>
+    <View style={[styles.recentTransactions, { height: isSmallScreen ? hp(30) : hp(37) }]}>
       <View style={styles.baseBlackParent}>
         <View style={[styles.baseBlack, styles.absoluteFill]} />
         <View style={styles.frameParent}>
@@ -179,24 +180,24 @@ const styles = StyleSheet.create({
   },
   titleParent: {
     justifyContent: "space-between",
-    marginBottom: hp(1.5),
+    marginBottom: hp(1),
   },
   title: {
-    fontSize: hp(2.5),
+    fontSize: hp(2.3),
     color: "#fff",
     letterSpacing: -0.1,
   },
   scrollView: {
-    maxHeight: hp(25), 
-    flexShrink: 1, 
+    maxHeight: hp(22.9), 
+    flexShrink:1 , 
   },
   transactionRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     borderRadius: 8,
-    padding: hp(1.2),
-    marginBottom: hp(1),
+    padding: hp(1.4),
+    marginBottom: hp(1.2),
   },
   rowLight: {
     backgroundColor: "#3a4466",
@@ -206,7 +207,7 @@ const styles = StyleSheet.create({
   },
   transactionDetailsContainer: {
     flex: 1,
-    paddingRight: wp(2),
+    paddingRight: wp(1),
   },
   transactionDetails: {
     color: "#fffbfb",
