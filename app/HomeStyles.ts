@@ -1,5 +1,8 @@
-import { StyleSheet } from 'react-native';
+
+import { StyleSheet, Dimensions } from 'react-native';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
+
+const { height: screenHeight } = Dimensions.get("window");
 
 const styles = StyleSheet.create({
   container: {
@@ -153,7 +156,7 @@ const styles = StyleSheet.create({
     textAlign: "right",
   },
   buttonContainer: {
-    marginTop: hp('0.6%'),
+    marginTop: hp('0.1%'),
     alignItems: "center",
   },
   button: {
@@ -168,19 +171,19 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   RecentTransactionsContainer: {
-    marginTop: hp('2.5%'),
+    marginTop: hp('1.5%'),
     width: wp('90%'),
-    minHeight: hp('25%'), 
-    maxHeight: hp('50%'), 
-    flexGrow: 1, 
-    overflow: "hidden",
+    height: screenHeight < 700 ? hp('30%') : hp('37%'), // Adjust height dynamically for smaller screens
+    borderRadius: wp('4%'),
+    overflow: 'hidden',
+    marginBottom: hp('2%'), // Add space between Recent Transactions and Bottom Navigation
   },
-  
-  BottomNavigationConatiner: {
+
+  BottomNavigationContainer: {
     width: wp('90%'),
-    flex: 1,
-    marginBottom: hp('1.2%'),
-  }
+    flex: 1, // Prevent unintended stretching
+    marginBottom: hp('1%'),
+  },
 });
 
 export default styles;

@@ -243,7 +243,7 @@ const HomeScreen: React.FC = () => {
 
 
       {/* Bottom Navigation pannel*/}
-      <View style={styles.BottomNavigationConatiner}>
+      <View style={styles.BottomNavigationContainer}>
         <BottomNavigation />
       </View>
     </View>
