@@ -45,11 +45,12 @@ const RecentTransactions: React.FC<RecentTransactionsProps> = ({ creditAccountId
     fetchTransactions();
   }, [creditAccountId, token]);
 
-  const isSmallScreen = screenHeight < 700; // Detect small screens
-  const ismediumScreen = screenHeight < 800; // Detect medium screens
+  const isSmallScreen = screenHeight < 700;
+  const isMediumScreen = screenHeight >= 700 && screenHeight <= 800;
+  const isLargeScreen = screenHeight > 800;
 
   return (
-    <View style={[styles.recentTransactions, { height: isSmallScreen ? hp(30) : hp(37) }]}>
+    <View style={[styles.recentTransactions, { height: isSmallScreen ? hp(30) : isMediumScreen ? hp(32) : hp(45) }]}> 
       <View style={styles.baseBlackParent}>
         <View style={[styles.baseBlack, styles.absoluteFill]} />
         <View style={styles.frameParent}>
@@ -59,63 +60,35 @@ const RecentTransactions: React.FC<RecentTransactionsProps> = ({ creditAccountId
           </View>
 
           {transactions.length > 0 ? (
-            isSmallScreen ? (
-              <ScrollView 
-                style={styles.scrollView} 
-                nestedScrollEnabled={true} 
-                showsVerticalScrollIndicator={true}
-              >
-                {transactions.slice(-3).reverse().map((transaction, index) => (
-                  <View key={index} style={[styles.transactionRow, index % 2 === 0 ? styles.rowLight : styles.rowDark]}>
-                    <View style={styles.transactionDetailsContainer}>
-                      <Text style={[styles.transactionDetails, styles.textSmall]}>
-                        <Text style={styles.textBold}>{transaction.id}</Text>
-                        {"\n"}
-                        <Text style={styles.textSecondary}>
-                          {CreditAccountTransactionTypeUtil.toString(transaction.transactionType) || "Unknown Type"}
-                        </Text>
-                        {"\n"}
-                        <Text style={styles.textSecondary}>
-                          {transaction.pendingTransactionDate === null
-                            ? "---"
-                            : new Date(transaction.pendingTransactionDate).toLocaleDateString()}
-                        </Text>
+            <ScrollView 
+              style={[styles.scrollView, { maxHeight: isSmallScreen ? hp(22.9) : isMediumScreen ? hp(25) : hp(35) }]} 
+              nestedScrollEnabled={true} 
+              showsVerticalScrollIndicator={true}
+            >
+              {transactions.slice(-3).reverse().map((transaction, index) => (
+                <View key={index} style={[styles.transactionRow, index % 2 === 0 ? styles.rowLight : styles.rowDark]}>
+                  <View style={styles.transactionDetailsContainer}>
+                    <Text style={[styles.transactionDetails, styles.textSmall]}>
+                      <Text style={styles.textBold}>{transaction.id}</Text>
+                      {"\n"}
+                      <Text style={styles.textSecondary}>
+                        {CreditAccountTransactionTypeUtil.toString(transaction.transactionType) || "Unknown Type"}
                       </Text>
-                    </View>
-                    <View>
-                      <Text style={styles.amountText}>${transaction.requestedAmount.toFixed(2)}</Text>
-                    </View>
-                    <View>{renderTransactionIcon(transaction.transactionType)}</View>
-                  </View>
-                ))}
-              </ScrollView>
-            ) : (
-              <View>
-                {transactions.slice(-3).reverse().map((transaction, index) => (
-                  <View key={index} style={[styles.transactionRow, index % 2 === 0 ? styles.rowLight : styles.rowDark]}>
-                    <View style={styles.transactionDetailsContainer}>
-                      <Text style={[styles.transactionDetails, styles.textSmall]}>
-                        <Text style={styles.textBold}>{transaction.id}</Text>
-                        {"\n"}
-                        <Text style={styles.textSecondary}>
-                          {CreditAccountTransactionTypeUtil.toString(transaction.transactionType) || "Unknown Type"}
-                        </Text>
-                        {"\n"}
-                        <Text style={styles.textSecondary}>
-                          {transaction.pendingTransactionDate === null
-                            ? "---"
-                            : new Date(transaction.pendingTransactionDate).toLocaleDateString()}
-                        </Text>
+                      {"\n"}
+                      <Text style={styles.textSecondary}>
+                        {transaction.pendingTransactionDate === null
+                          ? "---"
+                          : new Date(transaction.pendingTransactionDate).toLocaleDateString()}
                       </Text>
-                    </View>
-                    <View>
-                      <Text style={styles.amountText}>${transaction.requestedAmount.toFixed(2)}</Text>
-                    </View>
-                    <View>{renderTransactionIcon(transaction.transactionType)}</View>
+                    </Text>
                   </View>
-                ))}
-              </View>
-            )
+                  <View>
+                    <Text style={styles.amountText}>${transaction.requestedAmount.toFixed(2)}</Text>
+                  </View>
+                  <View>{renderTransactionIcon(transaction.transactionType)}</View>
+                </View>
+              ))}
+            </ScrollView>
           ) : (
             <Text style={styles.noTransactionsText}>No recent transactions available.</Text>
           )}
@@ -124,6 +97,7 @@ const RecentTransactions: React.FC<RecentTransactionsProps> = ({ creditAccountId
     </View>
   );
 };
+
 
 const styles = StyleSheet.create({
   noTransactionsText: {

@@ -173,7 +173,7 @@ const styles = StyleSheet.create({
   RecentTransactionsContainer: {
     marginTop: hp('1.5%'),
     width: wp('90%'),
-    height: screenHeight < 700 ? hp('30%') : hp('37%'), // Adjust height dynamically for smaller screens
+    height: screenHeight < 700 ? hp('30%') : screenHeight>700 && screenHeight <= 800 ? hp('30%') : hp('37%'),
     borderRadius: wp('4%'),
     overflow: 'hidden',
     marginBottom: hp('2%'), // Add space between Recent Transactions and Bottom Navigation
