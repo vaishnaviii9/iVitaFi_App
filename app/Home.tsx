@@ -244,7 +244,7 @@ const HomeScreen: React.FC = () => {
 
       {/* Bottom Navigation pannel*/}
       <View style={styles.BottomNavigationContainer}>
-        <BottomNavigation />
+        <BottomNavigation activeTab="Home"/>
       </View>
     </View>
   );

@@ -35,8 +35,7 @@ const styles = StyleSheet.create({
     fontFamily: "Figtree-Regular",
   },
   activeTab: {
-    borderBottomWidth: 2,
-    borderBottomColor: "black",
+    borderBottomColor: "red",
   },
   activeLabel: {
     color: "black",
