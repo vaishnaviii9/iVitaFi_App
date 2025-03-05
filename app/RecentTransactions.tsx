@@ -4,6 +4,7 @@ import { fetchData } from "../api/api";
 import { CreditAccountTransactionTypeUtil } from "../utils/CreditAccountTransactionTypeUtil";
 import AntDesign from '@expo/vector-icons/AntDesign';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import { fetchPendingTransactions } from "./services/pendingTransactionsService";
 
 interface RecentTransactionsProps {
   creditAccountId: string;
@@ -31,12 +32,7 @@ const RecentTransactions: React.FC<RecentTransactionsProps> = ({ creditAccountId
   useEffect(() => {
     const fetchTransactions = async () => {
       try {
-        const response = await fetchData(
-          `https://dev.ivitafi.com/api/creditaccount/${creditAccountId}/pending-transactions`,
-          token,
-          (data) => data,
-          "Failed to fetch transactions."
-        );
+        const response = await fetchPendingTransactions(creditAccountId, token);
         setTransactions(response || []);
       } catch (error) {
         console.error("Error fetching transactions:", error);

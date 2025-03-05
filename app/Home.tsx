@@ -8,7 +8,7 @@ import RecentTransactions from "./RecentTransactions";
 import BottomNavigation from "./BottomNavigation";
 import { fetchCustomerData } from "./services/customerService";
 import { fetchUserData } from "./services/userService";
-
+import { fetchCreditSummaries } from "./services/creditAccountService";
 // Define the types for the route parameters
 type RootStackParamList = {
   Home: {
@@ -58,24 +58,10 @@ const HomeScreen: React.FC = () => {
           setAccountNumbers(accountNumbers);
 
           // Fetch credit account summaries in parallel
-          const creditSummaries = await Promise.all(
-            customerResponse.creditAccounts.map((account: any) => {
-              if (
-                account.patientEpisodes &&
-                account.patientEpisodes.length > 0
-              ) {
-                const creditAccountId =
-                  account.patientEpisodes[0].creditAccountId;
-                return fetchData(
-                  `https://dev.ivitafi.com/api/CreditAccount/${creditAccountId}/summary`,
-                  token,
-                  (data) => data,
-                  "Failed to fetch credit account summary."
-                );
-              }
-              return null;
-            })
-          );
+          
+
+          const creditSummaries = await fetchCreditSummaries(customerResponse, token);
+
           const firstAccount = customerResponse.creditAccounts[0];
           if (firstAccount && firstAccount.patientEpisodes.length > 0) {
             setCreditAccountId(firstAccount.patientEpisodes[0].creditAccountId);
