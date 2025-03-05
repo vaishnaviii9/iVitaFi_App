@@ -6,6 +6,8 @@ import Loader from "./Loader";
 import styles from "./HomeStyles"; // Import the styles
 import RecentTransactions from "./RecentTransactions";
 import BottomNavigation from "./BottomNavigation";
+import { fetchCustomerData } from "./services/customerService";
+import { fetchUserData } from "./services/userService";
 
 // Define the types for the route parameters
 type RootStackParamList = {
@@ -43,20 +45,12 @@ const HomeScreen: React.FC = () => {
       try {
         // Fetch user and customer data in parallel
         const [userResponse, customerResponse] = await Promise.all([
-          fetchData(
-            "https://dev.ivitafi.com/api/User/current-user",
-            token,
-            setUserData,
-            "Failed to fetch user data."
-          ),
-          fetchData(
-            "https://dev.ivitafi.com/api/customer/current/true",
-            token,
-            setCustomerData,
-            "Failed to fetch customer data."
-          ),
+          fetchUserData(token, setUserData),
+          fetchCustomerData(token, setCustomerData),
+
         ]);
 
+        
         if (customerResponse && customerResponse.creditAccounts) {
           const accountNumbers = customerResponse.creditAccounts.map(
             (application: CreditApplication) => application.accountNumber
@@ -108,6 +102,10 @@ const HomeScreen: React.FC = () => {
             );
           }
           // console.log("autoPay",autoPay);
+        }
+        else{
+          console.log("Failed to fetch user or customer data.");
+          
         }
       } catch (error) {
         console.error("Error fetching data:", error);

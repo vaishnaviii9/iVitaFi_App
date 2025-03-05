@@ -4,6 +4,8 @@ import axios from 'axios';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useNavigation } from '@react-navigation/native';
 import styles from './LoginStyles'; // Import the styles
+import { authenticateUser } from '../services/authService';
+import { resetPasswordService } from '../services/resetPasswordService';
 
 const LoginScreen = () => {
   const [email, setEmail] = useState('');
@@ -27,14 +29,14 @@ const LoginScreen = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post('https://dev.ivitafi.com/api/User/authenticate', {
+      const data = await authenticateUser(
         email,
         password,
-      });
+      ) ;
 
-      if (response.data.token) {
-        const { firstName, lastName } = response.data.user;
-        navigation.navigate('Home', { firstName, lastName, token: response.data.token });
+      if (data.token) {
+        const { firstName, lastName } = data.user;
+        navigation.navigate('Home', { firstName, lastName, token: data.token });
       } else {
         setErrorMessage('Email or password incorrect.'); // Fallback message
       }
@@ -69,10 +71,8 @@ const LoginScreen = () => {
 
     try {
       // Replace with your actual forgot password API endpoint
-      const response = await axios.get(`https://dev.ivitafi.com/api/User/create-reset-password`, {
-        params:{email}
-      });
-
+        await resetPasswordService(email)
+      
         setForgotPasswordMessage(`An email has been sent to ${email} if the account exists.`);
         setEmail('')
     
