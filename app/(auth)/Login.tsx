@@ -6,6 +6,8 @@ import { useNavigation } from '@react-navigation/native';
 import styles from './LoginStyles'; // Import the styles
 import { authenticateUser } from '../services/authService';
 import { resetPasswordService } from '../services/resetPasswordService';
+import { useDispatch } from 'react-redux';
+import { loginSuccess } from '../features/login/loginSlice';
 
 const LoginScreen = () => {
   const [email, setEmail] = useState('');
@@ -15,6 +17,8 @@ const LoginScreen = () => {
   const [errorMessage, setErrorMessage] = useState('');
   const [isForgotPassword, setIsForgotPassword] = useState(false); // New state for forgot password flow
   const [forgotPasswordMessage, setForgotPasswordMessage] = useState('Enter your email to receive a reset password link.'); // New state for forgot password message
+
+  const dispatch = useDispatch<any>();
   const navigation = useNavigation<any>();
 
   const handleLogin = async () => {
@@ -36,7 +40,9 @@ const LoginScreen = () => {
 
       if (data.token) {
         const { firstName, lastName } = data.user;
-        navigation.navigate('Home', { firstName, lastName, token: data.token });
+        dispatch(loginSuccess({ firstName, lastName, token: data.token }));
+        navigation.navigate('Home');
+
       } else {
         setErrorMessage('Email or password incorrect.'); // Fallback message
       }
