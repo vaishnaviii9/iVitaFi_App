@@ -8,6 +8,7 @@ import { authenticateUser } from '../services/authService';
 import { resetPasswordService } from '../services/resetPasswordService';
 import { useDispatch } from 'react-redux';
 import { loginSuccess } from '../features/login/loginSlice';
+import { router, useRouter } from 'expo-router';  // ✅ Use expo-router's router
 
 const LoginScreen = () => {
   const [email, setEmail] = useState('');
@@ -41,8 +42,7 @@ const LoginScreen = () => {
       if (data.token) {
         const { firstName, lastName } = data.user;
         dispatch(loginSuccess({ firstName, lastName, token: data.token }));
-        navigation.navigate('Home');
-
+        router.push('/(tabs)/Home');
       } else {
         setErrorMessage('Email or password incorrect.'); // Fallback message
       }

@@ -1,16 +1,16 @@
 import React from 'react';
 import { View, Text, FlatList, StyleSheet } from 'react-native';
-import BottomNavigation from './BottomNavigation';
+
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 
 const Transactions = () => {
   return (
     <View style={styles.container}>
       <Text style={styles.text}>Transactions Screen</Text>
-      <View style={styles.BottomNavigationContainer}>
-    <BottomNavigation activeTab='Transactions'/>
+   
+   
 </View>
-    </View>
+    
   );
 };
 
@@ -25,11 +25,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
   },
-  BottomNavigationContainer: {
-    width: wp('90%'),
-    flex: 1, // Prevent unintended stretching
-    marginBottom: hp('1%'),
-  },
+
 });
 
 export default Transactions;

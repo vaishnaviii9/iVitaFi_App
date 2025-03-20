@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, TouchableOpacity, Image, ScrollView } from "react-native";
 import { useSelector } from "react-redux";
-import { fetchData } from "../api/api";
-import Loader from "./Loader";
-import styles from "./HomeStyles";
-import RecentTransactions from "./RecentTransactions";
-import BottomNavigation from "./BottomNavigation";
-import { fetchCustomerData } from "./services/customerService";
-import { fetchUserData } from "./services/userService";
-import { fetchCreditSummaries } from "./services/creditAccountService";
+import { fetchData } from "../../api/api";
+import Loader from "../Loader";
+import styles from "../HomeStyles";
+import RecentTransactions from "../RecentTransactions";
+import BottomNavigation from "../BottomNavigation";
+import { fetchCustomerData } from "../services/customerService";
+import { fetchUserData } from "../services/userService";
+import { fetchCreditSummaries } from "../services/creditAccountService";
 
 interface CreditApplication {
   accountNumber: string;
@@ -164,9 +164,9 @@ const HomeScreen: React.FC = () => {
       </View>
 
       {/* Bottom Navigation */}
-      <View style={styles.BottomNavigationContainer}>
+      {/* <View style={styles.BottomNavigationContainer}>
         <BottomNavigation activeTab="Home" />
-      </View>
+      </View> */}
     </View>
   );
 };
