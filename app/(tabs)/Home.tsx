@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { View, Text, TouchableOpacity, Image } from "react-native";
 import { useSelector } from "react-redux";
 import Loader from "../Loader";
-import styles from "../../assets/styles/HomeStyles";
+import styles from "../../components/styles/HomeStyles";
 import RecentTransactions from "../RecentTransactions";
 import { fetchCustomerData } from "../services/customerService";
 import { fetchUserData } from "../services/userService";

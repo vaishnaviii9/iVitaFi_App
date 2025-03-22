@@ -3,7 +3,7 @@ import { View, Text, TextInput, Alert, Image, TouchableOpacity, Linking } from '
 import axios from 'axios';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useNavigation } from '@react-navigation/native';
-import styles from '../../assets/styles/LoginStyles'; // Import the styles
+import styles from '../../components/styles/LoginStyles'; // Import the styles
 import { authenticateUser } from '../services/authService';
 import { resetPasswordService } from '../services/resetPasswordService';
 import { useDispatch } from 'react-redux';

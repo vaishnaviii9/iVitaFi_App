@@ -2,7 +2,7 @@ import React from "react";
 import { View, Text, FlatList, Pressable } from "react-native";
 import { Ionicons, FontAwesome } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import styles from "../../assets/styles/StatementsStyles";  // Import the new styles file
+import styles from "../../components/styles/StatementsStyles";  // Import the new styles file
 
 const Statements = () => {
   const navigation = useNavigation();
@@ -11,6 +11,12 @@ const Statements = () => {
     { id: "1", date: "12/18/2024 - 01/31/2025" },
     { id: "2", date: "02/01/2025 - 03/31/2025" },
     { id: "3", date: "04/01/2025 - 05/31/2025" },
+    { id: "4", date: "06/01/2025 - 07/31/2025" },
+    { id: "4", date: "06/01/2025 - 07/31/2025" },
+    { id: "4", date: "06/01/2025 - 07/31/2025" },
+    { id: "4", date: "06/01/2025 - 07/31/2025" },
+    { id: "4", date: "06/01/2025 - 07/31/2025" },
+    { id: "4", date: "06/01/2025 - 07/31/2025" },
     { id: "4", date: "06/01/2025 - 07/31/2025" },
   ];
 

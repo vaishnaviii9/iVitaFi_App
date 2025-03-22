@@ -5,7 +5,7 @@ import { CreditAccountTransactionTypeUtil } from "../utils/CreditAccountTransact
 import AntDesign from '@expo/vector-icons/AntDesign';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { fetchPendingTransactions } from "./services/pendingTransactionsService";
-import styles from "../assets/styles/RecentTransactionsStyles";  // Import the new styles file
+import styles from "../components/styles/RecentTransactionsStyles";  // Import the new styles file
 
 interface RecentTransactionsProps {
   creditAccountId: string;
