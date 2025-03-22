@@ -1,11 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, TouchableOpacity, Image, ScrollView } from "react-native";
+import { View, Text, TouchableOpacity, Image } from "react-native";
 import { useSelector } from "react-redux";
-import { fetchData } from "../../api/api";
 import Loader from "../Loader";
-import styles from "../HomeStyles";
+import styles from "../../assets/styles/HomeStyles";
 import RecentTransactions from "../RecentTransactions";
-import BottomNavigation from "../BottomNavigation";
 import { fetchCustomerData } from "../services/customerService";
 import { fetchUserData } from "../services/userService";
 import { fetchCreditSummaries } from "../services/creditAccountService";

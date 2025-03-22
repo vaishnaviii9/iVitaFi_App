@@ -9,7 +9,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useRouter } from 'expo-router';
 import { ThemedText } from '@/components/ThemedText';
-import styles from './styles'; // Import the styles from the new file
+import styles from '../../assets/styles/IndexStyles'; // Import the styles from the new file
 
 const { width, height } = Dimensions.get('window');
 

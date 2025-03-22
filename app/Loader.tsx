@@ -1,12 +1,15 @@
-import React, { useEffect, useRef } from 'react';
-import { Animated, StyleSheet, View } from 'react-native';
+import React, { useEffect, useRef } from "react";
+import { Animated, View } from "react-native";
+import styles from "../assets/styles/LoaderStyles";  // Import the new styles file
 
 const Loader: React.FC = () => {
-  // Create three animated values for the dots
-  const animations = [useRef(new Animated.Value(0)).current, useRef(new Animated.Value(0)).current, useRef(new Animated.Value(0)).current];
+  const animations = [
+    useRef(new Animated.Value(0)).current,
+    useRef(new Animated.Value(0)).current,
+    useRef(new Animated.Value(0)).current,
+  ];
 
   useEffect(() => {
-    // Loop through each animation and start the bouncing effect
     animations.forEach((animation, index) => {
       Animated.loop(
         Animated.sequence([
@@ -53,21 +56,5 @@ const Loader: React.FC = () => {
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    height: 50,
-  },
-  dot: {
-    width: 15,
-    height: 15,
-    marginHorizontal: 5,
-    borderRadius: 10,
-    backgroundColor: '#3498db',
-  },
-});
 
 export default Loader;
