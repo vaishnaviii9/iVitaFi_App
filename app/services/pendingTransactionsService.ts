@@ -1,14 +1,19 @@
-// src/services/transactionService.ts
 import { fetchData } from "../../api/api";
+import apiClient from "../../api/apiClient";
 
 export const fetchPendingTransactions = async (
-  creditAccountId: string,
-  token: string
+  token: string,
+  creditAccountId: string
 ) => {
+  if (!creditAccountId) {
+    console.warn("Credit Account ID is missing.");
+    return [];
+  }
+
   try {
-    const url = `https://dev.ivitafi.com/api/creditaccount/${creditAccountId}/pending-transactions`;
+    const url = apiClient.PENDING_TRANSACTIONS(creditAccountId);
     const transactions = await fetchData(url, token, (data) => data, "Failed to fetch transactions.");
-    return transactions || []; // Ensure it always returns an array
+    return transactions || [];
   } catch (error) {
     console.error("Error fetching pending transactions:", error);
     return [];

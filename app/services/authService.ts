@@ -1,17 +1,15 @@
-import axios from 'axios';
+import axios from "axios";
+import apiClient from "../../api/apiClient";  // Import API endpoints
 
-const API_BASE_URL = 'https://dev.ivitafi.com/api'
-
-export const authenticateUser = async( email: string, password: string)=>{
-    try {
-        const response = await axios.post(`${API_BASE_URL}/User/authenticate`,
-            {
-                email,
-                password
-            }
-        )
-        return response.data
-    } catch (error) {
-        throw error
-    }
-}
+export const authenticateUser = async (email: string, password: string) => {
+  try {
+    const response = await axios.post(apiClient.AUTHENTICATE_USER, {
+      email,
+      password,
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error during authentication:", error);
+    throw error;
+  }
+};

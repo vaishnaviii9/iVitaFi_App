@@ -1,17 +1,13 @@
 import axios from "axios";
+import apiClient from "../../api/apiClient";  // Import API endpoints
 
-const API_BASE_URL = 'https://dev.ivitafi.com/api'
-
-export const resetPasswordService = async (email: string)=>{
-    try {
-         await axios.get(`${API_BASE_URL}/User/create-reset-password`,
-            {
-                params:{email}
-              }
-        )
-       
-
-    } catch (error) {
-        throw error
-    }
-}
+export const resetPasswordService = async (email: string) => {
+  try {
+    await axios.get(apiClient.RESET_PASSWORD, {
+      params: { email },
+    });
+  } catch (error) {
+    console.error("Error resetting password:", error);
+    throw error;
+  }
+};

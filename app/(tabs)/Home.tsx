@@ -1,19 +1,22 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, TouchableOpacity, Image } from "react-native";
-import { useSelector } from "react-redux";
+import { View, Text, TouchableOpacity, Image, ScrollView } from "react-native";
+import { useSelector, useDispatch } from "react-redux";
 import Loader from "../Loader";
 import styles from "../../components/styles/HomeStyles";
 import RecentTransactions from "../RecentTransactions";
 import { fetchCustomerData } from "../services/customerService";
 import { fetchUserData } from "../services/userService";
-import { fetchCreditSummaries } from "../services/creditAccountService";
+import { fetchCreditSummariesWithId } from "../services/creditAccountService";
+import { setCreditAccountId } from "../features/creditAccount/creditAccountSlice";
 
 interface CreditApplication {
   accountNumber: string;
 }
 
 const HomeScreen: React.FC = () => {
+  const dispatch = useDispatch();
   const { firstName, token } = useSelector((state: any) => state.auth); // Fetch user details from Redux
+  const creditAccountId = useSelector((state: any) => state.creditAccount.creditAccountId);
 
   // Define state variables
   const [userData, setUserData] = useState<any>(null);
@@ -25,7 +28,7 @@ const HomeScreen: React.FC = () => {
   const [availableCredit, setAvailableCredit] = useState<number | null>(null);
   const [accountNumber, setAccountNumber] = useState<string | null>(null);
   const [nextPaymentDate, setNextPaymentDate] = useState<string | null>(null);
-  const [creditAccountId, setCreditAccountId] = useState<string | null>(null);
+  const [creditSummaries, setCreditSummaries] = useState<any[]>([]);
   const [autoPay, setAutopay] = useState<boolean | null>(null);
 
   useEffect(() => {
@@ -36,18 +39,25 @@ const HomeScreen: React.FC = () => {
           fetchCustomerData(token, setCustomerData),
         ]);
 
-        if (customerResponse && customerResponse.creditAccounts) {
+        console.log("User Data:", userResponse);
+        console.log("Customer Data:", customerResponse);
+
+        if (customerResponse?.creditAccounts) {
           const accountNumbers = customerResponse.creditAccounts.map(
             (application: CreditApplication) => application.accountNumber
           );
           setAccountNumbers(accountNumbers);
 
-          const creditSummaries = await fetchCreditSummaries(customerResponse, token);
-          const firstAccount = customerResponse.creditAccounts[0];
+          const { creditSummaries, creditAccountId } = await fetchCreditSummariesWithId(customerResponse, token);
 
-          if (firstAccount && firstAccount.patientEpisodes.length > 0) {
-            setCreditAccountId(firstAccount.patientEpisodes[0].creditAccountId);
+          console.log("Credit Summaries:", creditSummaries);
+          console.log("Credit Account ID:", creditAccountId);
+
+          if (creditAccountId) {
+            dispatch(setCreditAccountId(creditAccountId));
           }
+
+          setCreditSummaries(creditSummaries);
 
           const validSummary = creditSummaries.find((summary) => summary !== null);
           if (validSummary) {
@@ -70,7 +80,7 @@ const HomeScreen: React.FC = () => {
     };
 
     fetchAllData();
-  }, [token]);
+  }, [token, dispatch]);
 
   if (loading) {
     return (
@@ -155,7 +165,7 @@ const HomeScreen: React.FC = () => {
       {/* Recent Transactions */}
       <View style={styles.RecentTransactionsContainer}>
         {creditAccountId ? (
-          <RecentTransactions creditAccountId={creditAccountId} token={token} />
+          <RecentTransactions />
         ) : (
           <Text style={styles.noAccountText}>No transactions available</Text>
         )}

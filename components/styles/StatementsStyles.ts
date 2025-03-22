@@ -12,7 +12,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     position: "relative",
     marginBottom: 24,
-    marginTop: 40,
+    marginTop: 50,
   },
   backButton: {
     position: "absolute",
@@ -35,8 +35,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 4,
-    marginBottom: "55%",
-    marginTop: "20%",
+    marginBottom: "10%",
+    marginTop: "10%",
   },
   header: {
     flexDirection: "row",
@@ -75,6 +75,22 @@ const styles = StyleSheet.create({
   },
   actionButton: {
     marginLeft: 16,
+  },
+
+  // ✅ Added styles for no data messages
+  noAccountText: {
+    fontSize: 18,
+    color: "#FF5252",          // Red color for warning
+    textAlign: "center",
+    marginTop: 20,
+    fontWeight: "600",
+  },
+  noStatementsText: {
+    fontSize: 18,
+    color: "#607D8B",          // Grayish-blue for neutral message
+    textAlign: "center",
+    marginTop: 20,
+    fontWeight: "600",
   },
 });
 
