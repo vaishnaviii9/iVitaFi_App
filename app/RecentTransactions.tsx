@@ -95,10 +95,15 @@ const RecentTransactions: React.FC = () => {
                       </Text>
                       {"\n"}
                       <Text style={styles.textSecondary}>
-                        {transaction.pendingTransactionDate
-                          ? new Date(transaction.pendingTransactionDate).toLocaleDateString()
-                          : "---"}
-                      </Text>
+  {transaction.pendingTransactionDate
+    ? new Date(transaction.pendingTransactionDate).toLocaleDateString('en-US', {
+        month: '2-digit',
+        day: '2-digit',
+        year: 'numeric'
+      })
+    : "---"}
+</Text>
+
                     </Text>
                   </View>
                   <View>

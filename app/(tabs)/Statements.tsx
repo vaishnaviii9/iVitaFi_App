@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, FlatList, Pressable } from "react-native";
+import { View, Text, FlatList, Pressable, Alert } from "react-native";
 import { Ionicons, FontAwesome } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import styles from "../../components/styles/StatementsStyles";
 import { fetchStatements } from "../services/statementService";
 import { useSelector } from "react-redux";
+import { format } from "date-fns";
 
 const Statements: React.FC = () => {
   const token = useSelector((state: any) => state.auth.token);
@@ -37,13 +38,21 @@ const Statements: React.FC = () => {
     loadStatements();
   }, [token, creditAccountId]);
 
-  if (loading) {
-    return (
-      <View style={styles.container}>
-        <Text>Loading...</Text>
-      </View>
-    );
-  }
+  const formatDateRange = (startDate: string, endDate: string) => {
+    const start = format(new Date(startDate), "MMM dd yyyy");
+    const end = format(new Date(endDate), "MMM dd yyyy");
+    return `${start} - ${end}`;
+  };
+
+  const handleViewPress = (item: any) => {
+    // Navigate to a detailed view or show an alert for demonstration
+    Alert.alert("View Statement", `Viewing statement for ${formatDateRange(item.statementStartDate, item.statementDate)}`);
+  };
+
+  const handleDownloadPress = (item: any) => {
+    // Trigger a download or show an alert for demonstration
+    Alert.alert("Download Statement", `Downloading statement for ${formatDateRange(item.statementStartDate, item.statementDate)}`);
+  };
 
   if (!creditAccountId) {
     return (
@@ -76,12 +85,14 @@ const Statements: React.FC = () => {
             contentContainerStyle={styles.list}
             renderItem={({ item }) => (
               <View style={styles.row}>
-                <Text style={styles.dateText}>{item.date}</Text>
+                <Text style={styles.dateText}>
+                  {formatDateRange(item.statementStartDate, item.statementDate)}
+                </Text>
                 <View style={styles.actions}>
-                  <Pressable style={styles.actionButton}>
+                  <Pressable style={styles.actionButton} onPress={() => handleViewPress(item)}>
                     <Ionicons name="eye-outline" size={24} color="#6200EA" />
                   </Pressable>
-                  <Pressable style={styles.actionButton}>
+                  <Pressable style={styles.actionButton} onPress={() => handleDownloadPress(item)}>
                     <FontAwesome name="download" size={24} color="#00C853" />
                   </Pressable>
                 </View>

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, TouchableOpacity, Image, ScrollView } from "react-native";
+import { View, Text, TouchableOpacity, Image, ScrollView, Pressable, Alert } from "react-native";
 import { useSelector, useDispatch } from "react-redux";
 import Loader from "../Loader";
 import styles from "../../components/styles/HomeStyles";
@@ -39,8 +39,8 @@ const HomeScreen: React.FC = () => {
           fetchCustomerData(token, setCustomerData),
         ]);
 
-        console.log("User Data:", userResponse);
-        console.log("Customer Data:", customerResponse);
+        // console.log("User Data:", userResponse);
+        // console.log("Customer Data:", customerResponse);
 
         if (customerResponse?.creditAccounts) {
           const accountNumbers = customerResponse.creditAccounts.map(
@@ -50,8 +50,8 @@ const HomeScreen: React.FC = () => {
 
           const { creditSummaries, creditAccountId } = await fetchCreditSummariesWithId(customerResponse, token);
 
-          console.log("Credit Summaries:", creditSummaries);
-          console.log("Credit Account ID:", creditAccountId);
+          // console.log("Credit Summaries:", creditSummaries);
+          // console.log("Credit Account ID:", creditAccountId);
 
           if (creditAccountId) {
             dispatch(setCreditAccountId(creditAccountId));
@@ -65,8 +65,11 @@ const HomeScreen: React.FC = () => {
             setAccountNumber(validSummary.paymentMethod.accountNumber);
             setBalance(validSummary.currentBalance);
             setAvailableCredit(validSummary.displayAvailableCredit);
+            
             const date = new Date(validSummary.nextPaymentDate);
-            setNextPaymentDate(`${date.getMonth() + 1}/${date.getDate()}`);
+            const formattedDate = `${String(date.getMonth() + 1).padStart(2, "0")}/${String(date.getDate()).padStart(2, "0")}`;
+            setNextPaymentDate(formattedDate);
+            
             setAutopay(validSummary.detail?.creditAccount?.paymentSchedule?.autoPayEnabled);
           }
         } else {
@@ -90,6 +93,11 @@ const HomeScreen: React.FC = () => {
     );
   }
 
+  const handleHamburgerPress = () => {
+    // Define the action to perform when the hamburger icon is pressed
+    Alert.alert("Hamburger Menu", "Hamburger icon pressed!");
+  }
+
   return (
     <View style={styles.container}>
       {/* Header section */}
@@ -101,7 +109,12 @@ const HomeScreen: React.FC = () => {
             <Text style={styles.welcomeText}>Welcome to IvitaFi</Text>
           </View>
         </View>
-        <Image source={require("@/assets/images/menus.png")} style={styles.hamburgerIcon} />
+        <Pressable onPress={handleHamburgerPress}>
+        <Image
+          source={require("@/assets/images/menus.png")}
+          style={styles.hamburgerIcon}
+        />
+      </Pressable>
       </View>
 
       {/* Account details section */}
@@ -147,11 +160,11 @@ const HomeScreen: React.FC = () => {
       <View style={styles.balanceContainer}>
         <View style={styles.balanceRow}>
           <Text style={styles.myBalance}>My Balance</Text>
-          <Text style={styles.text}>${balance || " "}</Text>
+          <Text style={styles.text}>${balance?.toFixed(2) || " "}</Text>
         </View>
         <View style={styles.balanceRow}>
           <Text style={styles.availableCredit}>Available Credit</Text>
-          <Text style={styles.text1}>${availableCredit || " "}</Text>
+          <Text style={styles.text1}>${availableCredit?.toFixed(2) || " "}</Text>
         </View>
       </View>
 
