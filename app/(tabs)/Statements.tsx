@@ -2,10 +2,11 @@ import React, { useEffect, useState } from "react";
 import { View, Text, FlatList, Pressable, Alert } from "react-native";
 import { Ionicons, FontAwesome } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import styles from "../../components/styles/StatementsStyles";
-import { fetchStatements } from "../services/statementService";
 import { useSelector } from "react-redux";
 import { format } from "date-fns";
+import { fetchStatements } from "../services/statementService";
+import styles from "../../components/styles/StatementsStyles"; // Ensure this path is correct
+import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 
 const Statements: React.FC = () => {
   const token = useSelector((state: any) => state.auth.token);
@@ -45,12 +46,10 @@ const Statements: React.FC = () => {
   };
 
   const handleViewPress = (item: any) => {
-    // Navigate to a detailed view or show an alert for demonstration
     Alert.alert("View Statement", `Viewing statement for ${formatDateRange(item.statementStartDate, item.statementDate)}`);
   };
 
   const handleDownloadPress = (item: any) => {
-    // Trigger a download or show an alert for demonstration
     Alert.alert("Download Statement", `Downloading statement for ${formatDateRange(item.statementStartDate, item.statementDate)}`);
   };
 
@@ -66,7 +65,7 @@ const Statements: React.FC = () => {
     <View style={styles.container}>
       <View style={styles.headerContainer}>
         <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={28} color="#37474F" />
+          <Ionicons name="arrow-back" size={wp('7%')} color="black" />
         </Pressable>
         <Text style={styles.title}>Statements</Text>
       </View>
@@ -90,10 +89,10 @@ const Statements: React.FC = () => {
                 </Text>
                 <View style={styles.actions}>
                   <Pressable style={styles.actionButton} onPress={() => handleViewPress(item)}>
-                    <Ionicons name="eye-outline" size={24} color="#6200EA" />
+                    <Ionicons name="eye-outline" size={wp('6%')} color="#FFFFFF" />
                   </Pressable>
                   <Pressable style={styles.actionButton} onPress={() => handleDownloadPress(item)}>
-                    <FontAwesome name="download" size={24} color="#00C853" />
+                    <FontAwesome name="download" size={wp('6%')} color="#FFFFFF" />
                   </Pressable>
                 </View>
               </View>
