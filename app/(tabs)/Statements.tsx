@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, FlatList, Pressable, Alert } from "react-native";
+import { View, Text, FlatList, Pressable, Alert, Share, ActivityIndicator } from "react-native";
 import { Ionicons, FontAwesome } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import styles from "../../components/styles/StatementsStyles";
 import { fetchStatements } from "../services/statementService";
 import { useSelector } from "react-redux";
 import { format } from "date-fns";
+import * as FileSystem from 'expo-file-system';
+import { WebView } from 'react-native-webview';
 
 const Statements: React.FC = () => {
   const token = useSelector((state: any) => state.auth.token);
@@ -13,6 +15,7 @@ const Statements: React.FC = () => {
 
   const [statements, setStatements] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [pdfUri, setPdfUri] = useState<string | null>(null);
 
   const navigation = useNavigation();
 
@@ -27,7 +30,6 @@ const Statements: React.FC = () => {
       try {
         const response = await fetchStatements(token, creditAccountId);
         setStatements(response || []);
-        console.log("Fetched Statements:", response);
       } catch (error) {
         console.error("Error fetching statements:", error);
       } finally {
@@ -44,14 +46,60 @@ const Statements: React.FC = () => {
     return `${start} - ${end}`;
   };
 
-  const handleViewPress = (item: any) => {
-    // Navigate to a detailed view or show an alert for demonstration
-    Alert.alert("View Statement", `Viewing statement for ${formatDateRange(item.statementStartDate, item.statementDate)}`);
+  const downloadPDF = async (fileName: string) => {
+    try {
+      const url = `https://dev.ivitafi.com/api/creditaccount/${creditAccountId}/statements/${fileName}`;
+      
+      // Check the response headers first
+      const headResponse = await fetch(url, {
+        method: 'HEAD',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      const contentType = headResponse.headers.get("content-type");
+
+      // Ensure it's a PDF before proceeding
+      if (!contentType || !contentType.includes("pdf")) {
+        throw new Error("Invalid file type. Only PDFs are allowed.");
+      }
+
+      // Proceed with the download
+      const fileUri = `${FileSystem.documentDirectory}${fileName}`;
+      const downloadResponse = await FileSystem.downloadAsync(url, fileUri);
+
+      if (downloadResponse.status !== 200) {
+        throw new Error("Failed to download PDF.");
+      }
+
+      return fileUri;
+    } catch (error) {
+      console.error("Error downloading PDF:", error);
+      Alert.alert("Error", "Failed to download the PDF.");
+      throw error;
+    }
   };
 
-  const handleDownloadPress = (item: any) => {
-    // Trigger a download or show an alert for demonstration
-    Alert.alert("Download Statement", `Downloading statement for ${formatDateRange(item.statementStartDate, item.statementDate)}`);
+  const handleViewPress = async (item: any) => {
+    try {
+      const fileUri = await downloadPDF(item.fileName);
+      setPdfUri(fileUri);
+    } catch (error) {
+      Alert.alert("Error", "Failed to view the PDF.");
+    }
+  };
+
+  const handleDownloadPress = async (item: any) => {
+    try {
+      const fileUri = await downloadPDF(item.fileName);
+      await Share.share({
+        message: `Here is your PDF: ${fileUri}`,
+        url: fileUri,
+      });
+    } catch (error) {
+      Alert.alert("Error", "Failed to download the PDF.");
+    }
   };
 
   if (!creditAccountId) {
@@ -77,7 +125,9 @@ const Statements: React.FC = () => {
           <Text style={styles.headerText}>Actions</Text>
         </View>
 
-        {statements.length > 0 ? (
+        {loading ? (
+          <ActivityIndicator size="large" color="#6200EA" />
+        ) : (
           <FlatList
             data={statements}
             keyExtractor={(item) => item.id.toString()}
@@ -99,10 +149,15 @@ const Statements: React.FC = () => {
               </View>
             )}
           />
-        ) : (
-          <Text style={styles.noStatementsText}>No statements available.</Text>
         )}
       </View>
+
+      {pdfUri && (
+        <WebView
+          source={{ uri: `https://docs.google.com/viewer?url=${encodeURIComponent(pdfUri)}` }}
+          style={{ flex: 1 }}
+        />
+      )}
     </View>
   );
 };
