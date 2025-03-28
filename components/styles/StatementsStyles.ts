@@ -1,65 +1,68 @@
 import { StyleSheet } from "react-native";
+import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
-    padding: 16,
+    backgroundColor: "#F5F5F5",
+    padding: wp('5%'),
   },
   headerContainer: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    position: "relative",
-    marginBottom: 24,
-    marginTop: 50,
+    // backgroundColor: "#003566",
+    // padding: wp('1%'),
+    // borderRadius: 10,
+    marginBottom: hp('1%'),
+    marginTop: hp('5%'),
   },
   backButton: {
     position: "absolute",
-    left: 0,
-    top: 0,
+    left: wp('2%'),
+    fontWeight: "bold",
   },
   title: {
-    fontSize: 28,
+    fontSize: wp('8%'),
     fontWeight: "bold",
-    color: "#37474F",
+    color: "black",
     textAlign: "center",
   },
   recordsContainer: {
-    backgroundColor: "#E0E0E0", // Gray container
+    backgroundColor: "#E0E0E0",
     borderRadius: 26,
-    padding: 16,
+    padding: wp('4%'),
     flex: 1,
     elevation: 4,
     shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowOffset: { width: 0, height: 3 },
     shadowRadius: 4,
-    marginBottom: "10%",
-    marginTop: "10%",
+    marginBottom: hp('5%'),
+    marginTop: hp('5%'),
   },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
-    paddingHorizontal: 8,
-    marginBottom: 16,
+    paddingHorizontal: wp('2%'),
+    marginBottom: hp('2%'),
   },
   headerText: {
-    fontSize: 18,
+    fontSize: wp('5%'),
     fontWeight: "600",
-    color: "#78909C",
+    color: "#333333",
   },
   list: {
-    paddingBottom: 16,
+    paddingBottom: hp('3%'),
   },
   row: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    backgroundColor: "#FFFFFF", // Row color
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 12,
+    backgroundColor: "#FFFFFF",
+    padding: wp('3%'),
+    borderRadius: 15,
+    marginBottom: hp('1.5%'),
     elevation: 3,
     shadowColor: "#000",
     shadowOpacity: 0.1,
@@ -67,29 +70,32 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
   },
   dateText: {
-    fontSize: 18,
-    color: "#263238",
+    fontSize: wp('4.4%'),
+    color: "#333333",
   },
   actions: {
     flexDirection: "row",
   },
   actionButton: {
-    marginLeft: 16,
+    marginLeft: wp('1.5%'),
+    backgroundColor: "#003566",
+    padding: wp('1.6%'),
+    borderRadius: 9,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-
-  // ✅ Added styles for no data messages
   noAccountText: {
-    fontSize: 18,
-    color: "#FF5252",          // Red color for warning
+    fontSize: wp('5%'),
+    color: "#FFCDD2",
     textAlign: "center",
-    marginTop: 20,
+    marginTop: hp('2%'),
     fontWeight: "600",
   },
   noStatementsText: {
-    fontSize: 18,
-    color: "#607D8B",          // Grayish-blue for neutral message
+    fontSize: wp('5%'),
+    color: "#9E9E9E",
     textAlign: "center",
-    marginTop: 20,
+    marginTop: hp('2%'),
     fontWeight: "600",
   },
 });

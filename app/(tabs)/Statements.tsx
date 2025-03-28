@@ -2,12 +2,11 @@ import React, { useEffect, useState } from "react";
 import { View, Text, FlatList, Pressable, Alert, Share, ActivityIndicator } from "react-native";
 import { Ionicons, FontAwesome } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import styles from "../../components/styles/StatementsStyles";
-import { fetchStatements } from "../services/statementService";
 import { useSelector } from "react-redux";
 import { format } from "date-fns";
-import * as FileSystem from 'expo-file-system';
-import { WebView } from 'react-native-webview';
+import { fetchStatements } from "../services/statementService";
+import styles from "../../components/styles/StatementsStyles"; // Ensure this path is correct
+import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 
 const Statements: React.FC = () => {
   const token = useSelector((state: any) => state.auth.token);
@@ -46,60 +45,12 @@ const Statements: React.FC = () => {
     return `${start} - ${end}`;
   };
 
-  const downloadPDF = async (fileName: string) => {
-    try {
-      const url = `https://dev.ivitafi.com/api/creditaccount/${creditAccountId}/statements/${fileName}`;
-      
-      // Check the response headers first
-      const headResponse = await fetch(url, {
-        method: 'HEAD',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-
-      const contentType = headResponse.headers.get("content-type");
-
-      // Ensure it's a PDF before proceeding
-      if (!contentType || !contentType.includes("pdf")) {
-        throw new Error("Invalid file type. Only PDFs are allowed.");
-      }
-
-      // Proceed with the download
-      const fileUri = `${FileSystem.documentDirectory}${fileName}`;
-      const downloadResponse = await FileSystem.downloadAsync(url, fileUri);
-
-      if (downloadResponse.status !== 200) {
-        throw new Error("Failed to download PDF.");
-      }
-
-      return fileUri;
-    } catch (error) {
-      console.error("Error downloading PDF:", error);
-      Alert.alert("Error", "Failed to download the PDF.");
-      throw error;
-    }
+  const handleViewPress = (item: any) => {
+    Alert.alert("View Statement", `Viewing statement for ${formatDateRange(item.statementStartDate, item.statementDate)}`);
   };
 
-  const handleViewPress = async (item: any) => {
-    try {
-      const fileUri = await downloadPDF(item.fileName);
-      setPdfUri(fileUri);
-    } catch (error) {
-      Alert.alert("Error", "Failed to view the PDF.");
-    }
-  };
-
-  const handleDownloadPress = async (item: any) => {
-    try {
-      const fileUri = await downloadPDF(item.fileName);
-      await Share.share({
-        message: `Here is your PDF: ${fileUri}`,
-        url: fileUri,
-      });
-    } catch (error) {
-      Alert.alert("Error", "Failed to download the PDF.");
-    }
+  const handleDownloadPress = (item: any) => {
+    Alert.alert("Download Statement", `Downloading statement for ${formatDateRange(item.statementStartDate, item.statementDate)}`);
   };
 
   if (!creditAccountId) {
@@ -114,7 +65,7 @@ const Statements: React.FC = () => {
     <View style={styles.container}>
       <View style={styles.headerContainer}>
         <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={28} color="#37474F" />
+          <Ionicons name="arrow-back" size={wp('7%')} color="black" />
         </Pressable>
         <Text style={styles.title}>Statements</Text>
       </View>
@@ -140,10 +91,10 @@ const Statements: React.FC = () => {
                 </Text>
                 <View style={styles.actions}>
                   <Pressable style={styles.actionButton} onPress={() => handleViewPress(item)}>
-                    <Ionicons name="eye-outline" size={24} color="#6200EA" />
+                    <Ionicons name="eye-outline" size={wp('6%')} color="#FFFFFF" />
                   </Pressable>
                   <Pressable style={styles.actionButton} onPress={() => handleDownloadPress(item)}>
-                    <FontAwesome name="download" size={24} color="#00C853" />
+                    <FontAwesome name="download" size={wp('6%')} color="#FFFFFF" />
                   </Pressable>
                 </View>
               </View>
