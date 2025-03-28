@@ -1,12 +1,15 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, FlatList, Pressable, Alert, Share, ActivityIndicator } from "react-native";
+import { View, Text, FlatList, Pressable, Alert, StyleSheet, Share } from "react-native";
 import { Ionicons, FontAwesome } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
+import styles from "../../components/styles/StatementsStyles";
+import { fetchStatements } from "../services/statementService";
 import { useSelector } from "react-redux";
 import { format } from "date-fns";
-import { fetchStatements } from "../services/statementService";
-import styles from "../../components/styles/StatementsStyles"; // Ensure this path is correct
+import * as FileSystem from 'expo-file-system';
+import { WebView } from 'react-native-webview';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
+
 
 const Statements: React.FC = () => {
   const token = useSelector((state: any) => state.auth.token);
@@ -29,6 +32,7 @@ const Statements: React.FC = () => {
       try {
         const response = await fetchStatements(token, creditAccountId);
         setStatements(response || []);
+        console.log("Fetched Statements:", response);
       } catch (error) {
         console.error("Error fetching statements:", error);
       } finally {
@@ -45,12 +49,47 @@ const Statements: React.FC = () => {
     return `${start} - ${end}`;
   };
 
-  const handleViewPress = (item: any) => {
-    Alert.alert("View Statement", `Viewing statement for ${formatDateRange(item.statementStartDate, item.statementDate)}`);
+  const downloadPDF = async (fileName: string) => {
+    try {
+      const response = await fetch(`https://dev.ivitafi.com/api/creditaccount/${creditAccountId}/statements/${fileName}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+
+      const fileUri = FileSystem.documentDirectory + fileName;
+      await FileSystem.downloadAsync(response.url, fileUri);
+      return fileUri;
+    } catch (error) {
+      console.error("Error downloading PDF:", error);
+      throw error;
+    }
   };
 
-  const handleDownloadPress = (item: any) => {
-    Alert.alert("Download Statement", `Downloading statement for ${formatDateRange(item.statementStartDate, item.statementDate)}`);
+  const handleViewPress = async (item: any) => {
+    try {
+      const fileUri = await downloadPDF(item.fileName);
+      setPdfUri(fileUri);
+    } catch (error) {
+      Alert.alert("Error", "Failed to download the PDF.");
+    }
+  };
+
+  const handleDownloadPress = async (item: any) => {
+    try {
+      const fileUri = await downloadPDF(item.fileName);
+      await Share.share({
+        message: `Here is your PDF: ${fileUri}`,
+        url: fileUri,
+      });
+    } catch (error) {
+      Alert.alert("Error", "Failed to download the PDF.");
+    }
   };
 
   if (!creditAccountId) {
@@ -65,7 +104,7 @@ const Statements: React.FC = () => {
     <View style={styles.container}>
       <View style={styles.headerContainer}>
         <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={wp('7%')} color="black" />
+          <Ionicons name="arrow-back" size={28} color="#37474F" />
         </Pressable>
         <Text style={styles.title}>Statements</Text>
       </View>
@@ -76,9 +115,7 @@ const Statements: React.FC = () => {
           <Text style={styles.headerText}>Actions</Text>
         </View>
 
-        {loading ? (
-          <ActivityIndicator size="large" color="#6200EA" />
-        ) : (
+        {statements.length > 0 ? (
           <FlatList
             data={statements}
             keyExtractor={(item) => item.id.toString()}
@@ -97,9 +134,12 @@ const Statements: React.FC = () => {
                     <FontAwesome name="download" size={wp('6%')} color="#FFFFFF" />
                   </Pressable>
                 </View>
+ 
               </View>
             )}
           />
+        ) : (
+          <Text style={styles.noStatementsText}>No statements available.</Text>
         )}
       </View>
 
