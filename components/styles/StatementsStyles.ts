@@ -30,7 +30,7 @@ const styles = StyleSheet.create({
   },
   recordsContainer: {
     backgroundColor: "#E0E0E0",
-    borderRadius: 26,
+    borderRadius: 20,
     padding: wp('4%'),
     flex: 1,
     elevation: 4,
