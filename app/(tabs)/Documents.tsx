@@ -1,6 +1,6 @@
 import React from "react";
 import { SafeAreaView, View, Text, TouchableOpacity, StyleSheet, Pressable } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, FontAwesome } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import styles from '../../components/styles/DocumentStyles'; // Import the styles
 
@@ -18,17 +18,21 @@ const Documents = () => {
 
       <View style={styles.recordsContainer}>
         <View style={styles.documentList}>
-          <TouchableOpacity style={styles.documentButton} onPress={() => alert('Pressed!')}>
-            <Text style={styles.buttonText}>Healthcare Credit Agreement & Disclosures</Text>
+          <TouchableOpacity style={styles.documentFolder} onPress={() => alert('Pressed!')}>
+            <FontAwesome name="folder-open" size={30} color="#FFFFFF" style={styles.folderIcon} />
+            <Text style={styles.folderText}>Healthcare Credit Agreement & Disclosures</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.documentButtonDark} onPress={() => alert('Pressed!')}>
-            <Text style={styles.buttonText}>MLA Disclosures</Text>
+          <TouchableOpacity style={styles.documentFolderDark} onPress={() => alert('Pressed!')}>
+            <FontAwesome name="folder-open" size={30} color="#FFFFFF" style={styles.folderIcon} />
+            <Text style={styles.folderText}>MLA Disclosures</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.documentButton} onPress={() => alert('Pressed!')}>
-            <Text style={styles.buttonText}>TCPA Disclosures</Text>
+          <TouchableOpacity style={styles.documentFolder} onPress={() => alert('Pressed!')}>
+            <FontAwesome name="folder-open" size={30} color="#FFFFFF" style={styles.folderIcon} />
+            <Text style={styles.folderText}>TCPA Disclosures</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.documentButtonDark} onPress={() => alert('Pressed!')}>
-            <Text style={styles.buttonText}>Consent to Electronic Communications</Text>
+          <TouchableOpacity style={styles.documentFolderDark} onPress={() => alert('Pressed!')}>
+            <FontAwesome name="folder-open" size={30} color="#FFFFFF" style={styles.folderIcon} />
+            <Text style={styles.folderText}>Consent to Electronic Communications</Text>
           </TouchableOpacity>
         </View>
       </View>
