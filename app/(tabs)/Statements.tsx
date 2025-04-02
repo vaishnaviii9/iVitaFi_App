@@ -51,44 +51,42 @@ const Statements: React.FC = () => {
 
   const downloadPDF = async (fileName: string) => {
     try {
-      console.log("Token:", token); // Log the token for debugging
+      console.log("🛑 Downloading file:", fileName);
   
-      // Step 1: Fetch the pre-signed URL
-      const response = await fetch(`https://dev.ivitafi.com/api/creditaccount/${creditAccountId}/statements/${fileName}`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
+      const response = await fetch(
+        `https://dev.ivitafi.com/api/creditaccount/${creditAccountId}/statements/${fileName}`,
+        {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        }
+      );
   
       if (!response.ok) {
-        if (response.status === 401) {
-          throw new Error('Unauthorized: Check your token and permissions.');
-        }
-        throw new Error('Network response was not ok');
+        throw new Error(`Network error: ${response.status}`);
       }
   
-      // Assuming the pre-signed URL is returned in the response body as text
       let preSignedUrl = await response.text();
-      console.log("Pre-signed URL:", preSignedUrl);
+      console.log("✅ Raw pre-signed URL:", preSignedUrl);
   
-      // Remove any extraneous double quotes from the pre-signed URL
+      // ✅ Fix: Remove unwanted quotes (API might return JSON-wrapped text)
       preSignedUrl = preSignedUrl.replace(/^"|"$/g, '');
+      console.log("✅ Processed URL:", preSignedUrl);
   
-      // Step 2: Download the PDF using the pre-signed URL
-      const fileUri = FileSystem.documentDirectory + fileName;
-      console.log("File URI:", fileUri);
+      const downloadDest = `${FileSystem.documentDirectory}${fileName}`;
   
-      await FileSystem.downloadAsync(preSignedUrl, fileUri);
-      return fileUri;
+      // ✅ Download the file
+      const downloadResult = await FileSystem.downloadAsync(preSignedUrl, downloadDest);
+      console.log("✅ Download complete:", downloadResult);
+  
+      return downloadDest;
     } catch (error) {
-      console.error("Error downloading PDF:", error);
+      console.error("❌ Error downloading file:", error);
       throw error;
     }
   };
-  
-
-  
+   
   const handleViewPress = async (item: any) => {
     try {
       const fileUri = await downloadPDF(item.fileName);

@@ -40,11 +40,6 @@ const styles = StyleSheet.create({
     width: wp('90%'),
     alignSelf: 'center',
   },
-  headerText: {
-    fontSize: wp('5%'),
-    fontWeight: "600",
-    color: "#333333",
-  },
   documentFolder: {
     backgroundColor: "#27446F",
     borderRadius: wp('2.5%'),
