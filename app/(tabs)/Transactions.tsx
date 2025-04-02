@@ -3,15 +3,10 @@ import { View, Text, Pressable, Animated } from 'react-native';
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
+import Pending from '../PendingTransactions'; // Import the Pending component
 import styles from '../../components/styles/TransactionStyles';
 
 const Tab = createMaterialTopTabNavigator();
-
-const Pending = () => (
-  <View style={styles.tabContainer}>
-    <Text>Pending</Text>
-  </View>
-);
 
 const Posted = () => (
   <View style={styles.tabContainer}>
@@ -49,7 +44,7 @@ function MyTabs() {
         tabBarStyle: {
           backgroundColor: '#fff',
           borderRadius: 20,
-          marginHorizontal: 5,  // Increase the margin to make the tabs wider
+          marginHorizontal: 5,
           marginTop: 10,
           elevation: 5,
           shadowColor: "#000",
@@ -70,7 +65,6 @@ function MyTabs() {
     </Tab.Navigator>
   );
 }
-
 
 const Transactions = () => {
   const navigation = useNavigation();

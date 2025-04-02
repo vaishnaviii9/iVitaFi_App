@@ -26,7 +26,7 @@ const styles = StyleSheet.create({
         textAlign: "center",
       },
       recordsContainer: {
-        backgroundColor: "#E0E0E0",
+        backgroundColor: "#D3D3D3",
         borderRadius: wp('5%'),
         padding: wp('4%'),
         flex: 1,
