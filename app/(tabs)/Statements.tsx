@@ -1,15 +1,22 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, FlatList, Pressable, Alert, StyleSheet, Share } from "react-native";
+import { 
+  View, 
+  Text, 
+  FlatList, 
+  Pressable, 
+  Alert, 
+  Share, 
+  ActivityIndicator 
+} from "react-native";
 import { Ionicons, FontAwesome } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import styles from "../../components/styles/StatementsStyles";
-import { fetchStatements } from "../services/statementService";
 import { useSelector } from "react-redux";
 import { format } from "date-fns";
-import * as FileSystem from 'expo-file-system';
-import { WebView } from 'react-native-webview';
-import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
-
+import * as FileSystem from "expo-file-system";
+import { WebView } from "react-native-webview";
+import { widthPercentageToDP as wp } from "react-native-responsive-screen";
+import styles from "../../components/styles/StatementsStyles";
+import { fetchStatements, fetchStatementFile } from "../services/statementService";
 
 const Statements: React.FC = () => {
   const token = useSelector((state: any) => state.auth.token);
@@ -35,6 +42,7 @@ const Statements: React.FC = () => {
         console.log("Fetched Statements:", response);
       } catch (error) {
         console.error("Error fetching statements:", error);
+        Alert.alert("Error", "Failed to fetch statements.");
       } finally {
         setLoading(false);
       }
@@ -52,45 +60,30 @@ const Statements: React.FC = () => {
   const downloadPDF = async (fileName: string) => {
     try {
       console.log("🛑 Downloading file:", fileName);
-  
-      const response = await fetch(
-        `https://dev.ivitafi.com/api/creditaccount/${creditAccountId}/statements/${fileName}`,
-        {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-          },
-        }
-      );
-  
-      if (!response.ok) {
-        throw new Error(`Network error: ${response.status}`);
-      }
-  
-      let preSignedUrl = await response.text();
-      console.log("✅ Raw pre-signed URL:", preSignedUrl);
-  
-      // ✅ Fix: Remove unwanted quotes (API might return JSON-wrapped text)
-      preSignedUrl = preSignedUrl.replace(/^"|"$/g, '');
-      console.log("✅ Processed URL:", preSignedUrl);
-  
+
+      const fileUrl = await fetchStatementFile(token, creditAccountId, fileName);
+      if (!fileUrl) throw new Error("Invalid file URL");
+
+      console.log("✅ Processed URL:", fileUrl);
+
       const downloadDest = `${FileSystem.documentDirectory}${fileName}`;
-  
+
       // ✅ Download the file
-      const downloadResult = await FileSystem.downloadAsync(preSignedUrl, downloadDest);
+      const downloadResult = await FileSystem.downloadAsync(fileUrl, downloadDest);
       console.log("✅ Download complete:", downloadResult);
-  
+
       return downloadDest;
     } catch (error) {
       console.error("❌ Error downloading file:", error);
-      throw error;
+      Alert.alert("Error", "Failed to download the PDF.");
+      return null;
     }
   };
-   
+
   const handleViewPress = async (item: any) => {
     try {
       const fileUri = await downloadPDF(item.fileName);
-      setPdfUri(fileUri);
+      if (fileUri) setPdfUri(fileUri);
     } catch (error) {
       Alert.alert("Error", "Failed to download the PDF.");
     }
@@ -99,12 +92,14 @@ const Statements: React.FC = () => {
   const handleDownloadPress = async (item: any) => {
     try {
       const fileUri = await downloadPDF(item.fileName);
+      if (!fileUri) throw new Error("Download failed.");
+
       await Share.share({
         message: `Here is your PDF: ${fileUri}`,
         url: fileUri,
       });
     } catch (error) {
-      Alert.alert("Error", "Failed to download the PDF.");
+      Alert.alert("Error", "Failed to download and share the PDF.");
     }
   };
 
@@ -131,7 +126,9 @@ const Statements: React.FC = () => {
           <Text style={styles.headerText}>Actions</Text>
         </View>
 
-        {statements.length > 0 ? (
+        {loading ? (
+          <ActivityIndicator size="large" color="#0000ff" />
+        ) : statements.length > 0 ? (
           <FlatList
             data={statements}
             keyExtractor={(item) => item.id.toString()}
@@ -144,13 +141,12 @@ const Statements: React.FC = () => {
                 </Text>
                 <View style={styles.actions}>
                   <Pressable style={styles.actionButton} onPress={() => handleViewPress(item)}>
-                    <Ionicons name="eye-outline" size={wp('6%')} color="#FFFFFF" />
+                    <Ionicons name="eye-outline" size={wp("6%")} color="#FFFFFF" />
                   </Pressable>
                   <Pressable style={styles.actionButton} onPress={() => handleDownloadPress(item)}>
-                    <FontAwesome name="download" size={wp('6%')} color="#FFFFFF" />
+                    <FontAwesome name="download" size={wp("6%")} color="#FFFFFF" />
                   </Pressable>
                 </View>
- 
               </View>
             )}
           />
