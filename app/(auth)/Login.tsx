@@ -47,7 +47,7 @@ const LoginScreen = () => {
         setErrorMessage('Email or password incorrect.'); // Fallback message
       }
     } catch (error) {
-      console.error('Login error:', error);
+      console.log('Login error:', error);
 
       if (axios.isAxiosError(error) && error.response) {
         if (error.response.status === 400) {
@@ -83,7 +83,7 @@ const LoginScreen = () => {
         setEmail('')
     
     } catch (error) {
-      console.error('Forgot password error:', error);
+      console.log('Forgot password error:', error);
       setForgotPasswordMessage('Network error. Please check your connection.');
     } finally {
       setLoading(false);

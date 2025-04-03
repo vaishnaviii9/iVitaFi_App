@@ -14,7 +14,7 @@ import styles from "../../components/styles/DocumentStyles"; // Import the style
 
 const Documents: React.FC = () => {
   const navigation = useNavigation();
-  
+
   interface Document {
     id: string;
     documentName: string;
@@ -34,17 +34,22 @@ const Documents: React.FC = () => {
       try {
         if (!creditAccountId || !token) return; // Prevent API call if values are missing
 
-        const data = await fetchDocuments(creditAccountId, token);
-        console.log(data);
-        
-        setDocuments(data || []); // Ensure it's always an array
+        const docsResp = await fetchDocuments(creditAccountId, token);
+        // console.log(docsResp);
+    
+        setDocuments(docsResp || []); // Ensure it's always an array
       } catch (error) {
-        console.error("Error fetching documents:", error);
+        console.log("Error fetching documents:", error);
       }
     };
 
     fetchDocumentsData();
   }, [creditAccountId, token]); // Depend on creditAccountId & token
+
+  const handleDocumentPress = (document: Document) => {
+    console.log("Document clicked:", document);
+    // You can add more logic here, such as navigating to a detailed view
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -61,24 +66,28 @@ const Documents: React.FC = () => {
       <View style={styles.recordsContainer}>
         <View style={styles.documentList}>
           {documents.length > 0 ? (
-            documents.slice().reverse().map((doc, index) => (
-              <TouchableOpacity
-                key={doc.id || index} // Ensure unique key
-                style={
-                  index % 2 === 0
-                    ? styles.documentFolder
-                    : styles.documentFolderDark
-                }
-              >
-                <FontAwesome
-                  name="folder-open"
-                  size={30}
-                  color="#FFFFFF"
-                  style={styles.folderIcon}
-                />
-                <Text style={styles.folderText}>{doc.documentName}</Text>
-              </TouchableOpacity>
-            ))
+            documents
+              .slice()
+              .reverse()
+              .map((doc, index) => (
+                <TouchableOpacity
+                  key={doc.id || index} // Ensure unique key
+                  style={
+                    index % 2 === 0
+                      ? styles.documentFolder
+                      : styles.documentFolderDark
+                  }
+                  onPress={() => handleDocumentPress(doc)} // Handle document press
+                >
+                  <FontAwesome
+                    name="folder-open"
+                    size={30}
+                    color="#FFFFFF"
+                    style={styles.folderIcon}
+                  />
+                  <Text style={styles.folderText}>{doc.documentName}</Text>
+                </TouchableOpacity>
+              ))
           ) : (
             <Text style={styles.noDocumentsText}>No documents available</Text>
           )}
