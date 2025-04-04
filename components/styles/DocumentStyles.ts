@@ -77,16 +77,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginTop: 20,
   },
-  customerStandingMessage: {
-    fontSize: wp('5%'),
-    color: "#FF0000", // Red color to indicate importance
-    fontWeight: "bold",
-    textAlign: "center",
-    marginVertical: hp('2%'),
-    backgroundColor: "#FFE6E6", // Light red background for emphasis
-    padding: wp('3%'),
-    borderRadius: wp('2%'),
-  },
 });
 
 export default styles;
