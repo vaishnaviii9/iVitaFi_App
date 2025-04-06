@@ -9,8 +9,7 @@ const apiClient = {
   PENDING_TRANSACTIONS: (creditAccountId: string) => `${BASE_URL}/creditaccount/${creditAccountId}/pending-transactions`,
   POSTED_TRANSACTIONS: (creditAccountId: string) => `${BASE_URL}/creditaccount/${creditAccountId}/transactions`,
   STATEMENTS: (creditAccountId: string) => `${BASE_URL}/creditaccount/${creditAccountId}/statements`,
-  DOCUMENTS: (creditAccountId: string) => `${BASE_URL}/creditaccount/${creditAccountId}/documents` ,
-  STATEMENT_FILE: (creditAccountId: string, fileName: string) => `${BASE_URL}/creditaccount/${creditAccountId}/statements/${fileName}`,
+  DOCUMENTS: (creditAccountId: string) => `${BASE_URL}/creditaccount/${creditAccountId}/documents` 
 };
 
 export default apiClient;

@@ -72,10 +72,22 @@ const styles = StyleSheet.create({
     marginTop: hp('7%'),
   },
   noDocumentsText: {
-    fontSize: 16,
+    fontSize: wp('4%'),
     color: "#9E9E9E",
     textAlign: "center",
-    marginTop: 20,
+    marginTop: hp('2%'),
+  },
+  bankruptcyMessageContainer: {
+    backgroundColor: "#FFCDD2",
+    padding: wp('4%'),
+    borderRadius: wp('2%'),
+    marginBottom: hp('2%'),
+  },
+  bankruptcyMessageText: {
+    color: "#B71C1C",
+    fontSize: wp('4%'),
+    fontWeight: "bold",
+    textAlign: "center",
   },
 });
 
