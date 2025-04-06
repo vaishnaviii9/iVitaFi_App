@@ -70,7 +70,13 @@ const styles = StyleSheet.create({
   },
   documentList: {
     marginTop: hp('7%'),
-  }
+  },
+noDocumentsText: {
+  fontSize: 16,
+  color: "#9E9E9E",
+  textAlign: "center",
+  marginTop: 20,
+},
 });
 
 export default styles;
