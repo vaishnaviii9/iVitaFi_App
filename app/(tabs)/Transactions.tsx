@@ -4,15 +4,10 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import Pending from '../PendingTransactions'; // Import the Pending component
+import Posted from '../PostedTransactions'; // Import the Posted component
 import styles from '../../components/styles/TransactionStyles';
 
 const Tab = createMaterialTopTabNavigator();
-
-const Posted = () => (
-  <View style={styles.tabContainer}>
-    <Text>Posted</Text>
-  </View>
-);
 
 const AnimatedTabLabel: React.FC<{ focused: boolean; title: string }> = ({ focused, title }) => {
   const colorAnim = useRef(new Animated.Value(focused ? 1 : 0)).current;

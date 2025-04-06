@@ -6,9 +6,11 @@ import {
   ScrollView,
   Dimensions,
   ActivityIndicator,
+  Pressable,
 } from "react-native";
 import { useSelector } from "react-redux";
 import AntDesign from "@expo/vector-icons/AntDesign";
+import { useNavigation, NavigationProp } from "@react-navigation/native";
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
@@ -24,6 +26,7 @@ const RecentTransactions: React.FC = () => {
   const creditAccountId = useSelector(
     (state: any) => state.creditAccount.creditAccountId
   );
+  const navigation = useNavigation<NavigationProp<{ Transactions: undefined }>>();
 
   const [transactions, setTransactions] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -95,12 +98,15 @@ const RecentTransactions: React.FC = () => {
       <View style={styles.baseBlackParent}>
         <View style={[styles.baseBlack, styles.absoluteFill]} />
         <View style={styles.frameParent}>
-          <View style={[styles.titleParent, styles.rowCenter]}>
+          <Pressable
+            onPress={() => navigation.navigate("Transactions")}
+            style={[styles.titleParent, styles.rowCenter]}
+          >
             <Text style={[styles.title, styles.textBold]}>
               Pending Transactions
             </Text>
             <AntDesign name="rightcircleo" size={hp(2.5)} color="white" />
-          </View>
+          </Pressable>
 
           {transactions.length > 0 ? (
             <ScrollView
