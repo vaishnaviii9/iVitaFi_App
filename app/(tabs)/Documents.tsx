@@ -10,13 +10,16 @@ import {
   Dimensions,
   ScrollView,
 } from "react-native";
+import RenderHTML from 'react-native-render-html';
 import { Ionicons, FontAwesome } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation } from "expo-router";
 import { useSelector, useDispatch } from "react-redux";
 import { fetchCreditSummariesWithId } from "../services/creditAccountService";
 import { setCreditSummaries } from "../features/creditAccount/creditAccountSlice";
 import { fetchDocuments } from "../services/documentService";
 import styles from "../../components/styles/DocumentStyles";
+import * as Print from 'expo-print';
+import * as Sharing from 'expo-sharing';
 
 const Documents: React.FC = () => {
   const navigation = useNavigation();
@@ -25,7 +28,7 @@ const Documents: React.FC = () => {
   interface Document {
     id: string;
     documentName: string;
-    content: string;
+    documentContent: string;
   }
 
   const [documents, setDocuments] = useState<Document[]>([]);
@@ -35,9 +38,7 @@ const Documents: React.FC = () => {
   const [titleHeader, setTitleHeader] = useState("Document Viewer");
 
   const token = useSelector((state: any) => state.auth.token);
-  const creditAccountId = useSelector(
-    (state: any) => state.creditAccount.creditAccountId
-  );
+  const creditAccountId = useSelector((state: any) => state.creditAccount.creditAccountId);
 
   useEffect(() => {
     const fetchDocumentsData = async () => {
@@ -56,7 +57,10 @@ const Documents: React.FC = () => {
           setBankruptcyMessage(null);
         }
 
-        setDocuments(data || []);
+        // Only keep documents with valid HTML content
+        const validDocuments = (data || []).filter((doc: { documentContent: any; }) => doc.documentContent);
+
+        setDocuments(validDocuments);
       } catch (error) {
         console.error("Error fetching documents:", error);
       }
@@ -76,27 +80,25 @@ const Documents: React.FC = () => {
     setModalVisible(false);
   };
 
-  const adjustContentWidth = (content: string) => {
-    const screenWidth = Dimensions.get("window").width;
-    let adjustedContent = content;
+  const handlePrint = async () => {
+    if (!selectedDocument?.documentContent) return;
+    try {
+      const { uri } = await Print.printToFileAsync({
+        html: selectedDocument.documentContent,
+      });
 
-    if (screenWidth <= 414) {
-      adjustedContent = content.replace(/width="\d+"/g, 'width="200"');
-    } else if (screenWidth <= 1060) {
-      const newWidth = 800 - (1060 - screenWidth);
-      adjustedContent = content.replace(/width="\d+"/g, `width="${newWidth}"`);
+      console.log('PDF saved to:', uri);
+
+      await Sharing.shareAsync(uri);
+    } catch (error) {
+      console.error("Error while generating PDF:", error);
     }
-
-    return adjustedContent;
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.headerContainer}>
-        <Pressable
-          onPress={() => navigation.goBack()}
-          style={styles.backButton}
-        >
+        <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={28} color="#37474F" />
         </Pressable>
         <Text style={styles.title}>Documents</Text>
@@ -151,20 +153,18 @@ const Documents: React.FC = () => {
               </Pressable>
             </View>
             <ScrollView contentContainerStyle={modalStyles.modalContent}>
-              <Text style={modalStyles.modalText}>
-                {adjustContentWidth(selectedDocument?.content || "")}
-              </Text>
+              <RenderHTML
+                contentWidth={Dimensions.get('window').width}
+                source={{ html: selectedDocument?.documentContent || "" }}
+              />
             </ScrollView>
             <View style={modalStyles.footer}>
-              <TouchableOpacity
-                style={modalStyles.button}
-                onPress={closeDocumentPopup}
-              >
+              <TouchableOpacity style={modalStyles.button} onPress={closeDocumentPopup}>
                 <Text style={modalStyles.buttonText}>Close</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={modalStyles.button}
-                onPress={() => console.log("Print functionality not implemented")}
+                onPress={handlePrint}
               >
                 <Text style={modalStyles.buttonText}>Print</Text>
               </TouchableOpacity>
@@ -191,10 +191,7 @@ const modalStyles = StyleSheet.create({
     padding: 20,
     alignItems: "center",
     shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 4,
     elevation: 5,
@@ -213,11 +210,6 @@ const modalStyles = StyleSheet.create({
   },
   modalContent: {
     paddingVertical: 20,
-  },
-  modalText: {
-    fontSize: 16,
-    textAlign: "left",
-    lineHeight: 24,
   },
   footer: {
     width: "100%",

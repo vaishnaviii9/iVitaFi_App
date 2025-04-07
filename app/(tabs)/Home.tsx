@@ -70,13 +70,15 @@ const HomeScreen: React.FC = () => {
             const formattedDate = `${String(date.getMonth() + 1).padStart(2, "0")}/${String(date.getDate()).padStart(2, "0")}`;
             setNextPaymentDate(formattedDate);
             
-            setAutopay(validSummary.detail?.creditAccount?.paymentSchedule?.autoPayEnabled);
+            const isAutopayEnabled = validSummary.detail?.creditAccount?.paymentSchedule?.autoPayEnabled;
+            setAutopay(isAutopayEnabled);
+            dispatch(isAutopayEnabled)
           }
         } else {
           console.log("Failed to fetch user or customer data.");
         }
       } catch (error) {
-        console.error("Error fetching data:", error);
+        console.log("Error fetching data:", error);
       } finally {
         setLoading(false);
       }

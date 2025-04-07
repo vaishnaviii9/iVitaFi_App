@@ -1,13 +1,16 @@
+// CreditAccountSlice.ts
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 interface CreditAccountState {
   creditAccountId: string | null;
-  creditSummaries: any[]; // Add a new state property for credit summaries
+  creditSummaries: any[];
+  autopay: boolean; // Add a new state property for autopay
 }
 
 const initialState: CreditAccountState = {
   creditAccountId: null,
-  creditSummaries: [], // Initialize with an empty array
+  creditSummaries: [],
+  autopay: false, // Initialize with a default value
 };
 
 const creditAccountSlice = createSlice({
@@ -26,8 +29,21 @@ const creditAccountSlice = createSlice({
     clearCreditSummaries: (state) => {
       state.creditSummaries = [];
     },
+    setAutopay: (state, action: PayloadAction<boolean>) => {
+      state.autopay = action.payload;
+    },
+    clearAutopay: (state) => {
+      state.autopay = false;
+    },
   },
 });
 
-export const { setCreditAccountId, clearCreditAccountId, setCreditSummaries, clearCreditSummaries } = creditAccountSlice.actions;
+export const {
+  setCreditAccountId,
+  clearCreditAccountId,
+  setCreditSummaries,
+  clearCreditSummaries,
+  setAutopay,
+  clearAutopay,
+} = creditAccountSlice.actions;
 export default creditAccountSlice.reducer;
