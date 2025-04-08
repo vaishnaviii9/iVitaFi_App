@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, ScrollView, Dimensions, ActivityIndicator } from "react-native";
 import { useSelector } from "react-redux";
-import { fetchPostedTransactions } from "./services/postedTransactionsService";
-import { CreditAccountTransactionTypeUtil } from "../utils/CreditAccountTransactionTypeUtil";
-import styles from "../components/styles/PostedTransactionStyles";
+import { fetchPostedTransactions } from "../../app/services/postedTransactionsService";
+import { CreditAccountTransactionTypeUtil } from "../../utils/CreditAccountTransactionTypeUtil";
+import styles from "../../components/styles/PostedTransactionStyles";
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 
 const { height: screenHeight } = Dimensions.get("window");

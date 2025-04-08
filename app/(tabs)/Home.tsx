@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, TouchableOpacity, Image, ScrollView, Pressable, Alert } from "react-native";
+import { View, Text, TouchableOpacity, Image, Pressable, Alert } from "react-native";
 import { useSelector, useDispatch } from "react-redux";
-import Loader from "../Loader";
+import Loader from "../../components/Loader";
 import styles from "../../components/styles/HomeStyles";
-import RecentTransactions from "../RecentTransactions";
+import RecentTransactions from "../../features/transactions/RecentTransactions";
 import { fetchCustomerData } from "../services/customerService";
 import { fetchUserData } from "../services/userService";
 import { fetchCreditSummariesWithId } from "../services/creditAccountService";
-import { setCreditAccountId } from "../features/creditAccount/creditAccountSlice";
+import { setCreditAccountId } from "../../features/creditAccount/creditAccountSlice";
+import { useNavigation } from 'expo-router';
+import { DrawerActions } from '@react-navigation/native';
 
 interface CreditApplication {
   accountNumber: string;
@@ -15,8 +17,9 @@ interface CreditApplication {
 
 const HomeScreen: React.FC = () => {
   const dispatch = useDispatch();
-  const { firstName, token } = useSelector((state: any) => state.auth); // Fetch user details from Redux
+  const { firstName, token } = useSelector((state: any) => state.auth); // Fetch user details from Reduxa
   const creditAccountId = useSelector((state: any) => state.creditAccount.creditAccountId);
+  const navigation = useNavigation();
 
   // Define state variables
   const [userData, setUserData] = useState<any>(null);
@@ -97,7 +100,7 @@ const HomeScreen: React.FC = () => {
 
   const handleHamburgerPress = () => {
     // Define the action to perform when the hamburger icon is pressed
-    Alert.alert("Hamburger Menu", "Hamburger icon pressed!");
+    navigation.dispatch(DrawerActions.openDrawer());
   }
 
   return (
@@ -105,18 +108,19 @@ const HomeScreen: React.FC = () => {
       {/* Header section */}
       <View style={styles.headerContainer}>
         <View style={styles.iconAndTextContainer}>
-          <Image source={require("@/assets/images/profile.png")} style={styles.avatarIcon} />
+        <Pressable onPress={handleHamburgerPress}>
+        <Image
+          source={require("../../assets/images/menus.png")}
+          style={styles.hamburgerIcon}
+        />
+      </Pressable>
+         
           <View style={styles.infoContainer}>
             <Text style={styles.userName}>{firstName}</Text>
             <Text style={styles.welcomeText}>Welcome to IvitaFi</Text>
           </View>
         </View>
-        <Pressable onPress={handleHamburgerPress}>
-        <Image
-          source={require("@/assets/images/menus.png")}
-          style={styles.hamburgerIcon}
-        />
-      </Pressable>
+        <Image source={require("../../assets/images/profile.png")} style={styles.avatarIcon} />
       </View>
 
       {/* Account details section */}
@@ -130,9 +134,9 @@ const HomeScreen: React.FC = () => {
                 </View>
                 <View style={styles.autoPayParent}>
                   {autoPay ? (
-                    <Image source={require("@/assets/images/autopayOn.png")} style={styles.autopayIcon} />
+                    <Image source={require("../../assets/images/autopayOn.png")} style={styles.autopayIcon} />
                   ) : (
-                    <Image source={require("@/assets/images/autopayOff.png")} style={styles.autopayIcon} />
+                    <Image source={require("../../assets/images/autopayOff.png")} style={styles.autopayIcon} />
                   )}
                   <Text style={styles.autoPay}>{`Auto Pay `}</Text>
                 </View>

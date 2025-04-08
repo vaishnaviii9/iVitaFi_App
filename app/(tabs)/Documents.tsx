@@ -15,7 +15,7 @@ import { Ionicons, FontAwesome } from "@expo/vector-icons";
 import { useNavigation } from "expo-router";
 import { useSelector, useDispatch } from "react-redux";
 import { fetchCreditSummariesWithId } from "../services/creditAccountService";
-import { setCreditSummaries } from "../features/creditAccount/creditAccountSlice";
+import { setCreditSummaries } from "../../features/creditAccount/creditAccountSlice";
 import { fetchDocuments } from "../services/documentService";
 import styles from "../../components/styles/DocumentStyles";
 import * as Print from 'expo-print';
