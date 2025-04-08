@@ -23,7 +23,7 @@ export default function TabLayout() {
           name="Home"
           options={{
             title: "Home",
-            tabBarIcon: ({ color }) => (
+            tabBarIcon: ({ color }: { color: string }) => (
               <Entypo name="home" size={26} color={color} />
             ),
           }}
@@ -34,7 +34,7 @@ export default function TabLayout() {
           name="Documents"
           options={{
             title: "Documents",
-            tabBarIcon: ({ color }) => (
+            tabBarIcon: ({ color }: { color: string }) => (
               <FontAwesome6 name="folder-closed" size={24} color={color} />
             ),
           }}
@@ -45,7 +45,7 @@ export default function TabLayout() {
           name="Statements"
           options={{
             title: "Statements",
-            tabBarIcon: ({ color }) => (
+            tabBarIcon: ({ color }: { color: string }) => (
               <Ionicons name="document-text-outline" size={26} color={color} />
             ),
           }}
@@ -56,7 +56,7 @@ export default function TabLayout() {
           name="Transactions"
           options={{
             title: "Transactions",
-            tabBarIcon: ({ color }) => (
+            tabBarIcon: ({ color }: { color: string }) => (
               <FontAwesome6 name="arrow-right-arrow-left" size={24} color={color} />
             ),
           }}
@@ -95,3 +95,4 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
 });
+ 
