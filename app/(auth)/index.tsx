@@ -8,7 +8,7 @@ import Animated, {
   Easing,
 } from 'react-native-reanimated';
 import { useRouter } from 'expo-router';
-import { ThemedText } from '@/components/ThemedText';
+import { ThemedText } from '../../components/ThemedText';
 import styles from '../../components/styles/IndexStyles'; // Import the styles from the new file
 
 const { width, height } = Dimensions.get('window');
@@ -45,11 +45,11 @@ export default function LandingPage() {
   return (
     <View style={styles.container}>
       <Animated.Image
-        source={require('@/assets/images/Doctor.png')} // Add the Doctor.png image
+        source={require('../../assets/images/Doctor.png')} // Add the Doctor.png image
         style={[styles.doctorImage, imageStyle]} // Apply shared animation style
       />
       <Animated.Image
-        source={require('@/assets/images/ivitafi_logo.png')} // Existing logo
+        source={require('../../assets/images/ivitafi_logo.png')} // Existing logo
         style={[styles.landingImage, imageStyle]} // Apply shared animation style
       />
       <Animated.View style={[styles.buttonContainer, buttonStyle]}>

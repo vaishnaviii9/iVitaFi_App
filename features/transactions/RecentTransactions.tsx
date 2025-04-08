@@ -15,9 +15,9 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
-import { fetchPendingTransactions } from "./services/pendingTransactionsService";
-import { CreditAccountTransactionTypeUtil } from "../utils/CreditAccountTransactionTypeUtil";
-import styles from "../components/styles/RecentTransactionsStyles";
+import { fetchPendingTransactions } from "../../app/services/pendingTransactionsService";
+import { CreditAccountTransactionTypeUtil } from "../../utils/CreditAccountTransactionTypeUtil";
+import styles from "../../components/styles/RecentTransactionsStyles";
 
 const { height: screenHeight } = Dimensions.get("window");
 
@@ -56,7 +56,7 @@ const RecentTransactions: React.FC = () => {
     if (transactionType !== 404 && transactionType !== 481) {
       return (
         <Image
-          source={require("@/assets/images/Trash.png")}
+          source={require("../../assets/images/Trash.png")}
           style={styles.trashIcon}
         />
       );
@@ -64,11 +64,11 @@ const RecentTransactions: React.FC = () => {
     return (
       <View style={{ flexDirection: "row" }}>
         <Image
-          source={require("@/assets/images/Check01.png")}
+          source={require("../../assets/images/Check01.png")}
           style={styles.icon}
         />
         <Image
-          source={require("@/assets/images/X02.png")}
+          source={require("../../assets/images/X02.png")}
           style={styles.icon}
         />
       </View>

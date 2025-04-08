@@ -3,8 +3,8 @@ import { View, Text, Pressable, Animated } from 'react-native';
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "expo-router";
 import { createMaterialTopTabNavigator, MaterialTopTabNavigationOptions } from '@react-navigation/material-top-tabs';
-import Pending from '../PendingTransactions'; // Import the Pending component
-import Posted from '../PostedTransactions'; // Import the Posted component
+import Pending from '../../features/transactions/PendingTransactions'; // Import the Pending component
+import Posted from '../../features/transactions/PostedTransactions'; // Import the Posted component
 import styles from '../../components/styles/TransactionStyles';
 
 const Tab = createMaterialTopTabNavigator();

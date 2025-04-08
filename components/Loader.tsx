@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import { Animated, View } from "react-native";
-import styles from "../components/styles/LoaderStyles";  // Import the new styles file
+import styles from "./styles/LoaderStyles";  // Import the new styles file
 
 const Loader: React.FC = () => {
   const animations = [

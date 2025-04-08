@@ -7,7 +7,7 @@ import styles from '../../components/styles/LoginStyles'; // Import the styles
 import { authenticateUser } from '../services/authService';
 import { resetPasswordService } from '../services/resetPasswordService';
 import { useDispatch } from 'react-redux';
-import { loginSuccess } from '../features/login/loginSlice';
+import { loginSuccess } from '../../features/login/loginSlice';
 import { router } from 'expo-router';  // ✅ Use expo-router's router
 
 const LoginScreen = () => {
