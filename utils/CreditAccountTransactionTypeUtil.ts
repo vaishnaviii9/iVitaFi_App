@@ -14,44 +14,47 @@ export enum CreditAccountTransactionType {
   UpwardAdjustment = 481,
   DownwardAdjustment = 491,
   SettlementBalancePaid = 219,
+  ThirdPartyPayments = 291,
   All = 9999,
 }
 
 export class CreditAccountTransactionTypeUtil {
   public static toString(type: number): string {
-    switch (type) {
-      case CreditAccountTransactionType.CustomerRefund:
-        return 'Customer Refund';
-      case CreditAccountTransactionType.PaymentReversal:
-        return 'Payment Reversal';
-      case CreditAccountTransactionType.AchPaymentReturn:
-        return 'ACH Payment Return';
-      case CreditAccountTransactionType.FundingReversal:
-        return 'Funding Reversal';
-      case CreditAccountTransactionType.AchNonDirectedPayment:
-        return 'Bank Account';
-      case CreditAccountTransactionType.CheckPayment:
-        return 'Check Payment';
-      case CreditAccountTransactionType.CardPayment:
-        return 'Debit Card';
-      case CreditAccountTransactionType.MoneyOrderPayment:
-        return 'Money Order Payment';
-      case CreditAccountTransactionType.ProcedureDischarge:
-        return 'Procedure Discharge';
-      case CreditAccountTransactionType.SubsequentProcedureDischarge:
-        return 'Subsequent Procedure Discharge';
-      case CreditAccountTransactionType.LoanFunded:
-        return 'Loan Funded';
-      case CreditAccountTransactionType.UpwardAdjustment:
-        return 'Upward Adjustment';
-      case CreditAccountTransactionType.DownwardAdjustment:
-        return 'Downward Adjustment';
-      case CreditAccountTransactionType.SettlementBalancePaid:
-        return 'Settlement Balance Paid';
-      case CreditAccountTransactionType.All:
-        return 'All';
-      default:
-        return 'Unknown';
-    }
+      switch (type) {
+          case CreditAccountTransactionType.CustomerRefund:
+              return 'Customer Refund';
+          case CreditAccountTransactionType.PaymentReversal:
+              return 'Payment Reversal';
+          case CreditAccountTransactionType.AchPaymentReturn:
+              return 'ACH Payment Return';
+          case CreditAccountTransactionType.FundingReversal:
+              return 'Funding Reversal';
+          case CreditAccountTransactionType.AchNonDirectedPayment:
+              return 'Bank Account';
+          case CreditAccountTransactionType.CheckPayment:
+              return 'Check Payment';
+          case CreditAccountTransactionType.CardPayment:
+              return 'Debit Card';
+          case CreditAccountTransactionType.MoneyOrderPayment:
+              return 'Money Order Payment';
+          case CreditAccountTransactionType.ProcedureDischarge:
+              return 'Procedure Discharge';
+          case CreditAccountTransactionType.SubsequentProcedureDischarge:
+              return 'Subsequent Procedure Discharge';
+          case CreditAccountTransactionType.LoanFunded:
+              return 'Loan Funded';
+          case CreditAccountTransactionType.UpwardAdjustment:
+              return 'Upward Adjustment';
+          case CreditAccountTransactionType.DownwardAdjustment:
+              return 'Downward Adjustment';
+          case CreditAccountTransactionType.SettlementBalancePaid:
+              return 'Settlement Balance Paid';
+          case CreditAccountTransactionType.ThirdPartyPayments:
+              return 'Third Party Payment';
+          case CreditAccountTransactionType.All:
+              return 'All';
+          default:
+              return 'Unknown';
+      }
   }
 }
