@@ -1,8 +1,8 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, Pressable, Animated } from 'react-native';
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
-import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
+import { useNavigation } from "expo-router";
+import { createMaterialTopTabNavigator, MaterialTopTabNavigationOptions } from '@react-navigation/material-top-tabs';
 import Pending from '../PendingTransactions'; // Import the Pending component
 import Posted from '../PostedTransactions'; // Import the Posted component
 import styles from '../../components/styles/TransactionStyles';
@@ -35,7 +35,7 @@ const AnimatedTabLabel: React.FC<{ focused: boolean; title: string }> = ({ focus
 function MyTabs() {
   return (
     <Tab.Navigator
-      screenOptions={({ route }) => ({
+      screenOptions={({ route }: { route: { name: string } } & MaterialTopTabNavigationOptions) => ({
         tabBarStyle: {
           backgroundColor: '#fff',
           borderRadius: 20,
@@ -52,7 +52,7 @@ function MyTabs() {
           height: '100%',
           borderRadius: 20,
         },
-        tabBarLabel: ({ focused }) => <AnimatedTabLabel focused={focused} title={route.name} />,
+        tabBarLabel: ({ focused }: { focused: boolean }) => <AnimatedTabLabel focused={focused} title={route.name} />,
       })}
     >
       <Tab.Screen name="Pending" component={Pending} />

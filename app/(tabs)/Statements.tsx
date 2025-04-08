@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, FlatList, Pressable, Alert, StyleSheet, Share } from "react-native";
 import { Ionicons, FontAwesome } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation } from "expo-router";
 import styles from "../../components/styles/StatementsStyles";
 import { fetchStatements } from "../services/statementService";
 import { useSelector } from "react-redux";
