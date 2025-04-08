@@ -8,6 +8,7 @@ import 'react-native-reanimated';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { Provider } from 'react-redux';
 import { store } from './store/store'; // Redux store
+import { Drawer } from 'expo-router/drawer';
 
 SplashScreen.preventAutoHideAsync();
 
