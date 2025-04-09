@@ -7,6 +7,8 @@ import { View, Text, StyleSheet, Pressable } from "react-native";
 import { useNavigation } from "expo-router";
 import type { DrawerContentComponentProps } from "@react-navigation/drawer";
 import { Ionicons } from "@expo/vector-icons";
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 
 export default function CustomDrawerContent(props: DrawerContentComponentProps) {
   const navigation = useNavigation();
@@ -34,13 +36,22 @@ export default function CustomDrawerContent(props: DrawerContentComponentProps) 
           onPress={() => navigation.navigate("Profile")}
         />
 
-        {/* Settings */}
+       
+                {/* ManagePayments */}
         <DrawerItem
-          label="Settings"
+          label="Manage Payments"
           icon={({ color, size }: { color: string; size: number }) => (
-            <Ionicons name="settings-outline" size={size} color={color} />
+            <MaterialIcons name="payments" size={24} color="black" />
           )}
-          onPress={() => navigation.navigate("Settings")}
+          onPress={() => navigation.navigate("ManagePayments")}
+        />
+                {/* ManagePayments */}
+        <DrawerItem
+          label="Make Payment"
+          icon={({ color, size }: { color: string; size: number }) => (
+            <FontAwesome6 name="credit-card" size={24} color="black" />
+          )}
+          onPress={() => navigation.navigate("MakePayment")}
         />
 
         {/* Logout */}

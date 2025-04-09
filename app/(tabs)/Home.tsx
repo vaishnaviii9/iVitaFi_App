@@ -17,7 +17,7 @@ interface CreditApplication {
 
 const HomeScreen: React.FC = () => {
   const dispatch = useDispatch();
-  const { firstName, token } = useSelector((state: any) => state.auth); // Fetch user details from Redux
+  const { firstName,lastName, token } = useSelector((state: any) => state.auth); // Fetch user details from Redux
   const creditAccountId = useSelector((state: any) => state.creditAccount.creditAccountId);
   const navigation = useNavigation();
 
@@ -112,7 +112,7 @@ const HomeScreen: React.FC = () => {
         </Pressable>
         <View style={styles.iconAndTextContainer}>
           <View style={styles.infoContainer}>
-            <Text style={styles.userName}>{firstName}</Text>
+            <Text style={styles.userName}>{firstName} {lastName}</Text>
             <Text style={styles.welcomeText}>Welcome to IvitaFi</Text>
           </View>
           <Pressable onPress={handleProfilePress}>

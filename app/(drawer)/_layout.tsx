@@ -4,10 +4,10 @@ import { useNavigation } from "@react-navigation/native";
 import { TouchableOpacity, StyleSheet, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import ProfileScreen from "../Profile";
-import SettingsScreen from "../Settings";
 import CustomDrawerContent from "../../components/CustomDrawerContent";
 import HomeScreen from "../(tabs)/Home"; // Ensure this is correctly imported
-
+import ManagePayments from '../ManagePayments'
+import MakePayment from "../MakePayment";
 const Drawer = createDrawerNavigator();
 
 export default function DrawerLayout() {
@@ -48,7 +48,9 @@ export default function DrawerLayout() {
         }}
       />
       <Drawer.Screen name="Profile" component={ProfileScreen} options={{ title: "My Profile" }} />
-      <Drawer.Screen name="Settings" component={SettingsScreen} options={{ title: "Settings" }} />
+  
+      <Drawer.Screen name="Manage Payments" component={ManagePayments} options={{ title: "ManagePayments" }} />
+      <Drawer.Screen name="Make Payment" component={MakePayment} options={{ title: "MakePayment" }} />
     </Drawer.Navigator>
   );
 }

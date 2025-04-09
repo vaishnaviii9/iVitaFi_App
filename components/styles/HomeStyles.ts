@@ -21,6 +21,7 @@ const styles = StyleSheet.create({
   iconAndTextContainer: {
     flexDirection: "row",
     alignItems: "center",
+    marginTop: hp('1.2%'),
   },
   avatarIcon: {
     width: wp('12%'),
@@ -30,7 +31,7 @@ const styles = StyleSheet.create({
   hamburgerIcon: {
     width: wp('7%'),
     height: wp('7%'),
-    marginTop: hp('1%'),
+    marginTop: hp('2%'),
   },
   infoContainer: {
     marginRight: wp('2.5%'),
