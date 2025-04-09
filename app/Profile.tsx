@@ -1,52 +1,134 @@
 import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
-import { router } from "expo-router"; // Using expo-router's router for navigation
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+} from "react-native";
+import { router } from "expo-router";
+import {
+  FontAwesome,
+  MaterialIcons,
+  Entypo,
+  Feather,
+  Ionicons,
+} from "@expo/vector-icons";
 
 const ProfileScreen = () => {
   const handleBackPress = () => {
     router.push("/(tabs)/Home");
   };
 
+  const handleEditPress = () => {
+    // Implement your edit functionality here
+    console.log("Edit pressed");
+  };
+
+  const detailItems = [
+    { label: "First Name", value: "Amy", icon: <FontAwesome name="user" size={24} color="#000" /> },
+    { label: "Last Name", value: "Young", icon: <FontAwesome name="user" size={24} color="#000" /> },
+    { label: "Date of Birth", value: "January 1, 1990", icon: <FontAwesome name="calendar" size={24} color="#000" /> },
+    { label: "SSN", value: "123-45-6789", icon: <Feather name="hash" size={24} color="#000" /> },
+    { label: "Mobile Phone", value: "+98 1245560090", icon: <Feather name="phone" size={24} color="#000" /> },
+    { label: "Home Phone", value: "+98 1234567890", icon: <Feather name="phone-call" size={24} color="#000" /> },
+    { label: "Physical Address", value: "123 Main St", icon: <Entypo name="address" size={24} color="#000" /> },
+    { label: "Mailing Address", value: "456 Elm St", icon: <Entypo name="mail" size={24} color="#000" /> },
+    { label: "City", value: "Springfield", icon: <MaterialIcons name="location-city" size={24} color="#000" /> },
+    { label: "State", value: "IL", icon: <MaterialIcons name="map" size={24} color="#000" /> },
+    { label: "Zip", value: "62701", icon: <FontAwesome name="envelope" size={24} color="#000" /> },
+  ];
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Profile Screen</Text>
-      <Text style={styles.subtitle}>Welcome to your profile!</Text>
-      <TouchableOpacity style={styles.button} onPress={handleBackPress}>
-        <Text style={styles.buttonText}>Back to Home</Text>
-      </TouchableOpacity>
+      <View style={styles.headerContainer}>
+        <TouchableOpacity onPress={handleBackPress} style={styles.backButton}>
+          <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
+        </TouchableOpacity>
+        <Text style={styles.headerText}>Profile</Text>
+        <TouchableOpacity onPress={handleEditPress} style={styles.editButton}>
+          <Feather name="edit" size={24} color="#FFFFFF" />
+        </TouchableOpacity>
+      </View>
+      <View style={styles.detailsContainer}>
+        <ScrollView contentContainerStyle={styles.scrollViewContent}>
+          {detailItems.map((item, index) => (
+            <View key={index} style={styles.row}>
+              <View style={styles.icon}>{item.icon}</View>
+              <View>
+                <Text style={styles.label}>{item.label}</Text>
+                <Text style={styles.value}>{item.value}</Text>
+              </View>
+            </View>
+          ))}
+        </ScrollView>
+
+      </View>
     </View>
   );
 };
 
-export default ProfileScreen;
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#F5F5F5",
-    padding: 16,
+    backgroundColor: "#FFFFFF",
   },
-  title: {
-    fontSize: 28,
-    fontWeight: "bold",
-    marginBottom: 8,
-    color: "#333",
-  },
-  subtitle: {
-    fontSize: 16,
-    color: "#666",
-    marginBottom: 20,
-  },
-  button: {
-    backgroundColor: "#007AFF",
+  headerContainer: {
+    backgroundColor: "#27446F",
+    paddingVertical: 10,
     paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 8,
+    borderBottomLeftRadius: 60,
+    borderBottomRightRadius: 60,
+    height: 250,
+    flexDirection: "row",
+    // alignItems: "center",
+    justifyContent: "space-between",
   },
-  buttonText: {
-    color: "#FFF",
-    fontSize: 16,
+  backButton: {
+    padding: 4,
+    top: 35,
   },
+  editButton: {
+    padding: 4,
+    top: 35,
+  },
+  headerText: {
+    color: "#FFFFFF",
+    fontSize: 30,
+    fontWeight: "bold",
+    top: 35,
+  },
+  detailsContainer: {
+    flex: 1,
+    marginTop: 30,
+    marginBottom: 40,
+    paddingHorizontal: 20,
+  },
+  scrollViewContent: {
+    paddingBottom: 20,
+  },
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 45,
+  },
+  icon: {
+    marginRight: 40,
+    width: 80,
+    alignItems: "center",
+  },
+  label: {
+    color: "#000000",
+    fontSize: 22,
+    fontWeight: "600",
+  },
+  value: {
+    color: "#333333",
+    fontSize: 18,
+  },
+
+
+
 });
+
+export default ProfileScreen;
