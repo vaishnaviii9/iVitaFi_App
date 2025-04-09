@@ -107,20 +107,21 @@ const HomeScreen: React.FC = () => {
     <View style={styles.container}>
       {/* Header section */}
       <View style={styles.headerContainer}>
-        <View style={styles.iconAndTextContainer}>
+        
         <Pressable onPress={handleHamburgerPress}>
         <Image
           source={require("../../assets/images/menus.png")}
           style={styles.hamburgerIcon}
         />
       </Pressable>
-         
+      <View style={styles.iconAndTextContainer}>
           <View style={styles.infoContainer}>
             <Text style={styles.userName}>{firstName}</Text>
             <Text style={styles.welcomeText}>Welcome to IvitaFi</Text>
           </View>
-        </View>
+        
         <Image source={require("../../assets/images/profile.png")} style={styles.avatarIcon} />
+        </View>
       </View>
 
       {/* Account details section */}

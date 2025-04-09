@@ -33,7 +33,7 @@ const styles = StyleSheet.create({
     marginTop: hp('1%'),
   },
   infoContainer: {
-    marginLeft: wp('2.5%'),
+    marginRight: wp('2.5%'),
   },
   userName: {
     fontSize: wp('4.5%'),
