@@ -34,6 +34,7 @@ const styles = StyleSheet.create({
   },
   infoContainer: {
     marginRight: wp('2.5%'),
+    alignItems: "flex-end",
   },
   userName: {
     fontSize: wp('4.5%'),
