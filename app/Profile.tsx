@@ -1,5 +1,6 @@
 import React from "react";
 import {
+  Image,
   View,
   Text,
   StyleSheet,
@@ -42,6 +43,7 @@ const ProfileScreen = () => {
   return (
     <View style={styles.container}>
       <View style={styles.headerContainer}>
+        <View style={styles.headerItems }>
         <TouchableOpacity onPress={handleBackPress} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
         </TouchableOpacity>
@@ -49,7 +51,13 @@ const ProfileScreen = () => {
         <TouchableOpacity onPress={handleEditPress} style={styles.editButton}>
           <Feather name="edit" size={24} color="#FFFFFF" />
         </TouchableOpacity>
+        </View>
+        
+        <View style={styles.avatar}>
+        <Image source={require("../assets/images/profile.png")} style={styles.avatarIcon} />
+        </View>
       </View>
+      
       <View style={styles.detailsContainer}>
         <ScrollView contentContainerStyle={styles.scrollViewContent}>
           {detailItems.map((item, index) => (
@@ -75,12 +83,12 @@ const styles = StyleSheet.create({
   },
   headerContainer: {
     backgroundColor: "#27446F",
-    paddingVertical: 10,
+    paddingVertical: 30,
     paddingHorizontal: 20,
     borderBottomLeftRadius: 60,
     borderBottomRightRadius: 60,
     height: 250,
-    flexDirection: "row",
+    flexDirection: "column",
     // alignItems: "center",
     justifyContent: "space-between",
   },
@@ -93,10 +101,22 @@ const styles = StyleSheet.create({
     top: 35,
   },
   headerText: {
+    
     color: "#FFFFFF",
     fontSize: 30,
     fontWeight: "bold",
     top: 35,
+    flexDirection: "row",
+    alignContent: "center",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+
+  headerItems:{
+    flexDirection: "row",
+    alignContent: "center",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
   detailsContainer: {
     flex: 1,
@@ -126,9 +146,19 @@ const styles = StyleSheet.create({
     color: "#333333",
     fontSize: 18,
   },
-
-
+  avatarIcon: {
+    width: 80,        
+    height: 80,       
+    borderRadius: 25, 
+    
+  },
+  avatar:{
+    alignItems: "center",
+    justifyContent: "center",
+  }
+  
 
 });
 
 export default ProfileScreen;
+ 

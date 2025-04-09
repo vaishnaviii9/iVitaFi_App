@@ -60,3 +60,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
 });
+<<<<<<< HEAD
+=======
+ 
+>>>>>>> prathamesh
