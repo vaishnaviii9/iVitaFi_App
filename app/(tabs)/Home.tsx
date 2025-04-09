@@ -17,7 +17,7 @@ interface CreditApplication {
 
 const HomeScreen: React.FC = () => {
   const dispatch = useDispatch();
-  const { firstName, token } = useSelector((state: any) => state.auth); // Fetch user details from Reduxa
+  const { firstName, token } = useSelector((state: any) => state.auth); // Fetch user details from Redux
   const creditAccountId = useSelector((state: any) => state.creditAccount.creditAccountId);
   const navigation = useNavigation();
 
@@ -42,9 +42,6 @@ const HomeScreen: React.FC = () => {
           fetchCustomerData(token, setCustomerData),
         ]);
 
-        // console.log("User Data:", userResponse);
-        // console.log("Customer Data:", customerResponse);
-
         if (customerResponse?.creditAccounts) {
           const accountNumbers = customerResponse.creditAccounts.map(
             (application: CreditApplication) => application.accountNumber
@@ -52,9 +49,6 @@ const HomeScreen: React.FC = () => {
           setAccountNumbers(accountNumbers);
 
           const { creditSummaries, creditAccountId } = await fetchCreditSummariesWithId(customerResponse, token);
-
-          // console.log("Credit Summaries:", creditSummaries);
-          // console.log("Credit Account ID:", creditAccountId);
 
           if (creditAccountId) {
             dispatch(setCreditAccountId(creditAccountId));
@@ -68,14 +62,14 @@ const HomeScreen: React.FC = () => {
             setAccountNumber(validSummary.paymentMethod.accountNumber);
             setBalance(validSummary.currentBalance);
             setAvailableCredit(validSummary.displayAvailableCredit);
-            
+
             const date = new Date(validSummary.nextPaymentDate);
             const formattedDate = `${String(date.getMonth() + 1).padStart(2, "0")}/${String(date.getDate()).padStart(2, "0")}`;
             setNextPaymentDate(formattedDate);
-            
+
             const isAutopayEnabled = validSummary.detail?.creditAccount?.paymentSchedule?.autoPayEnabled;
             setAutopay(isAutopayEnabled);
-            dispatch(isAutopayEnabled)
+            dispatch(isAutopayEnabled);
           }
         } else {
           console.log("Failed to fetch user or customer data.");
@@ -99,28 +93,31 @@ const HomeScreen: React.FC = () => {
   }
 
   const handleHamburgerPress = () => {
-    // Define the action to perform when the hamburger icon is pressed
     navigation.dispatch(DrawerActions.openDrawer());
-  }
+  };
+
+  const handleProfilePress = () => {
+    navigation.navigate("Profile");
+  };
 
   return (
     <View style={styles.container}>
       {/* Header section */}
       <View style={styles.headerContainer}>
-        
         <Pressable onPress={handleHamburgerPress}>
-        <Image
-          source={require("../../assets/images/menus.png")}
-          style={styles.hamburgerIcon}
-        />
-      </Pressable>
-      <View style={styles.iconAndTextContainer}>
+          <Image
+            source={require("../../assets/images/menus.png")}
+            style={styles.hamburgerIcon}
+          />
+        </Pressable>
+        <View style={styles.iconAndTextContainer}>
           <View style={styles.infoContainer}>
             <Text style={styles.userName}>{firstName}</Text>
             <Text style={styles.welcomeText}>Welcome to IvitaFi</Text>
           </View>
-        
-        <Image source={require("../../assets/images/profile.png")} style={styles.avatarIcon} />
+          <Pressable onPress={handleProfilePress}>
+            <Image source={require("../../assets/images/profile.png")} style={styles.avatarIcon} />
+          </Pressable>
         </View>
       </View>
 
@@ -190,11 +187,6 @@ const HomeScreen: React.FC = () => {
           <Text style={styles.noAccountText}>No transactions available</Text>
         )}
       </View>
-
-      {/* Bottom Navigation */}
-      {/* <View style={styles.BottomNavigationContainer}>
-        <BottomNavigation activeTab="Home" />
-      </View> */}
     </View>
   );
 };
