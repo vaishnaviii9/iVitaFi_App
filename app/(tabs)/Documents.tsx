@@ -49,7 +49,7 @@ const Documents: React.FC = () => {
         dispatch(setCreditSummaries(creditSummaries));
 
         const data = await fetchDocuments(creditAccountId, token);
-        console.log(data);
+        // console.log(data);
 
         if (data?.accountSummary?.isBankrupt) {
           setBankruptcyMessage("ACCOUNT IN BANKRUPTCY");
@@ -87,7 +87,7 @@ const Documents: React.FC = () => {
         html: selectedDocument.documentContent,
       });
 
-      console.log('PDF saved to:', uri);
+      // console.log('PDF saved to:', uri);
 
       await Sharing.shareAsync(uri);
     } catch (error) {

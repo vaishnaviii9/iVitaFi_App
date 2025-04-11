@@ -32,7 +32,7 @@ const Statements: React.FC = () => {
       try {
         const response = await fetchStatements(token, creditAccountId);
         setStatements(response || []);
-        console.log("Fetched Statements:", response);
+        // console.log("Fetched Statements:", response);
       } catch (error) {
         console.error("Error fetching statements:", error);
       } finally {
@@ -51,7 +51,7 @@ const Statements: React.FC = () => {
 
   const downloadPDF = async (fileName: string) => {
     try {
-      console.log("🛑 Downloading file:", fileName);
+      // console.log("🛑 Downloading file:", fileName);
   
       const response = await fetch(
         `https://dev.ivitafi.com/api/creditaccount/${creditAccountId}/statements/${fileName}`,
@@ -68,17 +68,17 @@ const Statements: React.FC = () => {
       }
   
       let preSignedUrl = await response.text();
-      console.log("✅ Raw pre-signed URL:", preSignedUrl);
+      // console.log("✅ Raw pre-signed URL:", preSignedUrl);
   
       // ✅ Fix: Remove unwanted quotes (API might return JSON-wrapped text)
       preSignedUrl = preSignedUrl.replace(/^"|"$/g, '');
-      console.log("✅ Processed URL:", preSignedUrl);
+      // console.log("✅ Processed URL:", preSignedUrl);
   
       const downloadDest = `${FileSystem.documentDirectory}${fileName}`;
   
       // ✅ Download the file
       const downloadResult = await FileSystem.downloadAsync(preSignedUrl, downloadDest);
-      console.log("✅ Download complete:", downloadResult);
+      // console.log("✅ Download complete:", downloadResult);
   
       return downloadDest;
     } catch (error) {
