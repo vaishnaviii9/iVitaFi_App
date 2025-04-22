@@ -53,6 +53,34 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
   },
+  input: {
+    height: 40,
+    borderColor: '#CCC',
+    borderWidth: 1,
+    borderRadius: 5,
+    marginBottom: 15,
+    paddingHorizontal: 10,
+  },
+  checkboxContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  checkboxLabel: {
+    marginLeft: 10,
+    fontSize: 16,
+    color: '#555',
+  },
+  submitButton: {
+    backgroundColor: '#27446F',
+    borderRadius: 10,
+    paddingVertical: 10,
+    alignItems: 'center',
+  },
+  submitButtonText: {
+    color: '#fff',
+    fontSize: 16,
+  },
   modalContainer: {
     backgroundColor: '#fff',
     padding: 25,
@@ -82,34 +110,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   okButtonText: {
-    color: '#fff',
-    fontSize: 16,
-  },
-  input: {
-    height: 40,
-    borderColor: '#CCC',
-    borderWidth: 1,
-    borderRadius: 5,
-    marginBottom: 15,
-    paddingHorizontal: 10,
-  },
-  checkboxContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  checkboxLabel: {
-    marginLeft: 10,
-    fontSize: 16,
-    color: '#555',
-  },
-  submitButton: {
-    backgroundColor: '#27446F',
-    borderRadius: 10,
-    paddingVertical: 10,
-    alignItems: 'center',
-  },
-  submitButtonText: {
     color: '#fff',
     fontSize: 16,
   },
