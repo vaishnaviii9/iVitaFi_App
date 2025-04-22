@@ -105,12 +105,6 @@ const ManagePayments = () => {
             <Ionicons name="trash" size={24} color="#FF0000" />
           </TouchableOpacity>
         </View>
-        <View style={styles.paymentMethod}>
-          <Text>Debit Card - 5556 (Default)</Text>
-          <TouchableOpacity style={styles.deleteButton}>
-            <Ionicons name="trash" size={24} color="#FF0000" />
-          </TouchableOpacity>
-        </View>
 
         <Text style={styles.sectionTitle}>Add New Payment Method</Text>
         <TouchableOpacity style={styles.addButton} onPress={() => setCheckingModalVisible(true)}>
