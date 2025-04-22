@@ -3,115 +3,128 @@ import { StyleSheet } from 'react-native';
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: "#FFFFFF",
   },
-  headerContainer: {
-    backgroundColor: '#27446F',
+  scrollView: {
+    flex: 1,
+    padding: 25,
+  },
+  header: {
+    backgroundColor: "#27446F",
     paddingVertical: 30,
-    paddingHorizontal: 20,
-    borderBottomLeftRadius: 60,
-    borderBottomRightRadius: 60,
-    height: 130,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  backButton: {
-    padding: 4,
+    paddingHorizontal: 10,
+    left: 0.5,
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
+    marginBottom: 20,
   },
   headerText: {
-    color: '#FFFFFF',
-    fontSize: 22,
-    fontWeight: 'bold',
-  },
-  content: {
-    flex: 1,
-    padding: 20,
+    color: "#FFFFFF",
+    fontSize: 23,
+    fontWeight: "bold",
+    textAlign: "center",
   },
   sectionTitle: {
+    // paddingHorizontal: 10,
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
+    marginBottom: 15,
+  },
+  savedMethodContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: "#CACBCC",
+    padding: 13,
+    borderRadius: 10,
     marginBottom: 10,
   },
-  paymentMethod: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
+  savedMethodImage: {
+    marginRight: 20,
+  },
+  savedMethodTextContainer: {
+    flex: 1,
+    marginRight: 12,
+  },
+  savedMethodLabel: {
+    color: "#1C1C1D",
+    fontSize: 17,
+    fontWeight: "500",
+    marginBottom: 3,
+  },
+  defaultLabel: {
+    color: "green",
+    fontSize: 13,
+    fontWeight: "500",
   },
   deleteButton: {
     padding: 10,
   },
-  addButton: {
-    backgroundColor: '#27446F',
-    padding: 15,
-    borderRadius: 10,
-    marginBottom: 10,
-    alignItems: 'center',
-  },
-  addButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-  },
-  input: {
-    height: 40,
-    borderColor: '#CCC',
-    borderWidth: 1,
-    borderRadius: 5,
+
+  addNewPayHeader:{
+    fontSize: 18,
+    fontWeight: "bold",
     marginBottom: 15,
-    paddingHorizontal: 10,
+    marginTop: 30,
   },
-  checkboxContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  addMethodContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginBottom: 20,
   },
-  checkboxLabel: {
+  addMethodButton: {
+    backgroundColor: "#27446F",
+    padding: 15,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+    flex: 1,
+    marginHorizontal: 5,
+  },
+  addMethodButtonText: {
+    textAlign: "center",
+    color: "#FFFFFF",
+    fontSize: 16,
+  },
+  inputFieldContainer: {
+    marginBottom: 15,
+  },
+  inputFieldLabel: {
+    fontSize: 16,
+    color: "#1C1C1D",
+    marginBottom: 5,
+  },
+  inputField: {
+    height: 40,
+    borderColor: "#CCC",
+    borderWidth: 1,
+    borderRadius: 5,
+    paddingHorizontal: 10,
+    color: "#707073",
+  },
+  defaultPaymentMethodContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  defaultPaymentMethodText: {
     marginLeft: 10,
     fontSize: 16,
-    color: '#555',
+    color: "#555",
+  },
+  submitButtonContainer: {
+    alignItems: "center",
   },
   submitButton: {
-    backgroundColor: '#27446F',
+    backgroundColor: "#27446F",
+    paddingVertical: 15,
+    paddingHorizontal: 30,
     borderRadius: 10,
-    paddingVertical: 10,
-    alignItems: 'center',
   },
   submitButtonText: {
-    color: '#fff',
+    color: "#FFFFFF",
     fontSize: 16,
-  },
-  modalContainer: {
-    backgroundColor: '#fff',
-    padding: 25,
-    borderRadius: 20,
-    elevation: 10,
-    shadowColor: '#000',
-  },
-  modalCloseButton: {
-    alignSelf: 'flex-end',
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 15,
-    color: '#333',
-  },
-  modalText: {
-    fontSize: 16,
-    color: '#555',
-    marginBottom: 10,
-  },
-  okButton: {
-    marginTop: 20,
-    backgroundColor: '#27446F',
-    borderRadius: 10,
-    paddingVertical: 10,
-    alignItems: 'center',
-  },
-  okButtonText: {
-    color: '#fff',
-    fontSize: 16,
+    fontWeight: "bold",
   },
 });
 
