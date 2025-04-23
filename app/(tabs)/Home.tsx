@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+// Import necessary components and libraries
 import { View, Text, TouchableOpacity, Image, Pressable, Alert } from "react-native";
 import { useSelector, useDispatch } from "react-redux";
 import Loader from "../../components/Loader";
@@ -11,13 +12,14 @@ import { setCreditAccountId } from "../../features/creditAccount/creditAccountSl
 import { useNavigation } from 'expo-router';
 import { DrawerActions } from '@react-navigation/native';
 
+// Define the CreditApplication interface
 interface CreditApplication {
   accountNumber: string;
 }
 
 const HomeScreen: React.FC = () => {
   const dispatch = useDispatch();
-  const { firstName,lastName, token } = useSelector((state: any) => state.auth); // Fetch user details from Redux
+  const { firstName, lastName, token } = useSelector((state: any) => state.auth); // Fetch user details from Redux
   const creditAccountId = useSelector((state: any) => state.creditAccount.creditAccountId);
   const navigation = useNavigation();
 
@@ -34,20 +36,24 @@ const HomeScreen: React.FC = () => {
   const [creditSummaries, setCreditSummaries] = useState<any[]>([]);
   const [autoPay, setAutopay] = useState<boolean | null>(null);
 
+  // Fetch data when the component mounts
   useEffect(() => {
     const fetchAllData = async () => {
       try {
+        // Fetch user and customer data in parallel
         const [userResponse, customerResponse] = await Promise.all([
           fetchUserData(token, setUserData),
           fetchCustomerData(token, setCustomerData),
         ]);
 
+        // Process customer data if available
         if (customerResponse?.creditAccounts) {
           const accountNumbers = customerResponse.creditAccounts.map(
             (application: CreditApplication) => application.accountNumber
           );
           setAccountNumbers(accountNumbers);
 
+          // Fetch credit summaries and account ID
           const { creditSummaries, creditAccountId } = await fetchCreditSummariesWithId(customerResponse, token);
 
           if (creditAccountId) {
@@ -56,6 +62,7 @@ const HomeScreen: React.FC = () => {
 
           setCreditSummaries(creditSummaries);
 
+          // Extract and set relevant details from credit summaries
           const validSummary = creditSummaries.find((summary) => summary !== null);
           if (validSummary) {
             setCurrentAmountDue(validSummary.detail.creditAccount.paymentSchedule.paymentAmount);
@@ -84,6 +91,7 @@ const HomeScreen: React.FC = () => {
     fetchAllData();
   }, [token, dispatch]);
 
+  // Show loader while data is being fetched
   if (loading) {
     return (
       <View style={styles.loaderContainer}>
@@ -92,10 +100,12 @@ const HomeScreen: React.FC = () => {
     );
   }
 
+  // Handle hamburger menu press
   const handleHamburgerPress = () => {
     navigation.dispatch(DrawerActions.openDrawer());
   };
 
+  // Handle profile icon press
   const handleProfilePress = () => {
     navigation.navigate("Profile");
   };

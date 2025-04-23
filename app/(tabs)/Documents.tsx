@@ -25,39 +25,45 @@ const Documents: React.FC = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
 
+  // Define the structure of a document
   interface Document {
     id: string;
     documentName: string;
     documentContent: string;
   }
 
+  // State variables for managing documents, modal visibility, and other UI elements
   const [documents, setDocuments] = useState<Document[]>([]);
   const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [bankruptcyMessage, setBankruptcyMessage] = useState<string | null>(null);
   const [titleHeader, setTitleHeader] = useState("Document Viewer");
 
+  // Fetch token and credit account ID from Redux store
   const token = useSelector((state: any) => state.auth.token);
   const creditAccountId = useSelector((state: any) => state.creditAccount.creditAccountId);
 
   useEffect(() => {
+    // Fetch documents and credit summaries when component mounts or dependencies change
     const fetchDocumentsData = async () => {
       try {
         if (!creditAccountId || !token) return;
 
+        // Fetch credit summaries and update Redux store
         const { creditSummaries } = await fetchCreditSummariesWithId(creditAccountId, token);
         dispatch(setCreditSummaries(creditSummaries));
 
+        // Fetch documents for the credit account
         const data = await fetchDocuments(creditAccountId, token);
-        // console.log(data);
 
+        // Display bankruptcy message if applicable
         if (data?.accountSummary?.isBankrupt) {
           setBankruptcyMessage("ACCOUNT IN BANKRUPTCY");
         } else {
           setBankruptcyMessage(null);
         }
 
-        // Only keep documents with valid HTML content
+        // Filter out documents with invalid or missing HTML content
         const validDocuments = (data || []).filter((doc: { documentContent: any; }) => doc.documentContent);
 
         setDocuments(validDocuments);
@@ -69,25 +75,26 @@ const Documents: React.FC = () => {
     fetchDocumentsData();
   }, [creditAccountId, token, dispatch]);
 
+  // Open the modal to display the selected document
   const openDocumentPopup = (doc: Document) => {
     setSelectedDocument(doc);
     setTitleHeader(doc.documentName);
     setModalVisible(true);
   };
 
+  // Close the modal and reset the selected document
   const closeDocumentPopup = () => {
     setSelectedDocument(null);
     setModalVisible(false);
   };
 
+  // Handle printing and sharing the selected document as a PDF
   const handlePrint = async () => {
     if (!selectedDocument?.documentContent) return;
     try {
       const { uri } = await Print.printToFileAsync({
         html: selectedDocument.documentContent,
       });
-
-      // console.log('PDF saved to:', uri);
 
       await Sharing.shareAsync(uri);
     } catch (error) {
@@ -97,6 +104,7 @@ const Documents: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Header section */}
       <View style={styles.headerContainer}>
         <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={28} color="#37474F" />
@@ -104,12 +112,14 @@ const Documents: React.FC = () => {
         <Text style={styles.title}>Documents</Text>
       </View>
 
+      {/* Display bankruptcy message if applicable */}
       {bankruptcyMessage && (
         <View style={styles.bankruptcyMessageContainer}>
           <Text style={styles.bankruptcyMessageText}>{bankruptcyMessage}</Text>
         </View>
       )}
 
+      {/* List of documents */}
       <View style={styles.recordsContainer}>
         <View style={styles.documentList}>
           {documents.length > 0 ? (
@@ -138,6 +148,7 @@ const Documents: React.FC = () => {
         </View>
       </View>
 
+      {/* Modal for viewing document content */}
       <Modal
         animationType="slide"
         transparent={true}
@@ -146,18 +157,21 @@ const Documents: React.FC = () => {
       >
         <View style={modalStyles.centeredView}>
           <View style={modalStyles.modalView}>
+            {/* Modal header */}
             <View style={modalStyles.header}>
               <Text style={modalStyles.headerTitle}>{titleHeader}</Text>
               <Pressable onPress={closeDocumentPopup}>
                 <Ionicons name="close" size={24} color="#37474F" />
               </Pressable>
             </View>
+            {/* Modal content */}
             <ScrollView contentContainerStyle={modalStyles.modalContent}>
               <RenderHTML
                 contentWidth={Dimensions.get('window').width}
                 source={{ html: selectedDocument?.documentContent || "" }}
               />
             </ScrollView>
+            {/* Modal footer with actions */}
             <View style={modalStyles.footer}>
               <TouchableOpacity style={modalStyles.button} onPress={closeDocumentPopup}>
                 <Text style={modalStyles.buttonText}>Close</Text>
@@ -176,6 +190,7 @@ const Documents: React.FC = () => {
   );
 };
 
+// Styles for the modal
 const modalStyles = StyleSheet.create({
   centeredView: {
     flex: 1,
