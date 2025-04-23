@@ -72,7 +72,9 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   addMethodButton: {
-    backgroundColor: "#27446F",
+    backgroundColor: "#FFFFFF", // Default background color for unselected button
+    borderColor: '#27446F',
+    borderWidth: 2,
     padding: 15,
     borderRadius: 10,
     alignItems: "center",
@@ -82,8 +84,16 @@ const styles = StyleSheet.create({
   },
   addMethodButtonText: {
     textAlign: "center",
-    color: "#FFFFFF",
+    color: "#27446F", // Default text color for unselected button
     fontSize: 16,
+  },
+  selectedMethodButton: {
+    backgroundColor: '#27446F', // Background color for selected button
+    borderColor: '#27446F',
+    borderWidth: 2,
+  },
+  selectedMethodButtonText: {
+    color: '#FFFFFF', // Text color for selected button
   },
   inputFieldContainer: {
     marginBottom: 15,
@@ -126,12 +136,11 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   backButton: {
-    padding: 10, 
-    position: 'absolute', 
-    left: 10, 
-    top: 30, 
+    padding: 10,
+    position: 'absolute',
+    left: 10,
+    top: 30,
   },
-  
   modalContainer: {
     backgroundColor: '#fff',
     padding: 25,

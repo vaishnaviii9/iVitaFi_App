@@ -10,13 +10,26 @@ import {
 import { Ionicons, FontAwesome } from "@expo/vector-icons";
 import { router, useFocusEffect } from "expo-router";
 import Modal from "react-native-modal";
-import styles from "../components/styles/ManagePaymentsStyles"; // Import the styles
+import styles from "../components/styles/ManagePaymentsStyles";
 
 const ManagePayments = () => {
-  const [textInput2, onChangeTextInput2] = useState("");
-  const [textInput3, onChangeTextInput3] = useState("");
+  // State variables to manage form inputs
+  const [routingNumber, setRoutingNumber] = useState("");
+  const [accountNumber, setAccountNumber] = useState("");
+  const [debitCardInputs, setDebitCardInputs] = useState({
+    firstName: "",
+    lastName: "",
+    cardNumber: "",
+    expMonth: "",
+    expYear: "",
+    cvv: "",
+    zip: "",
+  });
+
+  // State variables to manage UI state
   const [isDefault, setIsDefault] = useState(false);
   const [isModalVisible, setModalVisible] = useState(false);
+  const [selectedMethod, setSelectedMethod] = useState("Add Checking Account"); // Set default method
 
   // Show modal every time this screen comes into focus
   useFocusEffect(
@@ -25,16 +38,35 @@ const ManagePayments = () => {
     }, [])
   );
 
+  // Handle back button press to navigate to the home screen
   const handleBackPress = () => {
     router.push("/(tabs)/Home");
   };
 
-  const handleButtonPress = () => {
-    alert("Pressed!");
-  };
-
+  // Close the modal
   const closeModal = () => {
     setModalVisible(false);
+  };
+
+  // Handle method selection and reset form data
+  const handleMethodSelect = (method: string) => {
+    setSelectedMethod(method);
+    setRoutingNumber("");
+    setAccountNumber("");
+    setDebitCardInputs({
+      firstName: "",
+      lastName: "",
+      cardNumber: "",
+      expMonth: "",
+      expYear: "",
+      cvv: "",
+      zip: "",
+    });
+  };
+
+  // Handle form submission
+  const handleButtonPress = () => {
+    alert("Form submitted!");
   };
 
   return (
@@ -62,13 +94,16 @@ const ManagePayments = () => {
         </View>
       </Modal>
 
+      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={handleBackPress} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
         </TouchableOpacity>
         <Text style={styles.headerText}>Manage Payments</Text>
       </View>
+
       <ScrollView style={styles.scrollView}>
+        {/* Saved Payment Methods Section */}
         <Text style={styles.sectionTitle}>Saved Payment Methods</Text>
         {[
           "Debit Card +●●· 4589",
@@ -93,33 +128,85 @@ const ManagePayments = () => {
             </TouchableOpacity>
           </View>
         ))}
+
+        {/* Add New Payment Method Section */}
         <Text style={styles.addNewPayHeader}>Add New Payment Method</Text>
         <View style={styles.addMethodContainer}>
-          {["Add Checking Account", "Add Debit Card"].map((label, index) => (
-            <TouchableOpacity key={index} style={styles.addMethodButton}>
-              <Text style={styles.addMethodButtonText}>{label}</Text>
+          {["Add Checking Account", "Add Debit Card"].map((label) => (
+            <TouchableOpacity
+              key={label}
+              style={[
+                styles.addMethodButton,
+                selectedMethod === label && styles.selectedMethodButton,
+              ]}
+              onPress={() => handleMethodSelect(label)}
+            >
+              <Text
+                style={[
+                  styles.addMethodButtonText,
+                  selectedMethod === label && styles.selectedMethodButtonText,
+                ]}
+              >
+                {label}
+              </Text>
             </TouchableOpacity>
           ))}
         </View>
-        {["Routing Number", "Account Number"].map((label, index) => (
-          <View key={index} style={styles.inputFieldContainer}>
-            <Text style={styles.inputFieldLabel}>{label}</Text>
-            <TextInput
-              placeholder={
-                label === "Routing Number"
-                  ? "Enter routing number"
-                  : "Enter account number"
-              }
-              value={label === "Routing Number" ? textInput2 : textInput3}
-              onChangeText={
-                label === "Routing Number"
-                  ? onChangeTextInput2
-                  : onChangeTextInput3
-              }
-              style={styles.inputField}
-            />
-          </View>
-        ))}
+
+        {/* Conditional Rendering of Input Fields Based on Selected Method */}
+        {selectedMethod === "Add Checking Account" && (
+          <>
+            <View style={styles.inputFieldContainer}>
+              <Text style={styles.inputFieldLabel}>Routing Number</Text>
+              <TextInput
+                placeholder="Enter routing number"
+                value={routingNumber}
+                onChangeText={setRoutingNumber}
+                style={styles.inputField}
+              />
+            </View>
+            <View style={styles.inputFieldContainer}>
+              <Text style={styles.inputFieldLabel}>Account Number</Text>
+              <TextInput
+                placeholder="Enter account number"
+                value={accountNumber}
+                onChangeText={setAccountNumber}
+                style={styles.inputField}
+              />
+            </View>
+          </>
+        )}
+
+        {selectedMethod === "Add Debit Card" && (
+          <>
+            {[
+              ["First Name", "firstName"],
+              ["Last Name", "lastName"],
+              ["Card Number", "cardNumber"],
+              ["Expiration Month", "expMonth"],
+              ["Expiration Year", "expYear"],
+              ["Security Code", "cvv"],
+              ["Zip Code", "zip"],
+            ].map(([label, key]) => (
+              <View key={key} style={styles.inputFieldContainer}>
+                <Text style={styles.inputFieldLabel}>{label}</Text>
+                <TextInput
+                  placeholder={`Enter ${label.toLowerCase()}`}
+                  value={debitCardInputs[key as keyof typeof debitCardInputs]}
+                  onChangeText={(text) =>
+                    setDebitCardInputs((prev) => ({
+                      ...prev,
+                      [key]: text,
+                    }))
+                  }
+                  style={styles.inputField}
+                />
+              </View>
+            ))}
+          </>
+        )}
+
+        {/* Default Payment Method Checkbox */}
         <View style={styles.defaultPaymentMethodContainer}>
           <TouchableOpacity onPress={() => setIsDefault(!isDefault)}>
             <Ionicons
@@ -132,6 +219,8 @@ const ManagePayments = () => {
             Set as Default Payment Method
           </Text>
         </View>
+
+        {/* Submit Button */}
         <View style={styles.submitButtonContainer}>
           <TouchableOpacity
             style={styles.submitButton}
