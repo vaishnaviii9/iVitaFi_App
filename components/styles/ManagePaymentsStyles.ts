@@ -17,6 +17,7 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 30,
     borderBottomRightRadius: 30,
     marginBottom: 20,
+    position: 'relative',
   },
   headerText: {
     color: "#FFFFFF",
@@ -25,7 +26,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   sectionTitle: {
-    // paddingHorizontal: 10,
     fontSize: 18,
     fontWeight: "bold",
     marginBottom: 15,
@@ -60,9 +60,8 @@ const styles = StyleSheet.create({
   deleteButton: {
     padding: 10,
   },
-
-  addNewPayHeader:{
-    fontSize: 18,
+  addNewPayHeader: {
+    fontSize: 16,
     fontWeight: "bold",
     marginBottom: 15,
     marginTop: 30,
@@ -125,6 +124,45 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     fontSize: 16,
     fontWeight: "bold",
+  },
+  backButton: {
+    padding: 10, 
+    position: 'absolute', 
+    left: 10, 
+    top: 30, 
+  },
+  
+  modalContainer: {
+    backgroundColor: '#fff',
+    padding: 25,
+    borderRadius: 20,
+    elevation: 10,
+    shadowColor: '#000',
+  },
+  modalCloseButton: {
+    alignSelf: 'flex-end',
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 15,
+    color: '#333',
+  },
+  modalText: {
+    fontSize: 16,
+    color: '#555',
+    marginBottom: 10,
+  },
+  okButton: {
+    marginTop: 20,
+    backgroundColor: '#27446F',
+    borderRadius: 10,
+    paddingVertical: 10,
+    alignItems: 'center',
+  },
+  okButtonText: {
+    color: '#fff',
+    fontSize: 16,
   },
 });
 
