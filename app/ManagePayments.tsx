@@ -57,7 +57,7 @@ const ManagePayments = () => {
               creditSummaries[0]?.detail?.creditAccount?.customerId;
             if (customerId) {
               const methods = await fetchSavedPaymentMethods(token, customerId);
-              console.log("Fetched methods:", methods); // Log the fetched methods
+              // console.log("Fetched methods:", methods); // Log the fetched methods
               if (methods && methods.length > 0) {
                 setSavedMethods(methods);
                 setErrorMessage(null);
