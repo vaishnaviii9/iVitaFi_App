@@ -1,3 +1,4 @@
+// creditAccountService.ts
 import { fetchData } from "../../api/api";
 import apiClient from "../../api/apiClient"; // Import API endpoints
 
@@ -29,6 +30,7 @@ export const fetchCreditSummariesWithId = async (
             (data: any) => data,
             "Failed to fetch credit account summary."
           );
+          // console.log("Fetched credit summary:", summary); // Log the credit summary
           return summary;
         }
         return null;

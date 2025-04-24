@@ -46,6 +46,8 @@ const HomeScreen: React.FC = () => {
           fetchCustomerData(token, setCustomerData),
         ]);
 
+        console.log('CustomerResponse', customerResponse);
+        
         // Process customer data if available
         if (customerResponse?.creditAccounts) {
           const accountNumbers = customerResponse.creditAccounts.map(

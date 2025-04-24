@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   SafeAreaView,
   View,
@@ -11,9 +11,14 @@ import { Ionicons, FontAwesome } from "@expo/vector-icons";
 import { router, useFocusEffect } from "expo-router";
 import Modal from "react-native-modal";
 import styles from "../components/styles/ManagePaymentsStyles";
+import { useSelector } from "react-redux";
+import { fetchSavedPaymentMethods } from "./services/savedPaymentMethodService"; // Import the new service
+import { fetchCreditSummariesWithId } from "./services/creditAccountService"; // Import the credit account service
+import { fetchCustomerData } from "./services/customerService"; // Import the customer service
 
 const ManagePayments = () => {
-  // State variables to manage form inputs
+  const token = useSelector((state: any) => state.auth.token);
+
   const [routingNumber, setRoutingNumber] = useState("");
   const [accountNumber, setAccountNumber] = useState("");
   const [debitCardInputs, setDebitCardInputs] = useState({
@@ -26,29 +31,75 @@ const ManagePayments = () => {
     zip: "",
   });
 
-  // State variables to manage UI state
   const [isDefault, setIsDefault] = useState(false);
   const [isModalVisible, setModalVisible] = useState(false);
-  const [selectedMethod, setSelectedMethod] = useState("Add Checking Account"); // Set default method
+  const [selectedMethod, setSelectedMethod] = useState("Add Checking Account");
 
-  // Show modal every time this screen comes into focus
+  const [savedMethods, setSavedMethods] = useState<any[]>([]);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // Fetch customer data and then credit summaries and saved payment methods
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const customerResponse = await fetchCustomerData(token, (data) => {
+          // Set customer data in the state
+          // No need to dispatch credit summaries to CreditAccountSlice
+        });
+
+        if (customerResponse) {
+          const { creditSummaries } = await fetchCreditSummariesWithId(
+            customerResponse,
+            token
+          );
+          if (creditSummaries && creditSummaries.length > 0) {
+            const customerId =
+              creditSummaries[0]?.detail?.creditAccount?.customerId;
+            if (customerId) {
+              const methods = await fetchSavedPaymentMethods(token, customerId);
+              console.log("Fetched methods:", methods); // Log the fetched methods
+              if (methods && methods.length > 0) {
+                setSavedMethods(methods);
+                setErrorMessage(null);
+              } else {
+                console.warn("No methods fetched or empty response");
+                setErrorMessage("No saved payment methods found.");
+              }
+            } else {
+              console.warn("No customerId found.");
+              setErrorMessage("No customer ID found.");
+            }
+          } else {
+            console.warn("No credit summaries found.");
+            setErrorMessage("No credit summaries found.");
+          }
+        } else {
+          console.warn("No customer response found.");
+          setErrorMessage("No customer response found.");
+        }
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        setErrorMessage("Failed to fetch data.");
+      }
+    };
+
+    fetchData();
+  }, [token]);
+
   useFocusEffect(
     useCallback(() => {
       setModalVisible(true);
     }, [])
   );
 
-  // Handle back button press to navigate to the home screen
   const handleBackPress = () => {
     router.push("/(tabs)/Home");
   };
 
-  // Close the modal
   const closeModal = () => {
     setModalVisible(false);
   };
 
-  // Handle method selection and reset form data
   const handleMethodSelect = (method: string) => {
     setSelectedMethod(method);
     setRoutingNumber("");
@@ -64,14 +115,16 @@ const ManagePayments = () => {
     });
   };
 
-  // Handle form submission
   const handleButtonPress = () => {
     alert("Form submitted!");
   };
 
+  const getLast4Digits = (cardNumber: string | null) => {
+    return cardNumber ? cardNumber.slice(-4) : "";
+  };
+
   return (
     <SafeAreaView style={styles.container}>
-      {/* Modal Dialog */}
       <Modal isVisible={isModalVisible} onBackdropPress={closeModal}>
         <View style={styles.modalContainer}>
           <TouchableOpacity
@@ -94,7 +147,6 @@ const ManagePayments = () => {
         </View>
       </Modal>
 
-      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={handleBackPress} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
@@ -103,31 +155,35 @@ const ManagePayments = () => {
       </View>
 
       <ScrollView style={styles.scrollView}>
-        {/* Saved Payment Methods Section */}
+        {/* Saved Payment Methods */}
         <Text style={styles.sectionTitle}>Saved Payment Methods</Text>
-        {[
-          "Debit Card +●●· 4589",
-          "Debit Card +●●· 4589",
-          "Debit Card +●●· 4589",
-        ].map((label, index) => (
-          <View key={index} style={styles.savedMethodContainer}>
-            <FontAwesome
-              name="credit-card"
-              size={28}
-              color="#27446F"
-              style={styles.savedMethodImage}
-            />
-            <View style={styles.savedMethodTextContainer}>
-              <Text style={styles.savedMethodLabel}>{label}</Text>
-              {index === 0 && (
-                <Text style={styles.defaultLabel}>{"(Default)"}</Text>
-              )}
-            </View>
-            <TouchableOpacity style={styles.deleteButton}>
-              <Ionicons name="trash" size={30} color="#FF0000" />
-            </TouchableOpacity>
-          </View>
-        ))}
+        {errorMessage ? (
+          <Text style={styles.errorMessage}>{errorMessage}</Text>
+        ) : (
+          savedMethods
+            .filter((method) => method.paymentMethodType === 3) // Filter methods
+            .map((method, index) => (
+              <View key={index} style={styles.savedMethodContainer}>
+                <FontAwesome
+                  name="credit-card"
+                  size={28}
+                  color="#27446F"
+                  style={styles.savedMethodImage}
+                />
+                <View style={styles.savedMethodTextContainer}>
+                  <Text style={styles.savedMethodLabel}>
+                    Debit Card - {getLast4Digits(method.cardNumber)}
+                  </Text>
+                  {/* {index === 0 && (
+                    <Text style={styles.defaultLabel}>{" (Default)"}</Text>
+                  )} */}
+                </View>
+                <TouchableOpacity style={styles.deleteButton}>
+                  <Ionicons name="trash" size={30} color="#FF0000" />
+                </TouchableOpacity>
+              </View>
+            ))
+        )}
 
         {/* Add New Payment Method Section */}
         <Text style={styles.addNewPayHeader}>Add New Payment Method</Text>
@@ -153,7 +209,6 @@ const ManagePayments = () => {
           ))}
         </View>
 
-        {/* Conditional Rendering of Input Fields Based on Selected Method */}
         {selectedMethod === "Add Checking Account" && (
           <>
             <View style={styles.inputFieldContainer}>
@@ -206,7 +261,6 @@ const ManagePayments = () => {
           </>
         )}
 
-        {/* Default Payment Method Checkbox */}
         <View style={styles.defaultPaymentMethodContainer}>
           <TouchableOpacity onPress={() => setIsDefault(!isDefault)}>
             <Ionicons
@@ -220,7 +274,6 @@ const ManagePayments = () => {
           </Text>
         </View>
 
-        {/* Submit Button */}
         <View style={styles.submitButtonContainer}>
           <TouchableOpacity
             style={styles.submitButton}

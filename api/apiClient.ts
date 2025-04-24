@@ -28,7 +28,11 @@ const apiClient = {
   STATEMENTS: (creditAccountId: string) => `${BASE_URL}/creditaccount/${creditAccountId}/statements`,
 
   // Endpoint to fetch documents for a specific credit account
-  DOCUMENTS: (creditAccountId: string) => `${BASE_URL}/creditaccount/${creditAccountId}/documents`
+  DOCUMENTS: (creditAccountId: string) => `${BASE_URL}/creditaccount/${creditAccountId}/documents`,
+
+  //Endpoint to fetch top three saved payment methods
+  TOP_THREE_SAVED_PAYMENT_METHODS: (customerId: string) =>
+    `${BASE_URL}/admin/credit-account/${customerId}/top-three`,
 };
 
 export default apiClient;

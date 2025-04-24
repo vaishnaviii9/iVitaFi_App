@@ -173,6 +173,12 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
   },
+  errorMessage: {
+    color: "red",
+    fontSize: 14,
+    marginVertical: 10,
+    textAlign: "center",
+  },
 });
 
 export default styles;
