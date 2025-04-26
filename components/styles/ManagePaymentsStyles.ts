@@ -11,13 +11,19 @@ const styles = StyleSheet.create({
   },
   header: {
     backgroundColor: "#27446F",
-    paddingVertical: 30,
-    paddingHorizontal: 10,
-    left: 0.5,
+    paddingVertical:60,
+    paddingHorizontal: 0,
     borderBottomLeftRadius: 30,
     borderBottomRightRadius: 30,
-    marginBottom: 20,
+    marginBottom: 10,
     position: 'relative',
+
+  },
+
+  headerContent: {
+    flexDirection: "column",
+    justifyContent: "center",
+    alignItems: "center",
   },
   headerText: {
     color: "#FFFFFF",
@@ -136,10 +142,11 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   backButton: {
-    padding: 10,
+    // padding: 10,
     position: 'absolute',
-    left: 10,
-    top: 30,
+    left: 20,
+    // fontSize: 20,
+    // top: 30,
   },
   modalContainer: {
     backgroundColor: '#fff',
