@@ -186,6 +186,23 @@ const styles = StyleSheet.create({
     marginVertical: 10,
     textAlign: "center",
   },
+
+  modalButtonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    width: '100%',
+  },
+  modalButton: {
+    backgroundColor: '#27446F',
+    padding: 10,
+    borderRadius: 5,
+    width: '40%', // Increase the width of the buttons
+    alignItems: 'center',
+  },
+  modalButtonText: {
+    color: 'white',
+    fontSize: 16,
+  },
 });
 
 export default styles;
