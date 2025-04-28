@@ -17,7 +17,6 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 30,
     marginBottom: 10,
     position: 'relative',
-
   },
 
   headerContent: {
@@ -59,9 +58,20 @@ const styles = StyleSheet.create({
     marginBottom: 3,
   },
   defaultLabel: {
-    color: "green",
-    fontSize: 13,
-    fontWeight: "500",
+    backgroundColor: '#4CAF50', // Green background for the badge
+    color: '#FFFFFF', // White text color
+    fontSize: 12,
+    fontWeight: 'bold',
+    paddingVertical: 2,
+    paddingHorizontal: 8,
+    borderRadius: 15,
+    marginTop: 5,
+    alignSelf: 'flex-start', // Align the badge to the start of the text container
+  },
+  defaultLabelContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 0.2,
   },
   deleteButton: {
     padding: 10,
