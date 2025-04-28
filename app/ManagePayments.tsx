@@ -225,7 +225,7 @@ const ManagePayments = () => {
         </View>
       </View>
 
-      <ScrollView style={styles.scrollView}>
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         <Text style={styles.sectionTitle}>Saved Payment Methods</Text>
         {errorMessage ? (
           <Text style={styles.errorMessage}>{errorMessage}</Text>
