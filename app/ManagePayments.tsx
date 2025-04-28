@@ -59,8 +59,7 @@ const ManagePayments = () => {
               creditSummaries[0]?.detail?.creditAccount?.customerId;
             if (customerId) {
               const methods = await fetchSavedPaymentMethods(token, customerId);
-             
-              
+
               if (methods && methods.length > 0) {
                 setSavedMethods(methods);
                 setErrorMessage(null);
@@ -171,28 +170,30 @@ const ManagePayments = () => {
 
   const formatCardExpiryStatus = (expirationDateStr: string): string => {
     if (!expirationDateStr) return "";
-  
+
     const today = new Date();
     const expirationDate = new Date(expirationDateStr);
-  
+
     // Add 1 day to expiration date for display
     expirationDate.setDate(expirationDate.getDate() + 1);
-  
+
     // Now set time to 23:59:59 for comparison
     expirationDate.setHours(23, 59, 59, 999);
-  
-    const formattedDate = expirationDate.toLocaleDateString('en-US', {
-      month: '2-digit',
-      year: '2-digit',
-    }).replace('/', '/');
-  
+
+    const formattedDate = expirationDate
+      .toLocaleDateString("en-US", {
+        month: "2-digit",
+        year: "2-digit",
+      })
+      .replace("/", "/");
+
     if (expirationDate < today) {
       return `Expired - ${formattedDate}`;
     }
-  
+
     return `Valid Thru - ${formattedDate}`;
   };
-  
+
   return (
     <View style={styles.container}>
       <Modal isVisible={isModalVisible} onBackdropPress={closeModal}>
@@ -251,48 +252,51 @@ const ManagePayments = () => {
         </View>
       </View>
 
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+      >
         <Text style={styles.sectionTitle}>Saved Payment Methods</Text>
         {errorMessage ? (
           <Text style={styles.errorMessage}>{errorMessage}</Text>
         ) : (
           savedMethods.map((method, index) => (
             <View key={index} style={styles.savedMethodContainer}>
-            <FontAwesome
-              name="credit-card"
-              size={28}
-              color="#27446F"
-              style={styles.savedMethodImage}
-            />
-            <View style={styles.savedMethodTextContainer}>
-              <Text style={styles.savedMethodLabel}>
-                {method.cardNumber
-                  ? `Debit Card - ${getLast4Digits(method.cardNumber)}`
-                  : method.accountNumber
-                  ? `Checking Account - ${getLast4Digits(
-                      method.accountNumber
-                    )}`
-                  : "Unknown Payment Method"}
-              </Text>
-              {method.cardNumber && method.expirationDate && (
-        <Text style={styles.expirationLabel}>
-          {formatCardExpiryStatus(method.expirationDate)}
-        </Text>
-      )}
-      
-              {index === 0 && (
-                <View style={styles.defaultLabelContainer}>
-                  <Text style={styles.defaultLabel}>Default</Text>
-                </View>
-              )}
+              <FontAwesome
+                name="credit-card"
+                size={28}
+                color="#27446F"
+                style={styles.savedMethodImage}
+              />
+              <View style={styles.savedMethodTextContainer}>
+                <Text style={styles.savedMethodLabel}>
+                  {method.cardNumber
+                    ? `Debit Card - ${getLast4Digits(method.cardNumber)}`
+                    : method.accountNumber
+                    ? `Checking Account - ${getLast4Digits(
+                        method.accountNumber
+                      )}`
+                    : "Unknown Payment Method"}
+                </Text>
+                {method.cardNumber && method.expirationDate && (
+                  <Text style={styles.expirationLabel}>
+                    {formatCardExpiryStatus(method.expirationDate)}
+                  </Text>
+                )}
+
+                {index === 0 && (
+                  <View style={styles.defaultLabelContainer}>
+                    <Text style={styles.defaultLabel}>Default</Text>
+                  </View>
+                )}
+              </View>
+              <TouchableOpacity
+                style={styles.deleteButton}
+                onPress={() => openConfirmDeleteModal(method.id)}
+              >
+                <Ionicons name="trash" size={30} color="#FF0000" />
+              </TouchableOpacity>
             </View>
-            <TouchableOpacity
-              style={styles.deleteButton}
-              onPress={() => openConfirmDeleteModal(method.id)}
-            >
-              <Ionicons name="trash" size={30} color="#FF0000" />
-            </TouchableOpacity>
-          </View>
           ))
         )}
 
