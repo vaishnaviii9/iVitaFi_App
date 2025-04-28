@@ -6,6 +6,7 @@ import {
   TextInput,
   Text,
   TouchableOpacity,
+  Alert,
 } from "react-native";
 import { Ionicons, FontAwesome } from "@expo/vector-icons";
 import { router, useFocusEffect } from "expo-router";
@@ -33,6 +34,7 @@ const ManagePayments = () => {
 
   const [isDefault, setIsDefault] = useState(false);
   const [isModalVisible, setModalVisible] = useState(false);
+  const [isDeleteModalVisible, setDeleteModalVisible] = useState(false);
   const [selectedMethod, setSelectedMethod] = useState("Add Checking Account");
 
   const [savedMethods, setSavedMethods] = useState<any[]>([]);
@@ -100,6 +102,10 @@ const ManagePayments = () => {
     setModalVisible(false);
   };
 
+  const closeDeleteModal = () => {
+    setDeleteModalVisible(false);
+  };
+
   const handleMethodSelect = (method: string) => {
     setSelectedMethod(method);
     setRoutingNumber("");
@@ -123,6 +129,36 @@ const ManagePayments = () => {
     return cardNumber ? cardNumber.slice(-4) : "";
   };
 
+  const handleDeletePress = async (id: string) => {
+    try {
+      const response = await fetch(
+        `https://dev.ivitafi.com/api/admin/credit-account/${id}/delete-payment-method`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (response.ok) {
+        console.log("Deleted method ID:", id);
+        // Remove the method from the savedMethods state
+        setSavedMethods((prevMethods) => prevMethods.filter((method) => method.id !== id));
+        // Show the delete success modal
+        setDeleteModalVisible(true);
+      } else {
+        const errorText = await response.text();
+        console.error("Failed to delete payment method:", response.statusText, errorText);
+        Alert.alert("Error", `Failed to delete payment method. Server responded with: ${errorText}`);
+      }
+    } catch (error) {
+      console.error("Error deleting payment method:", error);
+      Alert.alert("Error", "An error occurred while deleting the payment method.");
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <Modal isVisible={isModalVisible} onBackdropPress={closeModal}>
@@ -142,6 +178,16 @@ const ManagePayments = () => {
             2. Add your new payment method information.
           </Text>
           <TouchableOpacity onPress={closeModal} style={styles.okButton}>
+            <Text style={styles.okButtonText}>OK</Text>
+          </TouchableOpacity>
+        </View>
+      </Modal>
+
+      <Modal isVisible={isDeleteModalVisible} onBackdropPress={closeDeleteModal}>
+        <View style={styles.modalContainer}>
+          <Text style={styles.modalTitle}>Success</Text>
+          <Text style={styles.modalText}>Payment method deleted successfully.</Text>
+          <TouchableOpacity onPress={closeDeleteModal} style={styles.okButton}>
             <Text style={styles.okButtonText}>OK</Text>
           </TouchableOpacity>
         </View>
@@ -178,7 +224,10 @@ const ManagePayments = () => {
                     <Text style={styles.defaultLabel}>{" (Default)"}</Text>
                   )} */}
                 </View>
-                <TouchableOpacity style={styles.deleteButton}>
+                <TouchableOpacity
+                  style={styles.deleteButton}
+                  onPress={() => handleDeletePress(method.id)}
+                >
                   <Ionicons name="trash" size={30} color="#FF0000" />
                 </TouchableOpacity>
               </View>
