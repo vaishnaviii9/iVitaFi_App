@@ -213,6 +213,11 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
   },
+  expirationLabel: {
+    fontSize: 12,
+    color: '#FFFFF',
+    marginTop: 2,
+  },
 });
 
 export default styles;

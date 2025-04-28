@@ -59,6 +59,8 @@ const ManagePayments = () => {
               creditSummaries[0]?.detail?.creditAccount?.customerId;
             if (customerId) {
               const methods = await fetchSavedPaymentMethods(token, customerId);
+             
+              
               if (methods && methods.length > 0) {
                 setSavedMethods(methods);
                 setErrorMessage(null);
@@ -167,6 +169,30 @@ const ManagePayments = () => {
   const getLast4Digits = (cardNumber: string | null) =>
     cardNumber ? cardNumber.slice(-4) : "";
 
+  const formatCardExpiryStatus = (expirationDateStr: string): string => {
+    if (!expirationDateStr) return "";
+  
+    const today = new Date();
+    const expirationDate = new Date(expirationDateStr);
+  
+    // Add 1 day to expiration date for display
+    expirationDate.setDate(expirationDate.getDate() + 1);
+  
+    // Now set time to 23:59:59 for comparison
+    expirationDate.setHours(23, 59, 59, 999);
+  
+    const formattedDate = expirationDate.toLocaleDateString('en-US', {
+      month: '2-digit',
+      year: '2-digit',
+    }).replace('/', '/');
+  
+    if (expirationDate < today) {
+      return `Expired - ${formattedDate}`;
+    }
+  
+    return `Valid Thru - ${formattedDate}`;
+  };
+  
   return (
     <View style={styles.container}>
       <Modal isVisible={isModalVisible} onBackdropPress={closeModal}>
@@ -248,6 +274,12 @@ const ManagePayments = () => {
                     )}`
                   : "Unknown Payment Method"}
               </Text>
+              {method.cardNumber && method.expirationDate && (
+        <Text style={styles.expirationLabel}>
+          {formatCardExpiryStatus(method.expirationDate)}
+        </Text>
+      )}
+      
               {index === 0 && (
                 <View style={styles.defaultLabelContainer}>
                   <Text style={styles.defaultLabel}>Default</Text>
