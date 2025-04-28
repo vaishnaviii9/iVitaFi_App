@@ -119,10 +119,20 @@ const ManagePayments = () => {
         });
       } else {
         const errorText = await response.text();
-        Alert.alert("Error", `Failed to delete payment method. ${errorText}`);
+      
+      Toast.show({
+        type: 'error',
+        text1: 'Deletion Failed',
+        text2: `Failed to delete payment method: ${errorText}`,
+      });
+
       }
     } catch (error) {
-      Alert.alert("Error", "An error occurred while deleting the payment method.");
+      Toast.show({
+        type: 'error',
+        text1: 'Deletion Failed',
+        text2: 'An unexpected error occurred. Please try again.',
+      });
     } finally {
       setConfirmDeleteModalVisible(false);
       setMethodToDelete(null);
