@@ -208,11 +208,17 @@ const ManagePayments = () => {
         {errorMessage ? (
           <Text style={styles.errorMessage}>{errorMessage}</Text>
         ) : (
-          savedMethods.filter(m => m.paymentMethodType === 3).map((method, index) => (
+          savedMethods.map((method, index) => (
             <View key={index} style={styles.savedMethodContainer}>
               <FontAwesome name="credit-card" size={28} color="#27446F" style={styles.savedMethodImage} />
               <View style={styles.savedMethodTextContainer}>
-                <Text style={styles.savedMethodLabel}>Debit Card - {getLast4Digits(method.cardNumber)}</Text>
+                <Text style={styles.savedMethodLabel}>
+                  {method.cardNumber 
+                    ? `Debit Card - ${getLast4Digits(method.cardNumber)}`
+                    : method.accountNumber 
+                      ? `Checking Account - ${getLast4Digits(method.accountNumber)}`
+                      : "Unknown Payment Method"}
+                </Text>
               </View>
               <TouchableOpacity
                 style={styles.deleteButton}
