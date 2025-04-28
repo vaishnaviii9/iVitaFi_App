@@ -36,7 +36,8 @@ const ManagePayments = () => {
   const [isModalVisible, setModalVisible] = useState(false);
   const [savedMethods, setSavedMethods] = useState<any[]>([]);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [isConfirmDeleteModalVisible, setConfirmDeleteModalVisible] = useState(false);
+  const [isConfirmDeleteModalVisible, setConfirmDeleteModalVisible] =
+    useState(false);
   const [methodToDelete, setMethodToDelete] = useState<string | null>(null);
   const [selectedMethod, setSelectedMethod] = useState("Add Checking Account");
 
@@ -49,9 +50,13 @@ const ManagePayments = () => {
         });
 
         if (customerResponse) {
-          const { creditSummaries } = await fetchCreditSummariesWithId(customerResponse, token);
+          const { creditSummaries } = await fetchCreditSummariesWithId(
+            customerResponse,
+            token
+          );
           if (creditSummaries && creditSummaries.length > 0) {
-            const customerId = creditSummaries[0]?.detail?.creditAccount?.customerId;
+            const customerId =
+              creditSummaries[0]?.detail?.creditAccount?.customerId;
             if (customerId) {
               const methods = await fetchSavedPaymentMethods(token, customerId);
               if (methods && methods.length > 0) {
@@ -113,25 +118,24 @@ const ManagePayments = () => {
       if (response.ok) {
         setSavedMethods((prev) => prev.filter((m) => m.id !== methodToDelete));
         Toast.show({
-          type: 'success',
-          text1: 'Success',
-          text2: 'Customer Payment Method has been deleted successfully.',
+          type: "success",
+          text1: "Success",
+          text2: "Customer Payment Method has been deleted successfully.",
         });
       } else {
         const errorText = await response.text();
-      
-      Toast.show({
-        type: 'error',
-        text1: 'Deletion Failed',
-        text2: `Failed to delete payment method: ${errorText}`,
-      });
 
+        Toast.show({
+          type: "error",
+          text1: "Deletion Failed",
+          text2: `Failed to delete payment method: ${errorText}`,
+        });
       }
     } catch (error) {
       Toast.show({
-        type: 'error',
-        text1: 'Deletion Failed',
-        text2: 'An unexpected error occurred. Please try again.',
+        type: "error",
+        text1: "Deletion Failed",
+        text2: "An unexpected error occurred. Please try again.",
       });
     } finally {
       setConfirmDeleteModalVisible(false);
@@ -160,36 +164,54 @@ const ManagePayments = () => {
     alert("Form submitted!");
   };
 
-  const getLast4Digits = (cardNumber: string | null) => cardNumber ? cardNumber.slice(-4) : "";
+  const getLast4Digits = (cardNumber: string | null) =>
+    cardNumber ? cardNumber.slice(-4) : "";
 
   return (
     <View style={styles.container}>
       <Modal isVisible={isModalVisible} onBackdropPress={closeModal}>
         <View style={styles.modalContainer}>
-          <TouchableOpacity onPress={closeModal} style={styles.modalCloseButton}>
+          <TouchableOpacity
+            onPress={closeModal}
+            style={styles.modalCloseButton}
+          >
             <Ionicons name="close" size={24} color="#333" />
           </TouchableOpacity>
           <Text style={styles.modalTitle}>Update Payment Method</Text>
-          <Text style={styles.modalText}>1. Locate your expired payment method and delete it.</Text>
-          <Text style={styles.modalText}>2. Add your new payment method information.</Text>
+          <Text style={styles.modalText}>
+            1. Locate your expired payment method and delete it.
+          </Text>
+          <Text style={styles.modalText}>
+            2. Add your new payment method information.
+          </Text>
           <TouchableOpacity onPress={closeModal} style={styles.okButton}>
             <Text style={styles.okButtonText}>OK</Text>
           </TouchableOpacity>
         </View>
       </Modal>
 
-      <Modal isVisible={isConfirmDeleteModalVisible} onBackdropPress={closeConfirmDeleteModal}>
+      <Modal
+        isVisible={isConfirmDeleteModalVisible}
+        onBackdropPress={closeConfirmDeleteModal}
+      >
         <View style={styles.modalContainer}>
           <Text style={styles.modalTitle}>Delete Payment Method</Text>
-          <Text style={styles.modalText}>Are you sure you want to delete this payment method?</Text>
+          <Text style={styles.modalText}>
+            Are you sure you want to delete this payment method?
+          </Text>
           <View style={styles.modalButtonContainer}>
-            <TouchableOpacity onPress={closeConfirmDeleteModal} style={styles.modalButton}>
+            <TouchableOpacity
+              onPress={closeConfirmDeleteModal}
+              style={styles.modalButton}
+            >
               <Text style={styles.modalButtonText}>No</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={confirmDeleteMethod} style={styles.modalButton}>
+            <TouchableOpacity
+              onPress={confirmDeleteMethod}
+              style={styles.modalButton}
+            >
               <Text style={styles.modalButtonText}>Yes</Text>
             </TouchableOpacity>
-            
           </View>
         </View>
       </Modal>
@@ -210,14 +232,22 @@ const ManagePayments = () => {
         ) : (
           savedMethods.map((method, index) => (
             <View key={index} style={styles.savedMethodContainer}>
-              <FontAwesome name="credit-card" size={28} color="#27446F" style={styles.savedMethodImage} />
+              <FontAwesome
+                name="credit-card"
+                size={28}
+                color="#27446F"
+                style={styles.savedMethodImage}
+              />
               <View style={styles.savedMethodTextContainer}>
                 <Text style={styles.savedMethodLabel}>
-                  {method.cardNumber 
+                  {method.cardNumber
                     ? `Debit Card - ${getLast4Digits(method.cardNumber)}`
-                    : method.accountNumber 
-                      ? `Checking Account - ${getLast4Digits(method.accountNumber)}`
-                      : "Unknown Payment Method"}
+                    : method.accountNumber
+                    ? `Checking Account - ${getLast4Digits(
+                        method.accountNumber
+                      )}`
+                    : "Unknown Payment Method"}
+                  {index === 0 && " (Default)"}
                 </Text>
               </View>
               <TouchableOpacity
@@ -235,10 +265,18 @@ const ManagePayments = () => {
           {["Add Checking Account", "Add Debit Card"].map((label) => (
             <TouchableOpacity
               key={label}
-              style={[styles.addMethodButton, selectedMethod === label && styles.selectedMethodButton]}
+              style={[
+                styles.addMethodButton,
+                selectedMethod === label && styles.selectedMethodButton,
+              ]}
               onPress={() => handleMethodSelect(label)}
             >
-              <Text style={[styles.addMethodButtonText, selectedMethod === label && styles.selectedMethodButtonText]}>
+              <Text
+                style={[
+                  styles.addMethodButtonText,
+                  selectedMethod === label && styles.selectedMethodButtonText,
+                ]}
+              >
                 {label}
               </Text>
             </TouchableOpacity>
@@ -268,7 +306,7 @@ const ManagePayments = () => {
           </>
         )}
 
-        {selectedMethod === "Add Debit Card" && (
+        {selectedMethod === "Add Debit Card" &&
           [
             ["First Name", "firstName"],
             ["Last Name", "lastName"],
@@ -289,8 +327,7 @@ const ManagePayments = () => {
                 style={styles.inputField}
               />
             </View>
-          ))
-        )}
+          ))}
 
         <View style={styles.defaultPaymentMethodContainer}>
           <TouchableOpacity onPress={() => setIsDefault(!isDefault)}>
