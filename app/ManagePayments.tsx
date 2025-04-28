@@ -160,7 +160,7 @@ const ManagePayments = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <Modal isVisible={isModalVisible} onBackdropPress={closeModal}>
         <View style={styles.modalContainer}>
           <TouchableOpacity
@@ -194,10 +194,13 @@ const ManagePayments = () => {
       </Modal>
 
       <View style={styles.header}>
+        <View style={styles.headerContent}>
         <TouchableOpacity onPress={handleBackPress} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
+          <Ionicons name="arrow-back" size={34} color="#FFFFFF" />
         </TouchableOpacity>
         <Text style={styles.headerText}>Manage Payments</Text>
+        </View>
+        
       </View>
 
       <ScrollView style={styles.scrollView}>
@@ -332,7 +335,7 @@ const ManagePayments = () => {
           </TouchableOpacity>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 };
 
