@@ -62,16 +62,16 @@ const styles = StyleSheet.create({
     color: '#FFFFFF', // White text color
     fontSize: 12,
     fontWeight: 'bold',
-    paddingVertical: 2,
+    paddingVertical: 4,
     paddingHorizontal: 8,
     borderRadius: 15,
-    marginTop: 5,
+    marginTop: 0.2,
     alignSelf: 'flex-start', // Align the badge to the start of the text container
   },
   defaultLabelContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 0.2,
+    paddingVertical: 4,
   },
   deleteButton: {
     padding: 10,
