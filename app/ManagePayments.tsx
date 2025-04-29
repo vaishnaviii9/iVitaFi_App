@@ -196,7 +196,8 @@ const ManagePayments = () => {
 
   return (
     <View style={styles.container}>
-      <Modal isVisible={isModalVisible} onBackdropPress={closeModal}>
+      <Modal //isVisible={isModalVisible}
+       onBackdropPress={closeModal}>
         <View style={styles.modalContainer}>
           <TouchableOpacity
             onPress={closeModal}
@@ -269,6 +270,11 @@ const ManagePayments = () => {
                 style={styles.savedMethodImage}
               />
               <View style={styles.savedMethodTextContainer}>
+              {index === 0 && (
+                  <View style={styles.defaultLabelContainer}>
+                    <Text style={styles.defaultLabel}>Default</Text>
+                  </View>
+                )}
                 <Text style={styles.savedMethodLabel}>
                   {method.cardNumber
                     ? `Debit Card - ${getLast4Digits(method.cardNumber)}`
@@ -284,11 +290,7 @@ const ManagePayments = () => {
                   </Text>
                 )}
 
-                {index === 0 && (
-                  <View style={styles.defaultLabelContainer}>
-                    <Text style={styles.defaultLabel}>Default</Text>
-                  </View>
-                )}
+               
               </View>
               <TouchableOpacity
                 style={styles.deleteButton}
