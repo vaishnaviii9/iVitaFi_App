@@ -214,7 +214,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   expirationLabel: {
-    fontSize: 12,
+    fontSize: 13,
+    fontWeight:'600' ,
     color: '#FFFFF',
     marginTop: 2,
   },
