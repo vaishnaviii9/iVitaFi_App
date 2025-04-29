@@ -218,7 +218,34 @@ const styles = StyleSheet.create({
     color: '#FFFFF',
     marginTop: 2,
   },
-  
+  skeletonLoaderContainer: {
+    marginBottom: 20,
+  },
+  skeletonLoaderItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#E0E0E0",
+    padding: 13,
+    borderRadius: 10,
+    marginBottom: 10,
+  },
+  skeletonLoaderImage: {
+    width: 28,
+    height: 28,
+    backgroundColor: "#CCC",
+    marginRight: 20,
+    borderRadius: 5,
+  },
+  skeletonLoaderTextContainer: {
+    flex: 1,
+    marginRight: 12,
+  },
+  skeletonLoaderText: {
+    height: 15,
+    backgroundColor: "#CCC",
+    borderRadius: 5,
+    marginBottom: 5,
+  },
 });
 
 export default styles;

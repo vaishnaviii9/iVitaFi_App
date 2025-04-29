@@ -6,6 +6,7 @@ import {
   Text,
   TouchableOpacity,
   Alert,
+  ActivityIndicator,
 } from "react-native";
 import { Ionicons, FontAwesome } from "@expo/vector-icons";
 import { router, useFocusEffect } from "expo-router";
@@ -40,15 +41,12 @@ const ManagePayments = () => {
     useState(false);
   const [methodToDelete, setMethodToDelete] = useState<string | null>(null);
   const [selectedMethod, setSelectedMethod] = useState("Add Checking Account");
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const customerResponse = await fetchCustomerData(token, (data) => {
-          // Set customer data in the state
-          // No need to dispatch credit summaries to CreditAccountSlice
-        });
-
+        const customerResponse = await fetchCustomerData(token, (data) => {});
         if (customerResponse) {
           const { creditSummaries } = await fetchCreditSummariesWithId(
             customerResponse,
@@ -59,10 +57,15 @@ const ManagePayments = () => {
               creditSummaries[0]?.detail?.creditAccount?.customerId;
             if (customerId) {
               const methods = await fetchSavedPaymentMethods(token, customerId);
-
               if (methods && methods.length > 0) {
-                setSavedMethods(methods);
-                setErrorMessage(null);
+                const validMethods = methods.filter(
+                  (method: {
+                    cardNumber: string | null;
+                    accountNumber: string | null;
+                  }) =>
+                    method.cardNumber !== null || method.accountNumber !== null
+                );
+                setSavedMethods(validMethods);
               } else {
                 setErrorMessage("No saved payment methods found.");
               }
@@ -78,6 +81,8 @@ const ManagePayments = () => {
       } catch (error) {
         console.error("Error fetching data:", error);
         setErrorMessage("Failed to fetch data.");
+      } finally {
+        setIsLoading(false);
       }
     };
     fetchData();
@@ -125,7 +130,6 @@ const ManagePayments = () => {
         });
       } else {
         const errorText = await response.text();
-
         Toast.show({
           type: "error",
           text1: "Deletion Failed",
@@ -165,39 +169,29 @@ const ManagePayments = () => {
     alert("Form submitted!");
   };
 
-  const getLast4Digits = (cardNumber: string | null) =>
-    cardNumber ? cardNumber.slice(-4) : "";
+  const getLast4Digits = (val: string | null) => (val ? val.slice(-4) : "");
 
   const formatCardExpiryStatus = (expirationDateStr: string): string => {
     if (!expirationDateStr) return "";
 
     const today = new Date();
     const expirationDate = new Date(expirationDateStr);
-
-    // Add 1 day to expiration date for display
     expirationDate.setDate(expirationDate.getDate() + 1);
-
-    // Now set time to 23:59:59 for comparison
     expirationDate.setHours(23, 59, 59, 999);
 
-    const formattedDate = expirationDate
-      .toLocaleDateString("en-US", {
-        month: "2-digit",
-        year: "2-digit",
-      })
-      .replace("/", "/");
+    const formattedDate = expirationDate.toLocaleDateString("en-US", {
+      month: "2-digit",
+      year: "2-digit",
+    });
 
-    if (expirationDate < today) {
-      return `Expired - ${formattedDate}`;
-    }
-
-    return `Valid Thru - ${formattedDate}`;
+    return expirationDate < today
+      ? `Expired - ${formattedDate}`
+      : `Valid Thru - ${formattedDate}`;
   };
 
   return (
     <View style={styles.container}>
-      <Modal //isVisible={isModalVisible}
-       onBackdropPress={closeModal}>
+      <Modal isVisible={isModalVisible} onBackdropPress={closeModal}>
         <View style={styles.modalContainer}>
           <TouchableOpacity
             onPress={closeModal}
@@ -207,7 +201,7 @@ const ManagePayments = () => {
           </TouchableOpacity>
           <Text style={styles.modalTitle}>Update Payment Method</Text>
           <Text style={styles.modalText}>
-            1. Locate your expired payment method and delete it.
+            1. Locate your expired payment method under the Saved Payment Methods section and click the delete icon to remove it.
           </Text>
           <Text style={styles.modalText}>
             2. Add your new payment method information.
@@ -258,11 +252,23 @@ const ManagePayments = () => {
         showsVerticalScrollIndicator={false}
       >
         <Text style={styles.sectionTitle}>Saved Payment Methods</Text>
-        {errorMessage ? (
+        {isLoading ? (
+          <View style={styles.skeletonLoaderContainer}>
+            {[...Array(3)].map((_, index) => (
+              <View key={index} style={styles.skeletonLoaderItem}>
+                <View style={styles.skeletonLoaderImage} />
+                <View style={styles.skeletonLoaderTextContainer}>
+                  <View style={styles.skeletonLoaderText} />
+                  <View style={styles.skeletonLoaderText} />
+                </View>
+              </View>
+            ))}
+          </View>
+        ) : errorMessage ? (
           <Text style={styles.errorMessage}>{errorMessage}</Text>
         ) : (
           savedMethods.map((method, index) => (
-            <View key={index} style={styles.savedMethodContainer}>
+            <View key={method.id} style={styles.savedMethodContainer}>
               <FontAwesome
                 name="credit-card"
                 size={28}
@@ -270,27 +276,28 @@ const ManagePayments = () => {
                 style={styles.savedMethodImage}
               />
               <View style={styles.savedMethodTextContainer}>
-              {index === 0 && (
+                {index === 0 && (
                   <View style={styles.defaultLabelContainer}>
                     <Text style={styles.defaultLabel}>Default</Text>
                   </View>
                 )}
                 <Text style={styles.savedMethodLabel}>
-                  {method.cardNumber
-                    ? `Debit Card - ${getLast4Digits(method.cardNumber)}`
-                    : method.accountNumber
-                    ? `Checking Account - ${getLast4Digits(
-                        method.accountNumber
-                      )}`
-                    : "Unknown Payment Method"}
+                  {method.cardNumber && (
+                    <Text style={styles.savedMethodLabel}>
+                      Debit Card - {getLast4Digits(method.cardNumber)}
+                    </Text>
+                  )}
+                  {!method.cardNumber && method.accountNumber && (
+                    <Text style={styles.savedMethodLabel}>
+                      Checking Account - {getLast4Digits(method.accountNumber)}
+                    </Text>
+                  )}
                 </Text>
                 {method.cardNumber && method.expirationDate && (
                   <Text style={styles.expirationLabel}>
                     {formatCardExpiryStatus(method.expirationDate)}
                   </Text>
                 )}
-
-               
               </View>
               <TouchableOpacity
                 style={styles.deleteButton}
