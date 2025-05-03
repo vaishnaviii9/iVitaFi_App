@@ -127,7 +127,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     color: "#707073",
   },
-  defaultPaymentMethodContainer: {
+  inputFieldText: {
+    color: "#000000"}, // Ensure text color is black
+  
+    errorText: {
+      color: 'red',
+      fontSize: 12,
+      marginTop: 5,
+    },
+
+    defaultPaymentMethodContainer: {
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 20,
