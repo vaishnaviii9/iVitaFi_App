@@ -4,7 +4,7 @@ import {
   DrawerItem,
 } from "@react-navigation/drawer";
 import { View, StyleSheet, Pressable, Linking, Alert } from "react-native";
-import { useNavigation } from "expo-router";
+import { router } from "expo-router";
 import type { DrawerContentComponentProps } from "@react-navigation/drawer";
 import { Ionicons } from "@expo/vector-icons";
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
@@ -14,8 +14,6 @@ import Feather from '@expo/vector-icons/Feather';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 
 export default function CustomDrawerContent(props: DrawerContentComponentProps) {
-  const navigation = useNavigation();
-
   const handleCallPress = () => {
     Linking.openURL('tel:8003412316')
       .catch(() => Alert.alert('Error', 'Unable to open dialer. Please try again later.'));
@@ -36,7 +34,7 @@ export default function CustomDrawerContent(props: DrawerContentComponentProps) 
       <DrawerContentScrollView {...props}>
         {/* 🔙 Back Button to Home */}
         <Pressable
-          onPress={() => navigation.navigate("(tabs)")}
+          onPress={() => router.push('/(tabs)/Home')}
           style={styles.backButton}
         >
           <Ionicons name="arrow-back" size={28} color="#37474F" />
@@ -48,7 +46,7 @@ export default function CustomDrawerContent(props: DrawerContentComponentProps) 
           icon={({ color, size }: { color: string; size: number }) => (
             <Ionicons name="person-outline" size={size} color={color} />
           )}
-          onPress={() => navigation.navigate("Profile")}
+          onPress={() => router.push("/Profile")}
         />
 
         {/* Manage Payments */}
@@ -57,7 +55,7 @@ export default function CustomDrawerContent(props: DrawerContentComponentProps) 
           icon={({ color, size }: { color: string; size: number }) => (
             <MaterialIcons name="payments" size={24} color="black" />
           )}
-          onPress={() => navigation.navigate("ManagePayments")}
+          onPress={() => router.push("/ManagePayments")}
         />
 
         {/* Make Payment */}
@@ -66,7 +64,7 @@ export default function CustomDrawerContent(props: DrawerContentComponentProps) 
           icon={({ color, size }: { color: string; size: number }) => (
             <FontAwesome6 name="credit-card" size={24} color="black" />
           )}
-          onPress={() => navigation.navigate("MakePayment")}
+          onPress={() => router.push("/MakePayment")}
         />
 
         {/* Configure Autopay */}
@@ -75,7 +73,7 @@ export default function CustomDrawerContent(props: DrawerContentComponentProps) 
           icon={({ color, size }: { color: string; size: number }) => (
             <AntDesign name="checkcircleo" size={24} color="black" />
           )}
-          onPress={() => navigation.navigate("ConfigureAutopay")}
+          onPress={() => router.push("/ConfigureAutopay")}
         />
 
         {/* Call Us */}
@@ -111,7 +109,7 @@ export default function CustomDrawerContent(props: DrawerContentComponentProps) 
           icon={({ color, size }: { color: string; size: number }) => (
             <Ionicons name="log-out-outline" size={size} color={color} />
           )}
-          onPress={() => navigation.navigate("(auth)/login")}
+          onPress={() => router.push("/(auth)/Login")}
         />
       </DrawerContentScrollView>
     </View>
