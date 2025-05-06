@@ -6,8 +6,10 @@ import {
   Text,
   TouchableOpacity,
   Alert,
-  Platform,
   StyleSheet,
+  KeyboardAvoidingView,
+  Platform,
+  useColorScheme,
 } from "react-native";
 import { Ionicons, FontAwesome } from "@expo/vector-icons";
 import { router, useFocusEffect } from "expo-router";
@@ -17,14 +19,13 @@ import { useSelector } from "react-redux";
 import { fetchSavedPaymentMethods } from "./services/savedPaymentMethodService";
 import { fetchCreditSummariesWithId } from "./services/creditAccountService";
 import { fetchCustomerData } from "./services/customerService";
-import DateTimePicker, {
-  DateTimePickerEvent,
-} from "@react-native-community/datetimepicker";
+import { Picker } from "@react-native-picker/picker";
 import styles from "../components/styles/ManagePaymentsStyles";
-
+ 
 const ManagePayments = () => {
   const token = useSelector((state: any) => state.auth.token);
-
+  const colorScheme = useColorScheme();
+ 
   const [routingNumber, setRoutingNumber] = useState("");
   const [accountNumber, setAccountNumber] = useState("");
   const [debitCardInputs, setDebitCardInputs] = useState({
@@ -36,7 +37,7 @@ const ManagePayments = () => {
     cvv: "",
     zip: "",
   });
-
+ 
   const [isDefault, setIsDefault] = useState(false);
   const [isModalVisible, setModalVisible] = useState(false);
   const [savedMethods, setSavedMethods] = useState<any[]>([]);
@@ -48,7 +49,23 @@ const ManagePayments = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [showMonthPicker, setShowMonthPicker] = useState(false);
   const [showYearPicker, setShowYearPicker] = useState(false);
-
+  const currentYear = new Date().getFullYear();
+  const years = Array.from({ length: 11 }, (_, i) => currentYear + i);
+  const months = [
+    { label: "1 - Jan", value: "01" },
+    { label: "2 - Feb", value: "02" },
+    { label: "3 - Mar", value: "03" },
+    { label: "4 - Apr", value: "04" },
+    { label: "5 - May", value: "05" },
+    { label: "6 - Jun", value: "06" },
+    { label: "7 - Jul", value: "07" },
+    { label: "8 - Aug", value: "08" },
+    { label: "9 - Sep", value: "09" },
+    { label: "10 - Oct", value: "10" },
+    { label: "11 - Nov", value: "11" },
+    { label: "12 - Dec", value: "12" },
+  ];
+ 
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -93,27 +110,27 @@ const ManagePayments = () => {
     };
     fetchData();
   }, [token]);
-
+ 
   useFocusEffect(
     useCallback(() => {
       setModalVisible(true);
     }, [])
   );
-
+ 
   const handleBackPress = () => {
     router.push("/(tabs)/Home");
   };
-
+ 
   const openConfirmDeleteModal = (id: string) => {
     setMethodToDelete(id);
     setConfirmDeleteModalVisible(true);
   };
-
+ 
   const closeConfirmDeleteModal = () => {
     setMethodToDelete(null);
     setConfirmDeleteModalVisible(false);
   };
-
+ 
   const confirmDeleteMethod = async () => {
     if (!methodToDelete) return;
     try {
@@ -153,9 +170,9 @@ const ManagePayments = () => {
       setMethodToDelete(null);
     }
   };
-
+ 
   const closeModal = () => setModalVisible(false);
-
+ 
   const handleMethodSelect = (method: string) => {
     setSelectedMethod(method);
     setRoutingNumber("");
@@ -170,9 +187,12 @@ const ManagePayments = () => {
       zip: "",
     });
   };
-
+ 
   const handleButtonPress = () => {
-    if (selectedMethod === "Add Debit Card") {
+    if (selectedMethod === "Add Checking Account") {
+      logCheckingAccountInputs();
+    } else if (selectedMethod === "Add Debit Card") {
+      logDebitCardInputs();
       const { firstName, lastName, cardNumber, expMonth, expYear } =
         debitCardInputs;
       if (firstName.length < 2 || lastName.length < 2) {
@@ -195,379 +215,425 @@ const ManagePayments = () => {
       }
     }
     alert("Form submitted!");
+    resetFormInputs();
   };
-
+ 
+  const logCheckingAccountInputs = () => {
+    console.log("Checking Account Inputs:", {
+      routingNumber,
+      accountNumber,
+      isDefault,
+    });
+  };
+ 
+  const logDebitCardInputs = () => {
+    console.log("Debit Card Inputs:", {
+      debitCardInputs,
+      isDefault,
+    });
+  };
+ 
+  const resetFormInputs = () => {
+    setRoutingNumber("");
+    setAccountNumber("");
+    setDebitCardInputs({
+      firstName: "",
+      lastName: "",
+      cardNumber: "",
+      expMonth: "",
+      expYear: "",
+      cvv: "",
+      zip: "",
+    });
+    setIsDefault(false);
+  };
+ 
   const getLast4Digits = (val: string | null) => (val ? val.slice(-4) : "");
-
+ 
   const formatCardExpiryStatus = (expirationDateStr: string): string => {
     if (!expirationDateStr) return "";
-
+ 
     const today = new Date();
     const expirationDate = new Date(expirationDateStr);
     expirationDate.setDate(expirationDate.getDate() + 1);
     expirationDate.setHours(23, 59, 59, 999);
-
+ 
     const formattedDate = expirationDate.toLocaleDateString("en-US", {
       month: "2-digit",
       year: "2-digit",
     });
-
+ 
     return expirationDate < today
       ? `Expired - ${formattedDate}`
       : `Valid Thru - ${formattedDate}`;
   };
-
-  const onChangeMonth = (_: DateTimePickerEvent, selectedDate?: Date) => {
-    setShowMonthPicker(Platform.OS === "ios");
-    if (selectedDate) {
-      const month = selectedDate.getMonth() + 1;
-      setDebitCardInputs((prev) => ({ ...prev, expMonth: `${month}` }));
-      setShowYearPicker(false); // Disable year picker
-    }
+ 
+  const handleMonthChange = (value: string) => {
+    setDebitCardInputs((prev) => ({ ...prev, expMonth: value }));
+    setShowMonthPicker(false);
   };
-
-  const onChangeYear = (_: DateTimePickerEvent, selectedDate?: Date) => {
-    setShowYearPicker(Platform.OS === "ios");
-    if (selectedDate) {
-      const year = selectedDate.getFullYear();
-      setDebitCardInputs((prev) => ({ ...prev, expYear: `${year}` }));
-      setShowMonthPicker(false); // Disable month picker
-    }
+ 
+  const handleYearChange = (value: string) => {
+    setDebitCardInputs((prev) => ({ ...prev, expYear: value }));
+    setShowYearPicker(false);
   };
-
+ 
   const showMonthPickerHandler = () => {
     setShowMonthPicker(true);
     setShowYearPicker(false);
   };
-
+ 
   const showYearPickerHandler = () => {
     setShowYearPicker(true);
     setShowMonthPicker(false);
   };
-
+ 
   return (
-    <View style={styles.container}>
-      <Modal isVisible={isModalVisible} onBackdropPress={closeModal}>
-        <View style={styles.modalContainer}>
-          <TouchableOpacity
-            onPress={closeModal}
-            style={styles.modalCloseButton}
-          >
-            <Ionicons name="close" size={24} color="#333" />
-          </TouchableOpacity>
-          <Text style={styles.modalTitle}>Update Payment Method</Text>
-          <Text style={styles.modalText}>
-            1. Locate your expired payment method under the Saved Payment
-            Methods section and click the delete icon to remove it.
-          </Text>
-          <Text style={styles.modalText}>
-            2. Add your new payment method information.
-          </Text>
-          <TouchableOpacity onPress={closeModal} style={styles.okButton}>
-            <Text style={styles.okButtonText}>OK</Text>
-          </TouchableOpacity>
-        </View>
-      </Modal>
-
-      <Modal
-        isVisible={isConfirmDeleteModalVisible}
-        onBackdropPress={closeConfirmDeleteModal}
-      >
-        <View style={styles.modalContainer}>
-          <Text style={styles.modalTitle}>Delete Payment Method</Text>
-          <Text style={styles.modalText}>
-            Are you sure you want to delete this payment method?
-          </Text>
-          <View style={styles.modalButtonContainer}>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={{ flex: 1 }}
+    >
+      <View style={styles.container}>
+        <Modal isVisible={isModalVisible} onBackdropPress={closeModal}>
+          <View style={styles.modalContainer}>
             <TouchableOpacity
-              onPress={closeConfirmDeleteModal}
-              style={styles.modalButton}
+              onPress={closeModal}
+              style={styles.modalCloseButton}
             >
-              <Text style={styles.modalButtonText}>No</Text>
+              <Ionicons name="close" size={24} color="#333" />
             </TouchableOpacity>
-            <TouchableOpacity
-              onPress={confirmDeleteMethod}
-              style={styles.modalButton}
-            >
-              <Text style={styles.modalButtonText}>Yes</Text>
+            <Text style={styles.modalTitle}>Update Payment Method</Text>
+            <Text style={styles.modalText}>
+              1. Locate your expired payment method under the Saved Payment
+              Methods section and click the delete icon to remove it.
+            </Text>
+            <Text style={styles.modalText}>
+              2. Add your new payment method information.
+            </Text>
+            <TouchableOpacity onPress={closeModal} style={styles.okButton}>
+              <Text style={styles.okButtonText}>OK</Text>
             </TouchableOpacity>
           </View>
+        </Modal>
+ 
+        <Modal
+          isVisible={isConfirmDeleteModalVisible}
+          onBackdropPress={closeConfirmDeleteModal}
+        >
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>Delete Payment Method</Text>
+            <Text style={styles.modalText}>
+              Are you sure you want to delete this payment method?
+            </Text>
+            <View style={styles.modalButtonContainer}>
+              <TouchableOpacity
+                onPress={closeConfirmDeleteModal}
+                style={styles.modalButton}
+              >
+                <Text style={styles.modalButtonText}>No</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={confirmDeleteMethod}
+                style={styles.modalButton}
+              >
+                <Text style={styles.modalButtonText}>Yes</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+ 
+        <View style={styles.header}>
+          <View style={styles.headerContent}>
+            <TouchableOpacity onPress={handleBackPress} style={styles.backButton}>
+              <Ionicons name="arrow-back" size={34} color="#FFFFFF" />
+            </TouchableOpacity>
+            <Text style={styles.headerText}>Manage Payments</Text>
+          </View>
         </View>
-      </Modal>
-
-      <View style={styles.header}>
-        <View style={styles.headerContent}>
-          <TouchableOpacity onPress={handleBackPress} style={styles.backButton}>
-            <Ionicons name="arrow-back" size={34} color="#FFFFFF" />
-          </TouchableOpacity>
-          <Text style={styles.headerText}>Manage Payments</Text>
-        </View>
-      </View>
-
-      <ScrollView
-        style={styles.scrollView}
-        showsVerticalScrollIndicator={false}
-      >
-        <Text style={styles.sectionTitle}>Saved Payment Methods</Text>
-        {isLoading ? (
-          <View style={styles.skeletonLoaderContainer}>
-            {[...Array(3)].map((_, index) => (
-              <View key={index} style={styles.skeletonLoaderItem}>
-                <View style={styles.skeletonLoaderImage} />
-                <View style={styles.skeletonLoaderTextContainer}>
-                  <View style={styles.skeletonLoaderText} />
-                  <View style={styles.skeletonLoaderText} />
+ 
+        <ScrollView
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+        >
+          <Text style={styles.sectionTitle}>Saved Payment Methods</Text>
+          {isLoading ? (
+            <View style={styles.skeletonLoaderContainer}>
+              {[...Array(3)].map((_, index) => (
+                <View key={index} style={styles.skeletonLoaderItem}>
+                  <View style={styles.skeletonLoaderImage} />
+                  <View style={styles.skeletonLoaderTextContainer}>
+                    <View style={styles.skeletonLoaderText} />
+                    <View style={styles.skeletonLoaderText} />
+                  </View>
                 </View>
+              ))}
+            </View>
+          ) : errorMessage ? (
+            <Text style={styles.errorMessage}>{errorMessage}</Text>
+          ) : (
+            savedMethods.map((method, index) => (
+              <View key={method.id} style={styles.savedMethodContainer}>
+                <FontAwesome
+                  name="credit-card"
+                  size={28}
+                  color="#27446F"
+                  style={styles.savedMethodImage}
+                />
+                <View style={styles.savedMethodTextContainer}>
+                  {index === 0 && (
+                    <View style={styles.defaultLabelContainer}>
+                      <Text style={styles.defaultLabel}>Default</Text>
+                    </View>
+                  )}
+                  <Text style={styles.savedMethodLabel}>
+                    {method.cardNumber && (
+                      <Text style={styles.savedMethodLabel}>
+                        Debit Card - {getLast4Digits(method.cardNumber)}
+                      </Text>
+                    )}
+                    {!method.cardNumber && method.accountNumber && (
+                      <Text style={styles.savedMethodLabel}>
+                        Checking Account - {getLast4Digits(method.accountNumber)}
+                      </Text>
+                    )}
+                  </Text>
+                  {method.cardNumber && method.expirationDate && (
+                    <Text style={styles.expirationLabel}>
+                      {formatCardExpiryStatus(method.expirationDate)}
+                    </Text>
+                  )}
+                </View>
+                <TouchableOpacity
+                  style={styles.deleteButton}
+                  onPress={() => openConfirmDeleteModal(method.id)}
+                >
+                  <Ionicons name="trash" size={30} color="#FF0000" />
+                </TouchableOpacity>
               </View>
+            ))
+          )}
+ 
+          <Text style={styles.addNewPayHeader}>Add New Payment Method</Text>
+          <View style={styles.addMethodContainer}>
+            {["Add Checking Account", "Add Debit Card"].map((label) => (
+              <TouchableOpacity
+                key={label}
+                style={[
+                  styles.addMethodButton,
+                  selectedMethod === label && styles.selectedMethodButton,
+                ]}
+                onPress={() => handleMethodSelect(label)}
+              >
+                <Text
+                  style={[
+                    styles.addMethodButtonText,
+                    selectedMethod === label && styles.selectedMethodButtonText,
+                  ]}
+                >
+                  {label}
+                </Text>
+              </TouchableOpacity>
             ))}
           </View>
-        ) : errorMessage ? (
-          <Text style={styles.errorMessage}>{errorMessage}</Text>
-        ) : (
-          savedMethods.map((method, index) => (
-            <View key={method.id} style={styles.savedMethodContainer}>
-              <FontAwesome
-                name="credit-card"
-                size={28}
-                color="#27446F"
-                style={styles.savedMethodImage}
-              />
-              <View style={styles.savedMethodTextContainer}>
-                {index === 0 && (
-                  <View style={styles.defaultLabelContainer}>
-                    <Text style={styles.defaultLabel}>Default</Text>
+ 
+          {selectedMethod === "Add Checking Account" && (
+            <>
+              <View style={styles.inputFieldContainer}>
+                <Text style={styles.inputFieldLabel}>Routing Number</Text>
+                <TextInput
+                  placeholder="Enter routing number"
+                  value={routingNumber}
+                  onChangeText={setRoutingNumber}
+                  style={styles.inputField}
+                />
+              </View>
+              <View style={styles.inputFieldContainer}>
+                <Text style={styles.inputFieldLabel}>Account Number</Text>
+                <TextInput
+                  placeholder="Enter account number"
+                  value={accountNumber}
+                  onChangeText={setAccountNumber}
+                  style={styles.inputField}
+                />
+              </View>
+            </>
+          )}
+          {selectedMethod === "Add Debit Card" && (
+            <>
+              <View style={styles.inputFieldContainer}>
+                <Text style={styles.inputFieldLabel}>First Name</Text>
+                <TextInput
+                  placeholder="Enter first name"
+                  value={debitCardInputs.firstName}
+                  onChangeText={(text) =>
+                    setDebitCardInputs((prev) => ({ ...prev, firstName: text }))
+                  }
+                  style={styles.inputField}
+                />
+                {debitCardInputs.firstName.length < 2 &&
+                  debitCardInputs.firstName.length > 0 && (
+                    <Text style={styles.errorText}>
+                      First name must be at least 2 characters.
+                    </Text>
+                  )}
+              </View>
+              <View style={styles.inputFieldContainer}>
+                <Text style={styles.inputFieldLabel}>Last Name</Text>
+                <TextInput
+                  placeholder="Enter last name"
+                  value={debitCardInputs.lastName}
+                  onChangeText={(text) =>
+                    setDebitCardInputs((prev) => ({ ...prev, lastName: text }))
+                  }
+                  style={styles.inputField}
+                />
+                {debitCardInputs.lastName.length < 2 &&
+                  debitCardInputs.lastName.length > 0 && (
+                    <Text style={styles.errorText}>
+                      Last name must be at least 2 characters.
+                    </Text>
+                  )}
+              </View>
+              <View style={styles.inputFieldContainer}>
+                <Text style={styles.inputFieldLabel}>Card Number</Text>
+                <TextInput
+                  placeholder="Enter card number"
+                  value={debitCardInputs.cardNumber}
+                  onChangeText={(text) =>
+                    setDebitCardInputs((prev) => ({ ...prev, cardNumber: text }))
+                  }
+                  style={styles.inputField}
+                  keyboardType="numeric"
+                  maxLength={16}
+                />
+                {debitCardInputs.cardNumber.length > 0 &&
+                  debitCardInputs.cardNumber.length < 16 && (
+                    <Text style={styles.errorText}>
+                      Card number must be 16 digits.
+                    </Text>
+                  )}
+              </View>
+              <View style={styles.inputFieldContainer}>
+                <Text style={styles.inputFieldLabel}>Expiration Month</Text>
+                <TouchableOpacity
+                  style={styles.pickerWrapper}
+                  onPress={showMonthPickerHandler}
+                >
+                  <View style={styles.pickerContainer}>
+                    <Text style={styles.pickerText}>
+                      {debitCardInputs.expMonth || "Select Month"}
+                    </Text>
+                    <FontAwesome name="caret-down" size={16} color="#000" />
                   </View>
-                )}
-                <Text style={styles.savedMethodLabel}>
-                  {method.cardNumber && (
-                    <Text style={styles.savedMethodLabel}>
-                      Debit Card - {getLast4Digits(method.cardNumber)}
-                    </Text>
-                  )}
-                  {!method.cardNumber && method.accountNumber && (
-                    <Text style={styles.savedMethodLabel}>
-                      Checking Account - {getLast4Digits(method.accountNumber)}
-                    </Text>
-                  )}
-                </Text>
-                {method.cardNumber && method.expirationDate && (
-                  <Text style={styles.expirationLabel}>
-                    {formatCardExpiryStatus(method.expirationDate)}
-                  </Text>
+                </TouchableOpacity>
+                {showMonthPicker && (
+                  <Picker
+                    selectedValue={debitCardInputs.expMonth}
+                    onValueChange={handleMonthChange}
+                    style={styles.picker}
+                  >
+                    {months.map((month) => (
+                      <Picker.Item
+                        key={month.value}
+                        label={month.label}
+                        value={month.value}
+                      />
+                    ))}
+                  </Picker>
                 )}
               </View>
-              <TouchableOpacity
-                style={styles.deleteButton}
-                onPress={() => openConfirmDeleteModal(method.id)}
-              >
-                <Ionicons name="trash" size={30} color="#FF0000" />
-              </TouchableOpacity>
-            </View>
-          ))
-        )}
-
-        <Text style={styles.addNewPayHeader}>Add New Payment Method</Text>
-        <View style={styles.addMethodContainer}>
-          {["Add Checking Account", "Add Debit Card"].map((label) => (
-            <TouchableOpacity
-              key={label}
-              style={[
-                styles.addMethodButton,
-                selectedMethod === label && styles.selectedMethodButton,
-              ]}
-              onPress={() => handleMethodSelect(label)}
-            >
-              <Text
-                style={[
-                  styles.addMethodButtonText,
-                  selectedMethod === label && styles.selectedMethodButtonText,
-                ]}
-              >
-                {label}
-              </Text>
+ 
+              <View style={styles.inputFieldContainer}>
+                <Text style={styles.inputFieldLabel}>Expiration Year</Text>
+                <TouchableOpacity
+                  style={styles.pickerWrapper}
+                  onPress={showYearPickerHandler}
+                >
+                  <View style={styles.pickerContainer}>
+                    <Text style={styles.pickerText}>
+                      {debitCardInputs.expYear || "Select Year"}
+                    </Text>
+                    <FontAwesome name="caret-down" size={16} color="#000" />
+                  </View>
+                </TouchableOpacity>
+                {showYearPicker && (
+                  <Picker
+                    selectedValue={debitCardInputs.expYear}
+                    onValueChange={handleYearChange}
+                    style={styles.picker}
+                  >
+                    {years.map((year) => (
+                      <Picker.Item
+                        key={year}
+                        label={String(year)}
+                        value={String(year)}
+                      />
+                    ))}
+                  </Picker>
+                )}
+              </View>
+ 
+              <View style={styles.inputFieldContainer}>
+                <Text style={styles.inputFieldLabel}>Security Code</Text>
+                <TextInput
+                  placeholder="Enter security code"
+                  value={debitCardInputs.cvv}
+                  onChangeText={(text) =>
+                    setDebitCardInputs((prev) => ({ ...prev, cvv: text }))
+                  }
+                  style={styles.inputField}
+                  keyboardType="numeric"
+                  maxLength={3}
+                />
+                {debitCardInputs.cvv.length > 0 &&
+                  debitCardInputs.cvv.length < 3 && (
+                    <Text style={styles.errorText}>
+                      CVV must be between 3 and 4 digits.
+                    </Text>
+                  )}
+              </View>
+              <View style={styles.inputFieldContainer}>
+                <Text style={styles.inputFieldLabel}>Zip Code</Text>
+                <TextInput
+                  placeholder="Enter zip code"
+                  value={debitCardInputs.zip}
+                  onChangeText={(text) =>
+                    setDebitCardInputs((prev) => ({ ...prev, zip: text }))
+                  }
+                  style={styles.inputField}
+                  keyboardType="numeric"
+                />
+              </View>
+            </>
+          )}
+ 
+          <View style={styles.defaultPaymentMethodContainer}>
+            <TouchableOpacity onPress={() => setIsDefault(!isDefault)}>
+              <Ionicons
+                name={isDefault ? "checkmark-circle" : "ellipse-outline"}
+                size={24}
+                color={isDefault ? "#27446F" : "#CCC"}
+              />
             </TouchableOpacity>
-          ))}
-        </View>
-
-        {selectedMethod === "Add Checking Account" && (
-          <>
-            <View style={styles.inputFieldContainer}>
-              <Text style={styles.inputFieldLabel}>Routing Number</Text>
-              <TextInput
-                placeholder="Enter routing number"
-                value={routingNumber}
-                onChangeText={setRoutingNumber}
-                style={styles.inputField}
-              />
-            </View>
-            <View style={styles.inputFieldContainer}>
-              <Text style={styles.inputFieldLabel}>Account Number</Text>
-              <TextInput
-                placeholder="Enter account number"
-                value={accountNumber}
-                onChangeText={setAccountNumber}
-                style={styles.inputField}
-              />
-            </View>
-          </>
-        )}
-
-        {selectedMethod === "Add Debit Card" && (
-          <>
-            <View style={styles.inputFieldContainer}>
-              <Text style={styles.inputFieldLabel}>First Name</Text>
-              <TextInput
-                placeholder="Enter first name"
-                value={debitCardInputs.firstName}
-                onChangeText={(text) =>
-                  setDebitCardInputs((prev) => ({ ...prev, firstName: text }))
-                }
-                style={styles.inputField}
-              />
-              {debitCardInputs.firstName.length < 2 &&
-                debitCardInputs.firstName.length > 0 && (
-                  <Text style={styles.errorText}>
-                    First name must be at least 2 characters.
-                  </Text>
-                )}
-            </View>
-            <View style={styles.inputFieldContainer}>
-              <Text style={styles.inputFieldLabel}>Last Name</Text>
-              <TextInput
-                placeholder="Enter last name"
-                value={debitCardInputs.lastName}
-                onChangeText={(text) =>
-                  setDebitCardInputs((prev) => ({ ...prev, lastName: text }))
-                }
-                style={styles.inputField}
-              />
-              {debitCardInputs.lastName.length < 2 &&
-                debitCardInputs.lastName.length > 0 && (
-                  <Text style={styles.errorText}>
-                    Last name must be at least 2 characters.
-                  </Text>
-                )}
-            </View>
-            <View style={styles.inputFieldContainer}>
-              <Text style={styles.inputFieldLabel}>Card Number</Text>
-              <TextInput
-                placeholder="Enter card number"
-                value={debitCardInputs.cardNumber}
-                onChangeText={(text) =>
-                  setDebitCardInputs((prev) => ({ ...prev, cardNumber: text }))
-                }
-                style={styles.inputField}
-                keyboardType="numeric"
-                maxLength={16}
-              />
-              {debitCardInputs.cardNumber.length > 0 &&
-                debitCardInputs.cardNumber.length < 16 && (
-                  <Text style={styles.errorText}>
-                    Card number must be 16 digits.
-                  </Text>
-                )}
-            </View>
-
-            <View style={styles.inputFieldContainer}>
-              <Text style={styles.inputFieldLabel}>Expiration Month</Text>
-              <TouchableOpacity
-                onPress={showMonthPickerHandler}
-                style={styles.inputField}
-              >
-                <Text style={styles.inputFieldText}>
-                  {debitCardInputs.expMonth
-                    ? debitCardInputs.expMonth
-                    : "Select Month"}
-                </Text>
-              </TouchableOpacity>
-              {showMonthPicker && (
-                <DateTimePicker
-                  testID="dateTimePickerMonth"
-                  value={new Date()}
-                  mode="date"
-                  display="spinner"
-                  onChange={onChangeMonth}
-                  textColor="#000000" // Ensure text color is black
-                />
-              )}
-            </View>
-            <View style={styles.inputFieldContainer}>
-              <Text style={styles.inputFieldLabel}>Expiration Year</Text>
-              <TouchableOpacity
-                onPress={showYearPickerHandler}
-                style={styles.inputField}
-              >
-                <Text style={styles.inputFieldText}>
-                  {debitCardInputs.expYear
-                    ? debitCardInputs.expYear
-                    : "Select Year"}
-                </Text>
-              </TouchableOpacity>
-              {showYearPicker && (
-                <DateTimePicker
-                  testID="dateTimePickerYear"
-                  value={new Date()}
-                  mode="date"
-                  display="spinner"
-                  onChange={onChangeYear}
-                  textColor="#000000" // Ensure text color is black
-                />
-              )}
-            </View>
-            <View style={styles.inputFieldContainer}>
-              <Text style={styles.inputFieldLabel}>Security Code</Text>
-              <TextInput
-                placeholder="Enter security code"
-                value={debitCardInputs.cvv}
-                onChangeText={(text) =>
-                  setDebitCardInputs((prev) => ({ ...prev, cvv: text }))
-                }
-                style={styles.inputField}
-                keyboardType="numeric"
-                maxLength={3}
-              />
-            </View>
-            <View style={styles.inputFieldContainer}>
-              <Text style={styles.inputFieldLabel}>Zip Code</Text>
-              <TextInput
-                placeholder="Enter zip code"
-                value={debitCardInputs.zip}
-                onChangeText={(text) =>
-                  setDebitCardInputs((prev) => ({ ...prev, zip: text }))
-                }
-                style={styles.inputField}
-                keyboardType="numeric"
-              />
-            </View>
-          </>
-        )}
-
-        <View style={styles.defaultPaymentMethodContainer}>
-          <TouchableOpacity onPress={() => setIsDefault(!isDefault)}>
-            <Ionicons
-              name={isDefault ? "checkmark-circle" : "ellipse-outline"}
-              size={24}
-              color={isDefault ? "#27446F" : "#CCC"}
-            />
-          </TouchableOpacity>
-          <Text style={styles.defaultPaymentMethodText}>
-            Set as Default Payment Method
-          </Text>
-        </View>
-
-        <View style={styles.submitButtonContainer}>
-          <TouchableOpacity
-            style={styles.submitButton}
-            onPress={handleButtonPress}
-          >
-            <Text style={styles.submitButtonText}>Submit</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-
-      <Toast />
-    </View>
+            <Text style={styles.defaultPaymentMethodText}>
+              Set as Default Payment Method
+            </Text>
+          </View>
+ 
+          <View style={styles.submitButtonContainer}>
+            <TouchableOpacity
+              style={styles.submitButton}
+              onPress={handleButtonPress}
+            >
+              <Text style={styles.submitButtonText}>Submit</Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+ 
+        <Toast />
+      </View>
+    </KeyboardAvoidingView>
   );
 };
-
+ 
 export default ManagePayments;
