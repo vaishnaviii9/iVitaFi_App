@@ -257,6 +257,10 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     height: 40, // Reduce the height
     justifyContent: 'center',
+<<<<<<< HEAD
+=======
+    backgroundColor: '#fff', // Ensure background is white
+>>>>>>> prathamesh
   },
   pickerContainer: {
     flexDirection: 'row',
@@ -266,6 +270,7 @@ const styles = StyleSheet.create({
   },
   pickerText: {
     fontSize: 16,
+<<<<<<< HEAD
     color: '#000',
   },
   picker: {
@@ -275,4 +280,21 @@ const styles = StyleSheet.create({
   },
 });
  
+=======
+    color: '#707073', // Ensure text color is black
+  },
+  picker: {
+    borderRadius: 15,
+    height: 180, // Adjust the height as needed
+    width: '100%',
+    backgroundColor: '#c5c5c8', // Dark background for better visibility in dark mode
+    color: '#fff', // Ensure text color is white for contrast
+  },
+  pickerItem: {
+    color: '#000000', // Ensure picker item text is white
+    fontSize: 20,
+  },
+});
+
+>>>>>>> prathamesh
 export default styles;
