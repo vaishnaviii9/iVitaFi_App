@@ -11,14 +11,13 @@ const styles = StyleSheet.create({
   },
   header: {
     backgroundColor: "#27446F",
-    paddingVertical:60,
+    paddingVertical: 60,
     paddingHorizontal: 0,
     borderBottomLeftRadius: 30,
     borderBottomRightRadius: 30,
     marginBottom: 10,
     position: 'relative',
   },
-
   headerContent: {
     flexDirection: "column",
     justifyContent: "center",
@@ -66,7 +65,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     borderRadius: 15,
     marginTop: 0.2,
-    alignSelf: 'flex-start',// Align the badge to the start of the text container
+    alignSelf: 'flex-start', // Align the badge to the start of the text container
   },
   defaultLabelContainer: {
     flexDirection: 'row',
@@ -127,16 +126,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     color: "#707073",
   },
-  inputFieldText: {
-    color: "#000000"}, // Ensure text color is black
-  
-    errorText: {
-      color: 'red',
-      fontSize: 12,
-      marginTop: 5,
-    },
-
-    defaultPaymentMethodContainer: {
+  defaultPaymentMethodContainer: {
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 20,
@@ -161,11 +151,8 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   backButton: {
-    // padding: 10,
     position: 'absolute',
     left: 20,
-    // fontSize: 20,
-    // top: 30,
   },
   modalContainer: {
     backgroundColor: '#fff',
@@ -205,7 +192,6 @@ const styles = StyleSheet.create({
     marginVertical: 10,
     textAlign: "center",
   },
-
   modalButtonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
@@ -223,7 +209,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   expirationLabel: {
-    fontSize: 12,
+    fontSize: 13,
+    fontWeight: '600',
     color: '#FFFFF',
     marginTop: 2,
   },
@@ -254,6 +241,44 @@ const styles = StyleSheet.create({
     backgroundColor: "#CCC",
     borderRadius: 5,
     marginBottom: 5,
+  },
+  inputFieldText: {
+    color: "#000000", // Ensure text color is black
+  },
+  errorText: {
+    color: 'red',
+    fontSize: 12,
+    marginTop: 5,
+  },
+  pickerWrapper: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 6,
+    overflow: 'hidden',
+    height: 40, // Reduce the height
+    justifyContent: 'center',
+    backgroundColor: '#fff', // Ensure background is white
+  },
+  pickerContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+  },
+  pickerText: {
+    fontSize: 16,
+    color: '#707073', // Ensure text color is black
+  },
+  picker: {
+    borderRadius: 15,
+    height: 180, // Adjust the height as needed
+    width: '100%',
+    backgroundColor: '#c5c5c8', // Dark background for better visibility in dark mode
+    color: '#fff', // Ensure text color is white for contrast
+  },
+  pickerItem: {
+    color: '#000000', // Ensure picker item text is white
+    fontSize: 20,
   },
 });
 
