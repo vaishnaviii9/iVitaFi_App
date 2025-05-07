@@ -25,11 +25,7 @@ import styles from "../components/styles/ManagePaymentsStyles";
 const ManagePayments = () => {
   const token = useSelector((state: any) => state.auth.token);
   const colorScheme = useColorScheme();
-<<<<<<< HEAD
  
-=======
-
->>>>>>> prathamesh
   const [routingNumber, setRoutingNumber] = useState("");
   const [accountNumber, setAccountNumber] = useState("");
   const [debitCardInputs, setDebitCardInputs] = useState({
@@ -69,11 +65,7 @@ const ManagePayments = () => {
     { label: "11 - Nov", value: "11" },
     { label: "12 - Dec", value: "12" },
   ];
-<<<<<<< HEAD
  
-=======
-
->>>>>>> prathamesh
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -224,39 +216,6 @@ const ManagePayments = () => {
     }
     alert("Form submitted!");
     resetFormInputs();
-<<<<<<< HEAD
-=======
-  };
-
-  const logCheckingAccountInputs = () => {
-    console.log("Checking Account Inputs:", {
-      routingNumber,
-      accountNumber,
-      isDefault,
-    });
-  };
-
-  const logDebitCardInputs = () => {
-    console.log("Debit Card Inputs:", {
-      debitCardInputs,
-      isDefault,
-    });
-  };
-
-  const resetFormInputs = () => {
-    setRoutingNumber("");
-    setAccountNumber("");
-    setDebitCardInputs({
-      firstName: "",
-      lastName: "",
-      cardNumber: "",
-      expMonth: "",
-      expYear: "",
-      cvv: "",
-      zip: "",
-    });
-    setIsDefault(false);
->>>>>>> prathamesh
   };
  
   const logCheckingAccountInputs = () => {
@@ -308,20 +267,12 @@ const ManagePayments = () => {
       ? `Expired - ${formattedDate}`
       : `Valid Thru - ${formattedDate}`;
   };
-<<<<<<< HEAD
  
-=======
-
->>>>>>> prathamesh
   const handleMonthChange = (value: string) => {
     setDebitCardInputs((prev) => ({ ...prev, expMonth: value }));
     setShowMonthPicker(false);
   };
-<<<<<<< HEAD
  
-=======
-
->>>>>>> prathamesh
   const handleYearChange = (value: string) => {
     setDebitCardInputs((prev) => ({ ...prev, expYear: value }));
     setShowYearPicker(false);
@@ -364,11 +315,7 @@ const ManagePayments = () => {
             </TouchableOpacity>
           </View>
         </Modal>
-<<<<<<< HEAD
  
-=======
-
->>>>>>> prathamesh
         <Modal
           isVisible={isConfirmDeleteModalVisible}
           onBackdropPress={closeConfirmDeleteModal}
@@ -394,11 +341,7 @@ const ManagePayments = () => {
             </View>
           </View>
         </Modal>
-<<<<<<< HEAD
  
-=======
-
->>>>>>> prathamesh
         <View style={styles.header}>
           <View style={styles.headerContent}>
             <TouchableOpacity onPress={handleBackPress} style={styles.backButton}>
@@ -407,11 +350,7 @@ const ManagePayments = () => {
             <Text style={styles.headerText}>Manage Payments</Text>
           </View>
         </View>
-<<<<<<< HEAD
  
-=======
-
->>>>>>> prathamesh
         <ScrollView
           style={styles.scrollView}
           showsVerticalScrollIndicator={false}
@@ -473,11 +412,7 @@ const ManagePayments = () => {
               </View>
             ))
           )}
-<<<<<<< HEAD
  
-=======
-
->>>>>>> prathamesh
           <Text style={styles.addNewPayHeader}>Add New Payment Method</Text>
           <View style={styles.addMethodContainer}>
             {["Add Checking Account", "Add Debit Card"].map((label) => (
@@ -500,11 +435,7 @@ const ManagePayments = () => {
               </TouchableOpacity>
             ))}
           </View>
-<<<<<<< HEAD
  
-=======
-
->>>>>>> prathamesh
           {selectedMethod === "Add Checking Account" && (
             <>
               <View style={styles.inputFieldContainer}>
@@ -514,10 +445,7 @@ const ManagePayments = () => {
                   value={routingNumber}
                   onChangeText={setRoutingNumber}
                   style={styles.inputField}
-<<<<<<< HEAD
-=======
                   placeholderTextColor={"#707073"}
->>>>>>> prathamesh
                 />
               </View>
               <View style={styles.inputFieldContainer}>
@@ -527,10 +455,7 @@ const ManagePayments = () => {
                   value={accountNumber}
                   onChangeText={setAccountNumber}
                   style={styles.inputField}
-<<<<<<< HEAD
-=======
                   placeholderTextColor={"#707073"}
->>>>>>> prathamesh
                 />
               </View>
             </>
@@ -546,10 +471,7 @@ const ManagePayments = () => {
                     setDebitCardInputs((prev) => ({ ...prev, firstName: text }))
                   }
                   style={styles.inputField}
-<<<<<<< HEAD
-=======
                   placeholderTextColor={"#707073"}
->>>>>>> prathamesh
                 />
                 {debitCardInputs.firstName.length < 2 &&
                   debitCardInputs.firstName.length > 0 && (
@@ -567,10 +489,7 @@ const ManagePayments = () => {
                     setDebitCardInputs((prev) => ({ ...prev, lastName: text }))
                   }
                   style={styles.inputField}
-<<<<<<< HEAD
-=======
                   placeholderTextColor={"#707073"}
->>>>>>> prathamesh
                 />
                 {debitCardInputs.lastName.length < 2 &&
                   debitCardInputs.lastName.length > 0 && (
@@ -587,10 +506,7 @@ const ManagePayments = () => {
                   onChangeText={(text) =>
                     setDebitCardInputs((prev) => ({ ...prev, cardNumber: text }))
                   }
-<<<<<<< HEAD
-=======
                   placeholderTextColor={"#707073"}
->>>>>>> prathamesh
                   style={styles.inputField}
                   keyboardType="numeric"
                   maxLength={16}
@@ -620,30 +536,20 @@ const ManagePayments = () => {
                     selectedValue={debitCardInputs.expMonth}
                     onValueChange={handleMonthChange}
                     style={styles.picker}
-<<<<<<< HEAD
-=======
                     itemStyle={styles.pickerItem} // Apply item style here
->>>>>>> prathamesh
                   >
                     {months.map((month) => (
                       <Picker.Item
                         key={month.value}
                         label={month.label}
                         value={month.value}
-<<<<<<< HEAD
-=======
                         style={styles.pickerItem} // Ensure each item has the correct style
->>>>>>> prathamesh
                       />
                     ))}
                   </Picker>
                 )}
               </View>
-<<<<<<< HEAD
  
-=======
-
->>>>>>> prathamesh
               <View style={styles.inputFieldContainer}>
                 <Text style={styles.inputFieldLabel}>Expiration Year</Text>
                 <TouchableOpacity
@@ -662,30 +568,20 @@ const ManagePayments = () => {
                     selectedValue={debitCardInputs.expYear}
                     onValueChange={handleYearChange}
                     style={styles.picker}
-<<<<<<< HEAD
-=======
                     itemStyle={styles.pickerItem} // Apply item style here
->>>>>>> prathamesh
                   >
                     {years.map((year) => (
                       <Picker.Item
                         key={year}
                         label={String(year)}
                         value={String(year)}
-<<<<<<< HEAD
-=======
                         style={styles.pickerItem} // Ensure each item has the correct style
->>>>>>> prathamesh
                       />
                     ))}
                   </Picker>
                 )}
               </View>
-<<<<<<< HEAD
  
-=======
-
->>>>>>> prathamesh
               <View style={styles.inputFieldContainer}>
                 <Text style={styles.inputFieldLabel}>Security Code</Text>
                 <TextInput
@@ -695,10 +591,7 @@ const ManagePayments = () => {
                     setDebitCardInputs((prev) => ({ ...prev, cvv: text }))
                   }
                   style={styles.inputField}
-<<<<<<< HEAD
-=======
                   placeholderTextColor={"#707073"}
->>>>>>> prathamesh
                   keyboardType="numeric"
                   maxLength={3}
                 />
@@ -718,20 +611,13 @@ const ManagePayments = () => {
                     setDebitCardInputs((prev) => ({ ...prev, zip: text }))
                   }
                   style={styles.inputField}
-<<<<<<< HEAD
-=======
                   placeholderTextColor={"#707073"}
->>>>>>> prathamesh
                   keyboardType="numeric"
                 />
               </View>
             </>
           )}
-<<<<<<< HEAD
  
-=======
-
->>>>>>> prathamesh
           <View style={styles.defaultPaymentMethodContainer}>
             <TouchableOpacity onPress={() => setIsDefault(!isDefault)}>
               <Ionicons
@@ -744,11 +630,7 @@ const ManagePayments = () => {
               Set as Default Payment Method
             </Text>
           </View>
-<<<<<<< HEAD
  
-=======
-
->>>>>>> prathamesh
           <View style={styles.submitButtonContainer}>
             <TouchableOpacity
               style={styles.submitButton}
@@ -758,11 +640,7 @@ const ManagePayments = () => {
             </TouchableOpacity>
           </View>
         </ScrollView>
-<<<<<<< HEAD
  
-=======
-
->>>>>>> prathamesh
         <Toast />
       </View>
     </KeyboardAvoidingView>
@@ -770,3 +648,4 @@ const ManagePayments = () => {
 };
  
 export default ManagePayments;
+ 
