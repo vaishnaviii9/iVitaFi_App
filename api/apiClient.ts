@@ -33,6 +33,10 @@ const apiClient = {
   //Endpoint to fetch top three saved payment methods
   TOP_THREE_SAVED_PAYMENT_METHODS: (customerId: string) =>
     `${BASE_URL}/admin/credit-account/${customerId}/top-three`,
+
+   // Endpoint to delete a payment method
+   DELETE_PAYMENT_METHOD: (methodId: string) =>
+    `${BASE_URL}/admin/credit-account/${methodId}/delete-payment-method`,
 };
 
 export default apiClient;
