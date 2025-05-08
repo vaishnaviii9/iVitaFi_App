@@ -21,11 +21,14 @@ import { fetchCreditSummariesWithId } from "./services/creditAccountService";
 import { fetchCustomerData } from "./services/customerService";
 import { Picker } from "@react-native-picker/picker";
 import styles from "../components/styles/ManagePaymentsStyles";
+import { deletePaymentMethod } from "./services/paymentMethodService"; // Import the deletePaymentMethod function
+
 
 const ManagePayments = () => {
   const token = useSelector((state: any) => state.auth.token);
   const colorScheme = useColorScheme();
 
+  // State Initialization
   const [routingNumber, setRoutingNumber] = useState("");
   const [accountNumber, setAccountNumber] = useState("");
   const [debitCardInputs, setDebitCardInputs] = useState({
@@ -42,8 +45,7 @@ const ManagePayments = () => {
   const [isModalVisible, setModalVisible] = useState(false);
   const [savedMethods, setSavedMethods] = useState<any[]>([]);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [isConfirmDeleteModalVisible, setConfirmDeleteModalVisible] =
-    useState(false);
+  const [isConfirmDeleteModalVisible, setConfirmDeleteModalVisible] = useState(false);
   const [methodToDelete, setMethodToDelete] = useState<string | null>(null);
   const [selectedMethod, setSelectedMethod] = useState("Add Checking Account");
   const [isLoading, setIsLoading] = useState(true);
@@ -66,26 +68,20 @@ const ManagePayments = () => {
     { label: "12 - Dec", value: "12" },
   ];
 
+  // Data Fetching Function
   useEffect(() => {
     const fetchData = async () => {
       try {
         const customerResponse = await fetchCustomerData(token, (data) => {});
         if (customerResponse) {
-          const { creditSummaries } = await fetchCreditSummariesWithId(
-            customerResponse,
-            token
-          );
+          const { creditSummaries } = await fetchCreditSummariesWithId(customerResponse, token);
           if (creditSummaries && creditSummaries.length > 0) {
-            const customerId =
-              creditSummaries[0]?.detail?.creditAccount?.customerId;
+            const customerId = creditSummaries[0]?.detail?.creditAccount?.customerId;
             if (customerId) {
               const methods = await fetchSavedPaymentMethods(token, customerId);
               if (methods && methods.length > 0) {
                 const validMethods = methods.filter(
-                  (method: {
-                    cardNumber: string | null;
-                    accountNumber: string | null;
-                  }) =>
+                  (method: { cardNumber: string | null; accountNumber: string | null }) =>
                     method.cardNumber !== null || method.accountNumber !== null
                 );
                 setSavedMethods(validMethods);
@@ -111,16 +107,19 @@ const ManagePayments = () => {
     fetchData();
   }, [token]);
 
+  // Lifecycle Hook
   useFocusEffect(
     useCallback(() => {
       setModalVisible(true);
     }, [])
   );
 
+  // Navigation Function
   const handleBackPress = () => {
     router.push("/(tabs)/Home");
   };
 
+  // Modal Management Functions
   const openConfirmDeleteModal = (id: string) => {
     setMethodToDelete(id);
     setConfirmDeleteModalVisible(true);
@@ -134,32 +133,20 @@ const ManagePayments = () => {
   const confirmDeleteMethod = async () => {
     if (!methodToDelete) return;
     try {
-      const response = await fetch(
-        `https://dev.ivitafi.com/api/admin/credit-account/${methodToDelete}/delete-payment-method`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
+      const success = await deletePaymentMethod(
+        token,
+        methodToDelete
       );
-      if (response.ok) {
+      if (success) {
         setSavedMethods((prev) => prev.filter((m) => m.id !== methodToDelete));
         Toast.show({
           type: "success",
           text1: "Success",
           text2: "Customer Payment Method has been deleted successfully.",
         });
-      } else {
-        const errorText = await response.text();
-        Toast.show({
-          type: "error",
-          text1: "Deletion Failed",
-          text2: `Failed to delete payment method: ${errorText}`,
-        });
-      }
-    } catch (error) {
+      } 
+    }
+    catch (error) {
       Toast.show({
         type: "error",
         text1: "Deletion Failed",
@@ -173,6 +160,7 @@ const ManagePayments = () => {
 
   const closeModal = () => setModalVisible(false);
 
+  // Form Handling Functions
   const handleMethodSelect = (method: string) => {
     setSelectedMethod(method);
     setRoutingNumber("");
@@ -193,13 +181,9 @@ const ManagePayments = () => {
       logCheckingAccountInputs();
     } else if (selectedMethod === "Add Debit Card") {
       logDebitCardInputs();
-      const { firstName, lastName, cardNumber, expMonth, expYear } =
-        debitCardInputs;
+      const { firstName, lastName, cardNumber, expMonth, expYear } = debitCardInputs;
       if (firstName.length < 2 || lastName.length < 2) {
-        Alert.alert(
-          "Validation Error",
-          "First name and last name must have at least 2 characters."
-        );
+        Alert.alert("Validation Error", "First name and last name must have at least 2 characters.");
         return;
       }
       if (cardNumber.length !== 16) {
@@ -207,10 +191,7 @@ const ManagePayments = () => {
         return;
       }
       if (!expMonth || !expYear) {
-        Alert.alert(
-          "Validation Error",
-          "Please select expiration month and year."
-        );
+        Alert.alert("Validation Error", "Please select expiration month and year.");
         return;
       }
     }
@@ -248,6 +229,7 @@ const ManagePayments = () => {
     setIsDefault(false);
   };
 
+  // Utility Functions
   const getLast4Digits = (val: string | null) => (val ? val.slice(-4) : "");
 
   const formatCardExpiryStatus = (expirationDateStr: string): string => {
@@ -263,9 +245,7 @@ const ManagePayments = () => {
       year: "2-digit",
     });
 
-    return expirationDate < today
-      ? `Expired - ${formattedDate}`
-      : `Valid Thru - ${formattedDate}`;
+    return expirationDate < today ? `Expired - ${formattedDate}` : `Valid Thru - ${formattedDate}`;
   };
 
   const handleMonthChange = (value: string) => {
@@ -288,24 +268,18 @@ const ManagePayments = () => {
     setShowMonthPicker(false);
   };
 
+  // Render Function
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={{ flex: 1 }}
-    >
+    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
       <View style={styles.container}>
         <Modal isVisible={isModalVisible} onBackdropPress={closeModal}>
           <View style={styles.modalContainer}>
-            <TouchableOpacity
-              onPress={closeModal}
-              style={styles.modalCloseButton}
-            >
+            <TouchableOpacity onPress={closeModal} style={styles.modalCloseButton}>
               <Ionicons name="close" size={24} color="#333" />
             </TouchableOpacity>
             <Text style={styles.modalTitle}>Update Payment Method</Text>
             <Text style={styles.modalText}>
-              1. Locate your expired payment method under the Saved Payment
-              Methods section and click the delete icon to remove it.
+              1. Locate your expired payment method under the Saved Payment Methods section and click the delete icon to remove it.
             </Text>
             <Text style={styles.modalText}>
               2. Add your new payment method information.
@@ -316,26 +290,17 @@ const ManagePayments = () => {
           </View>
         </Modal>
 
-        <Modal
-          isVisible={isConfirmDeleteModalVisible}
-          onBackdropPress={closeConfirmDeleteModal}
-        >
+        <Modal isVisible={isConfirmDeleteModalVisible} onBackdropPress={closeConfirmDeleteModal}>
           <View style={styles.modalContainer}>
             <Text style={styles.modalTitle}>Delete Payment Method</Text>
             <Text style={styles.modalText}>
               Are you sure you want to delete this payment method?
             </Text>
             <View style={styles.modalButtonContainer}>
-              <TouchableOpacity
-                onPress={closeConfirmDeleteModal}
-                style={styles.modalButton}
-              >
+              <TouchableOpacity onPress={closeConfirmDeleteModal} style={styles.modalButton}>
                 <Text style={styles.modalButtonText}>No</Text>
               </TouchableOpacity>
-              <TouchableOpacity
-                onPress={confirmDeleteMethod}
-                style={styles.modalButton}
-              >
+              <TouchableOpacity onPress={confirmDeleteMethod} style={styles.modalButton}>
                 <Text style={styles.modalButtonText}>Yes</Text>
               </TouchableOpacity>
             </View>
@@ -351,10 +316,7 @@ const ManagePayments = () => {
           </View>
         </View>
 
-        <ScrollView
-          style={styles.scrollView}
-          showsVerticalScrollIndicator={false}
-        >
+        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
           <Text style={styles.sectionTitle}>Saved Payment Methods</Text>
           {isLoading ? (
             <View style={styles.skeletonLoaderContainer}>
@@ -373,12 +335,7 @@ const ManagePayments = () => {
           ) : (
             savedMethods.map((method, index) => (
               <View key={method.id} style={styles.savedMethodContainer}>
-                <FontAwesome
-                  name="credit-card"
-                  size={28}
-                  color="#27446F"
-                  style={styles.savedMethodImage}
-                />
+                <FontAwesome name="credit-card" size={28} color="#27446F" style={styles.savedMethodImage} />
                 <View style={styles.savedMethodTextContainer}>
                   {index === 0 && (
                     <View style={styles.defaultLabelContainer}>
@@ -403,10 +360,7 @@ const ManagePayments = () => {
                     </Text>
                   )}
                 </View>
-                <TouchableOpacity
-                  style={styles.deleteButton}
-                  onPress={() => openConfirmDeleteModal(method.id)}
-                >
+                <TouchableOpacity style={styles.deleteButton} onPress={() => openConfirmDeleteModal(method.id)}>
                   <Ionicons name="trash" size={30} color="#FF0000" />
                 </TouchableOpacity>
               </View>
@@ -467,63 +421,51 @@ const ManagePayments = () => {
                 <TextInput
                   placeholder="Enter first name"
                   value={debitCardInputs.firstName}
-                  onChangeText={(text) =>
-                    setDebitCardInputs((prev) => ({ ...prev, firstName: text }))
-                  }
+                  onChangeText={(text) => setDebitCardInputs((prev) => ({ ...prev, firstName: text }))}
                   style={styles.inputField}
                   placeholderTextColor={"#707073"}
                 />
-                {debitCardInputs.firstName.length < 2 &&
-                  debitCardInputs.firstName.length > 0 && (
-                    <Text style={styles.errorText}>
-                      First name must be at least 2 characters.
-                    </Text>
-                  )}
+                {debitCardInputs.firstName.length < 2 && debitCardInputs.firstName.length > 0 && (
+                  <Text style={styles.errorText}>
+                    First name must be at least 2 characters.
+                  </Text>
+                )}
               </View>
               <View style={styles.inputFieldContainer}>
                 <Text style={styles.inputFieldLabel}>Last Name</Text>
                 <TextInput
                   placeholder="Enter last name"
                   value={debitCardInputs.lastName}
-                  onChangeText={(text) =>
-                    setDebitCardInputs((prev) => ({ ...prev, lastName: text }))
-                  }
+                  onChangeText={(text) => setDebitCardInputs((prev) => ({ ...prev, lastName: text }))}
                   style={styles.inputField}
                   placeholderTextColor={"#707073"}
                 />
-                {debitCardInputs.lastName.length < 2 &&
-                  debitCardInputs.lastName.length > 0 && (
-                    <Text style={styles.errorText}>
-                      Last name must be at least 2 characters.
-                    </Text>
-                  )}
+                {debitCardInputs.lastName.length < 2 && debitCardInputs.lastName.length > 0 && (
+                  <Text style={styles.errorText}>
+                    Last name must be at least 2 characters.
+                  </Text>
+                )}
               </View>
               <View style={styles.inputFieldContainer}>
                 <Text style={styles.inputFieldLabel}>Card Number</Text>
                 <TextInput
                   placeholder="Enter card number"
                   value={debitCardInputs.cardNumber}
-                  onChangeText={(text) =>
-                    setDebitCardInputs((prev) => ({ ...prev, cardNumber: text }))
-                  }
+                  onChangeText={(text) => setDebitCardInputs((prev) => ({ ...prev, cardNumber: text }))}
                   placeholderTextColor={"#707073"}
                   style={styles.inputField}
                   keyboardType="numeric"
                   maxLength={16}
                 />
-                {debitCardInputs.cardNumber.length > 0 &&
-                  debitCardInputs.cardNumber.length < 16 && (
-                    <Text style={styles.errorText}>
-                      Card number must be 16 digits.
-                    </Text>
-                  )}
+                {debitCardInputs.cardNumber.length > 0 && debitCardInputs.cardNumber.length < 16 && (
+                  <Text style={styles.errorText}>
+                    Card number must be 16 digits.
+                  </Text>
+                )}
               </View>
               <View style={styles.inputFieldContainer}>
                 <Text style={styles.inputFieldLabel}>Expiration Month</Text>
-                <TouchableOpacity
-                  style={styles.pickerWrapper}
-                  onPress={showMonthPickerHandler}
-                >
+                <TouchableOpacity style={styles.pickerWrapper} onPress={showMonthPickerHandler}>
                   <View style={styles.pickerContainer}>
                     <Text style={styles.pickerText}>
                       {debitCardInputs.expMonth || "Select Month"}
@@ -536,14 +478,14 @@ const ManagePayments = () => {
                     selectedValue={debitCardInputs.expMonth}
                     onValueChange={handleMonthChange}
                     style={styles.picker}
-                    itemStyle={styles.pickerItem} // Apply item style here
+                    itemStyle={styles.pickerItem}
                   >
                     {months.map((month) => (
                       <Picker.Item
                         key={month.value}
                         label={month.label}
                         value={month.value}
-                        style={styles.pickerItem} // Ensure each item has the correct style
+                        style={styles.pickerItem}
                       />
                     ))}
                   </Picker>
@@ -552,10 +494,7 @@ const ManagePayments = () => {
 
               <View style={styles.inputFieldContainer}>
                 <Text style={styles.inputFieldLabel}>Expiration Year</Text>
-                <TouchableOpacity
-                  style={styles.pickerWrapper}
-                  onPress={showYearPickerHandler}
-                >
+                <TouchableOpacity style={styles.pickerWrapper} onPress={showYearPickerHandler}>
                   <View style={styles.pickerContainer}>
                     <Text style={styles.pickerText}>
                       {debitCardInputs.expYear || "Select Year"}
@@ -568,14 +507,14 @@ const ManagePayments = () => {
                     selectedValue={debitCardInputs.expYear}
                     onValueChange={handleYearChange}
                     style={styles.picker}
-                    itemStyle={styles.pickerItem} // Apply item style here
+                    itemStyle={styles.pickerItem}
                   >
                     {years.map((year) => (
                       <Picker.Item
                         key={year}
                         label={String(year)}
                         value={String(year)}
-                        style={styles.pickerItem} // Ensure each item has the correct style
+                        style={styles.pickerItem}
                       />
                     ))}
                   </Picker>
@@ -587,29 +526,24 @@ const ManagePayments = () => {
                 <TextInput
                   placeholder="Enter security code"
                   value={debitCardInputs.cvv}
-                  onChangeText={(text) =>
-                    setDebitCardInputs((prev) => ({ ...prev, cvv: text }))
-                  }
+                  onChangeText={(text) => setDebitCardInputs((prev) => ({ ...prev, cvv: text }))}
                   style={styles.inputField}
                   placeholderTextColor={"#707073"}
                   keyboardType="numeric"
                   maxLength={3}
                 />
-                {debitCardInputs.cvv.length > 0 &&
-                  debitCardInputs.cvv.length < 3 && (
-                    <Text style={styles.errorText}>
-                      CVV must be between 3 and 4 digits.
-                    </Text>
-                  )}
+                {debitCardInputs.cvv.length > 0 && debitCardInputs.cvv.length < 3 && (
+                  <Text style={styles.errorText}>
+                    CVV must be between 3 and 4 digits.
+                  </Text>
+                )}
               </View>
               <View style={styles.inputFieldContainer}>
                 <Text style={styles.inputFieldLabel}>Zip Code</Text>
                 <TextInput
                   placeholder="Enter zip code"
                   value={debitCardInputs.zip}
-                  onChangeText={(text) =>
-                    setDebitCardInputs((prev) => ({ ...prev, zip: text }))
-                  }
+                  onChangeText={(text) => setDebitCardInputs((prev) => ({ ...prev, zip: text }))}
                   style={styles.inputField}
                   placeholderTextColor={"#707073"}
                   keyboardType="numeric"
@@ -632,10 +566,7 @@ const ManagePayments = () => {
           </View>
 
           <View style={styles.submitButtonContainer}>
-            <TouchableOpacity
-              style={styles.submitButton}
-              onPress={handleButtonPress}
-            >
+            <TouchableOpacity style={styles.submitButton} onPress={handleButtonPress}>
               <Text style={styles.submitButtonText}>Submit</Text>
             </TouchableOpacity>
           </View>

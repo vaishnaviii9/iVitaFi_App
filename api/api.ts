@@ -2,11 +2,6 @@ import axios from "axios";
 import { Alert } from "react-native";
 
 // Function to fetch data from a given URL with a token and set the data to a state variable
-// Parameters:
-// - url: The API endpoint to fetch data from.
-// - token: The authorization token to include in the request headers.
-// - setData: A React state setter function to update the state with the fetched data.
-// - errorMessage: A custom error message to display in case of a failure.
 export const fetchData = async (
   url: string,
   token: string,
@@ -14,25 +9,44 @@ export const fetchData = async (
   errorMessage: string
 ) => {
   try {
-    // Make a GET request to the specified URL with the authorization token in the headers
     const response = await axios.get(url, {
       headers: { Authorization: `Bearer ${token}` },
     });
 
-    // Check if the response contains data
     if (response.data) {
-      // Update the state with the fetched data
       setData(response.data);
-      return response.data; // Return the response data
+      return response.data;
     } else {
-      // Log a warning if the response data is empty
       console.warn("Empty response data");
       return null;
     }
   } catch (error) {
-    // Log the error and display an alert with the provided error message
     console.error(errorMessage, error);
     Alert.alert("Error", errorMessage);
     return null;
+  }
+};
+
+// Function to delete data from a given URL with a token
+export const deleteData = async (
+  url: string,
+  token: string,
+  errorMessage: string
+) => {
+  try {
+    const response = await axios.delete(url, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (response.status === 200) {
+      return true;
+    } else {
+      console.warn("Unsuccessful response status", response.status);
+      return false;
+    }
+  } catch (error) {
+    console.error(errorMessage, error);
+    Alert.alert("Error", errorMessage);
+    return false;
   }
 };
