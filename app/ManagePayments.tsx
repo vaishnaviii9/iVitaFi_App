@@ -21,13 +21,6 @@ import { fetchCreditSummariesWithId } from "./services/creditAccountService";
 import { fetchCustomerData } from "./services/customerService";
 import { Picker } from "@react-native-picker/picker";
 import styles from "../components/styles/ManagePaymentsStyles";
-<<<<<<< HEAD
- 
-const ManagePayments = () => {
-  const token = useSelector((state: any) => state.auth.token);
-  const colorScheme = useColorScheme();
- 
-=======
 import { deletePaymentMethod } from "./services/paymentMethodService"; // Import the deletePaymentMethod function
 
 
@@ -36,7 +29,6 @@ const ManagePayments = () => {
   const colorScheme = useColorScheme();
 
   // State Initialization
->>>>>>> prathamesh
   const [routingNumber, setRoutingNumber] = useState("");
   const [accountNumber, setAccountNumber] = useState("");
   const [debitCardInputs, setDebitCardInputs] = useState({
@@ -75,12 +67,8 @@ const ManagePayments = () => {
     { label: "11 - Nov", value: "11" },
     { label: "12 - Dec", value: "12" },
   ];
-<<<<<<< HEAD
- 
-=======
 
   // Data Fetching Function
->>>>>>> prathamesh
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -118,24 +106,13 @@ const ManagePayments = () => {
     };
     fetchData();
   }, [token]);
-<<<<<<< HEAD
- 
-=======
 
   // Lifecycle Hook
->>>>>>> prathamesh
   useFocusEffect(
     useCallback(() => {
       setModalVisible(true);
     }, [])
   );
-<<<<<<< HEAD
- 
-  const handleBackPress = () => {
-    router.push("/(tabs)/Home");
-  };
- 
-=======
 
   // Navigation Function
   const handleBackPress = () => {
@@ -143,7 +120,6 @@ const ManagePayments = () => {
   };
 
   // Modal Management Functions
->>>>>>> prathamesh
   const openConfirmDeleteModal = (id: string) => {
     setMethodToDelete(id);
     setConfirmDeleteModalVisible(true);
@@ -183,12 +159,8 @@ const ManagePayments = () => {
   };
  
   const closeModal = () => setModalVisible(false);
-<<<<<<< HEAD
- 
-=======
 
   // Form Handling Functions
->>>>>>> prathamesh
   const handleMethodSelect = (method: string) => {
     setSelectedMethod(method);
     setRoutingNumber("");
@@ -256,12 +228,8 @@ const ManagePayments = () => {
     });
     setIsDefault(false);
   };
-<<<<<<< HEAD
- 
-=======
 
   // Utility Functions
->>>>>>> prathamesh
   const getLast4Digits = (val: string | null) => (val ? val.slice(-4) : "");
  
   const formatCardExpiryStatus = (expirationDateStr: string): string => {
@@ -276,15 +244,8 @@ const ManagePayments = () => {
       month: "2-digit",
       year: "2-digit",
     });
-<<<<<<< HEAD
- 
-    return expirationDate < today
-      ? `Expired - ${formattedDate}`
-      : `Valid Thru - ${formattedDate}`;
-=======
 
     return expirationDate < today ? `Expired - ${formattedDate}` : `Valid Thru - ${formattedDate}`;
->>>>>>> prathamesh
   };
  
   const handleMonthChange = (value: string) => {
@@ -306,12 +267,8 @@ const ManagePayments = () => {
     setShowYearPicker(true);
     setShowMonthPicker(false);
   };
-<<<<<<< HEAD
- 
-=======
 
   // Render Function
->>>>>>> prathamesh
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
       <View style={styles.container}>
@@ -332,16 +289,8 @@ const ManagePayments = () => {
             </TouchableOpacity>
           </View>
         </Modal>
-<<<<<<< HEAD
- 
-        <Modal
-          isVisible={isConfirmDeleteModalVisible}
-          onBackdropPress={closeConfirmDeleteModal}
-        >
-=======
 
         <Modal isVisible={isConfirmDeleteModalVisible} onBackdropPress={closeConfirmDeleteModal}>
->>>>>>> prathamesh
           <View style={styles.modalContainer}>
             <Text style={styles.modalTitle}>Delete Payment Method</Text>
             <Text style={styles.modalText}>
@@ -366,16 +315,8 @@ const ManagePayments = () => {
             <Text style={styles.headerText}>Manage Payments</Text>
           </View>
         </View>
-<<<<<<< HEAD
- 
-        <ScrollView
-          style={styles.scrollView}
-          showsVerticalScrollIndicator={false}
-        >
-=======
 
         <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
->>>>>>> prathamesh
           <Text style={styles.sectionTitle}>Saved Payment Methods</Text>
           {isLoading ? (
             <View style={styles.skeletonLoaderContainer}>
