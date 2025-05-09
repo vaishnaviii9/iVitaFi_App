@@ -57,6 +57,11 @@ const ManagePayments = () => {
   const [showMonthPicker, setShowMonthPicker] = useState(false);
   const [showYearPicker, setShowYearPicker] = useState(false);
   const [accountVerificationError, setAccountVerificationError] = useState<string | null>(null);
+  const [routingNumberError, setRoutingNumberError] = useState<string | null>(null);
+  const [accountNumberError, setAccountNumberError] = useState<string | null>(null);
+  const [paymentVerified, setPaymentVerified] = useState<boolean | null>(null);
+  const [activeField, setActiveField] = useState<string | null>(null);
+  const [isSubmitted, setIsSubmitted] = useState(false);
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 11 }, (_, i) => currentYear + i);
   const months = [
@@ -185,9 +190,33 @@ const ManagePayments = () => {
       cvv: "",
       zip: "",
     });
+    setIsSubmitted(false);
+  };
+
+  const handleRoutingNumberChange = (text: string) => {
+    setActiveField("routingNumber");
+    setRoutingNumber(text);
+    setPaymentVerified(null);
+    if (!/^[0-9]{9}$/.test(text)) {
+      setRoutingNumberError("Please enter your bank's 9 digit routing number.");
+    } else {
+      setRoutingNumberError(null);
+    }
+  };
+
+  const handleAccountNumberChange = (text: string) => {
+    setActiveField("accountNumber");
+    setAccountNumber(text);
+    setPaymentVerified(null);
+    if (!/^[0-9]{5,17}$/.test(text)) {
+      setAccountNumberError("Please enter your bank account number.");
+    } else {
+      setAccountNumberError(null);
+    }
   };
 
   const handleButtonPress = async () => {
+    setIsSubmitted(true);
     const paymentMethodData = {
       accountNumber: null as string | null,
       routingNumber: null as string | null,
@@ -213,6 +242,10 @@ const ManagePayments = () => {
         return;
       }
 
+      if (routingNumberError || accountNumberError) {
+        return;
+      }
+
       // Populate paymentMethodData for ACH
       paymentMethodData.accountNumber = accountNumber;
       paymentMethodData.routingNumber = routingNumber;
@@ -227,15 +260,6 @@ const ManagePayments = () => {
       paymentMethodData.expirationDate = null;
 
       try {
-        console.log("Attempting to add payment method with:", {
-          token,
-          creditAccountId,
-          customerPaymentMethodId: 0,
-          isDefault,
-          accountNumber,
-          routingNumber,
-        });
-
         const paymentMethResp =
           await updateCreditAccountPaymentMethodWithDefaultPaymentMethodAsync(
             creditAccountId,
@@ -258,12 +282,17 @@ const ManagePayments = () => {
         } else if (
           paymentMethResp.response &&
           typeof paymentMethResp.response === "object" &&
-          paymentMethResp.response.errorCode ===
-            ErrorCode.AdminPaymentMethodVerificationFailed
+          paymentMethResp.response.errorCode === ErrorCode.AdminPaymentMethodVerificationFailed
         ) {
           setAccountVerificationError(
-            "Please enter a valid routing number and account number."
+            paymentMethResp.response.errorMessage || "Please enter a valid routing number and account number."
           );
+          setPaymentVerified(false);
+          Toast.show({
+            type: "error",
+            text1: "Error",
+            text2: "Please enter a valid routing number and account number.",
+          });
         } else {
           Toast.show({
             type: "error",
@@ -336,13 +365,12 @@ const ManagePayments = () => {
         } else if (
           paymentMethResp.response &&
           typeof paymentMethResp.response === "object" &&
-          paymentMethResp.response.errorCode ===
-            ErrorCode.AdminPaymentMethodVerificationFailed
+          paymentMethResp.response.errorCode === ErrorCode.AdminPaymentMethodVerificationFailed
         ) {
           Toast.show({
             type: "error",
             text1: "Error",
-            text2: paymentMethResp.response.errorMessage,
+            text2: "An error occurred while verifying the payment method.",
           });
         } else {
           Toast.show({
@@ -360,8 +388,6 @@ const ManagePayments = () => {
         });
       }
     }
-
-    resetFormInputs();
   };
 
   const logCheckingAccountInputs = () => {
@@ -393,6 +419,11 @@ const ManagePayments = () => {
     });
     setIsDefault(false);
     setAccountVerificationError(null);
+    setRoutingNumberError(null);
+    setAccountNumberError(null);
+    setPaymentVerified(null);
+    setActiveField(null);
+    setIsSubmitted(false);
   };
 
   // Utility Functions
@@ -596,24 +627,46 @@ const ManagePayments = () => {
                 <TextInput
                   placeholder="Enter routing number"
                   value={routingNumber}
-                  onChangeText={setRoutingNumber}
+                  onChangeText={handleRoutingNumberChange}
                   style={styles.inputField}
                   placeholderTextColor={"#707073"}
                 />
+                {isSubmitted && activeField === "routingNumber" && paymentVerified === false && (
+                  <Ionicons
+                    name="close-circle"
+                    size={24}
+                    color="red"
+                    style={styles.validationIcon}
+                  />
+                )}
+                {routingNumberError && (
+                  <Text style={styles.errorText}>{routingNumberError}</Text>
+                )}
               </View>
               <View style={styles.inputFieldContainer}>
                 <Text style={styles.inputFieldLabel}>Account Number</Text>
                 <TextInput
                   placeholder="Enter account number"
                   value={accountNumber}
-                  onChangeText={setAccountNumber}
+                  onChangeText={handleAccountNumberChange}
                   style={styles.inputField}
                   placeholderTextColor={"#707073"}
                 />
+                {isSubmitted && activeField === "accountNumber" && paymentVerified === false && (
+                  <Ionicons
+                    name="close-circle"
+                    size={24}
+                    color="red"
+                    style={styles.validationIcon}
+                  />
+                )}
+                {accountNumberError && (
+                  <Text style={styles.errorText}>{accountNumberError}</Text>
+                )}
               </View>
-              {accountVerificationError && (
+              {/* {accountVerificationError && (
                 <Text style={styles.errorText}>{accountVerificationError}</Text>
-              )}
+              )} */}
             </>
           )}
           {selectedMethod === "Add Debit Card" && (
@@ -805,5 +858,7 @@ const ManagePayments = () => {
     </KeyboardAvoidingView>
   );
 };
+
+
 
 export default ManagePayments;

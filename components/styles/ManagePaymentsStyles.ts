@@ -280,6 +280,12 @@ const styles = StyleSheet.create({
     color: '#000000', // Ensure picker item text is white
     fontSize: 20,
   },
+  validationIcon: {
+    position: "absolute",
+    top: "50%",
+    right: 10,
+    transform: [{ translateY: -12 }],
+  },
 });
  
 export default styles;
