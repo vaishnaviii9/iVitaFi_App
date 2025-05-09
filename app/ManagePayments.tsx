@@ -6,6 +6,7 @@ import {
   Text,
   TouchableOpacity,
   Alert,
+  StyleSheet,
   KeyboardAvoidingView,
   Platform,
   useColorScheme,
@@ -23,8 +24,6 @@ import styles from "../components/styles/ManagePaymentsStyles";
 import { deletePaymentMethod } from "./services/paymentMethodService";
 import { updateCreditAccountPaymentMethodWithDefaultPaymentMethodAsync } from "./services/creditAccountPaymentService";
 import { ErrorCode } from "../utils/ErrorCodeUtil";
-import "react-toastify/dist/ReactToastify.css";
-import { toast } from "react-toastify";
 
 const ManagePayments = () => {
   const token = useSelector((state: any) => state.auth.token);
@@ -224,8 +223,6 @@ const ManagePayments = () => {
     }
   };
 
-  // Configure toast settings globally
-
   const handleButtonPress = async () => {
     setIsSubmitted(true);
     setIsSubmitting(true); // Set submitting to true when submission starts
@@ -284,7 +281,6 @@ const ManagePayments = () => {
             token
           );
 
-        // Inside your component or function
         if (paymentMethResp.type === "data") {
           Toast.show({
             type: "success",
@@ -299,25 +295,36 @@ const ManagePayments = () => {
           paymentMethResp.response.errorCode ===
             ErrorCode.AdminPaymentMethodVerificationFailed
         ) {
-          const errorMessage = paymentMethResp.response.errorMessage;
-          const formattedMessage = errorMessage.split(".").join("\n");
-
+          setAccountVerificationError(
+            paymentMethResp.response.errorMessage ||
+              "Please enter a valid routing number and account number."
+          );
+          setPaymentVerified(false);
           Toast.show({
             type: "error",
             text1: "Error",
-            text2: formattedMessage,
+            text2: "Please enter a valid routing number and account number.",
+          });
+        } else {
+          Toast.show({
+            type: "error",
+            text1: "Error",
+            text2: "There was an error while adding the payment method.",
           });
         }
       } catch (error) {
+        console.error("Error adding payment method:", error);
         Toast.show({
           type: "error",
           text1: "Error",
-          text2: "There was an error while adding the payment method.",
+          text2: "An unexpected error occurred. Please try again.",
         });
       } finally {
         setIsSubmitting(false); // Reset submitting state
       }
-    } else if (selectedMethod === "Add Debit Card") {
+    } 
+    //Debit card
+    else if (selectedMethod === "Add Debit Card") {
       const { firstName, lastName, cardNumber, expMonth, expYear } =
         debitCardInputs;
 
@@ -368,9 +375,9 @@ const ManagePayments = () => {
             isDefault,
             token
           );
-        console.log(paymentMethResp.response);
 
-        if (paymentMethResp.type === "data") {
+
+    if (paymentMethResp.type === "data") {
           Toast.show({
             type: "success",
             text1: "Success",
@@ -384,12 +391,8 @@ const ManagePayments = () => {
           paymentMethResp.response.errorCode ===
             ErrorCode.AdminPaymentMethodVerificationFailed
         ) {
-          // Split the error message into lines
           const errorMessage = paymentMethResp.response.errorMessage;
-          const lines = errorMessage.split("."); // Split by newline character if available
-
-          // Join lines with a line break for display
-          const formattedMessage = lines.join("\n");
+          const formattedMessage = errorMessage.split(".").join("\n");
 
           Toast.show({
             type: "error",
