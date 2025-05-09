@@ -855,7 +855,14 @@ const ManagePayments = () => {
                   style={styles.inputField}
                   placeholderTextColor={"#707073"}
                   keyboardType="numeric"
+                  maxLength={5} // Restrict input to 5 digits
                 />
+                {debitCardInputs.zip.length > 0 &&
+                  debitCardInputs.zip.length < 5 && (
+                    <Text style={styles.errorText}>
+                      Zip code must be 5 digits.
+                    </Text>
+                  )}
               </View>
             </>
           )}
