@@ -21,14 +21,19 @@ import { fetchCreditSummariesWithId } from "./services/creditAccountService";
 import { fetchCustomerData } from "./services/customerService";
 import { Picker } from "@react-native-picker/picker";
 import styles from "../components/styles/ManagePaymentsStyles";
-import { deletePaymentMethod } from "./services/paymentMethodService"; // Import the deletePaymentMethod function
-
+import { deletePaymentMethod } from "./services/paymentMethodService";
+import { updateCreditAccountPaymentMethodWithDefaultPaymentMethodAsync } from "./services/creditAccountPaymentService";
+import { ErrorCode } from "../utils/ErrorCodeUtil";
 
 const ManagePayments = () => {
   const token = useSelector((state: any) => state.auth.token);
   const colorScheme = useColorScheme();
 
   // State Initialization
+  const creditAccountId = useSelector(
+    (state: any) => state.creditAccount.creditAccountId
+  );
+
   const [routingNumber, setRoutingNumber] = useState("");
   const [accountNumber, setAccountNumber] = useState("");
   const [debitCardInputs, setDebitCardInputs] = useState({
@@ -40,7 +45,7 @@ const ManagePayments = () => {
     cvv: "",
     zip: "",
   });
- 
+
   const [isDefault, setIsDefault] = useState(false);
   const [isModalVisible, setModalVisible] = useState(false);
   const [savedMethods, setSavedMethods] = useState<any[]>([]);
@@ -51,6 +56,7 @@ const ManagePayments = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [showMonthPicker, setShowMonthPicker] = useState(false);
   const [showYearPicker, setShowYearPicker] = useState(false);
+  const [accountVerificationError, setAccountVerificationError] = useState<string | null>(null);
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 11 }, (_, i) => currentYear + i);
   const months = [
@@ -68,42 +74,51 @@ const ManagePayments = () => {
     { label: "12 - Dec", value: "12" },
   ];
 
-  // Data Fetching Function
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const customerResponse = await fetchCustomerData(token, (data) => {});
-        if (customerResponse) {
-          const { creditSummaries } = await fetchCreditSummariesWithId(customerResponse, token);
-          if (creditSummaries && creditSummaries.length > 0) {
-            const customerId = creditSummaries[0]?.detail?.creditAccount?.customerId;
-            if (customerId) {
-              const methods = await fetchSavedPaymentMethods(token, customerId);
-              if (methods && methods.length > 0) {
-                const validMethods = methods.filter(
-                  (method: { cardNumber: string | null; accountNumber: string | null }) =>
-                    method.cardNumber !== null || method.accountNumber !== null
-                );
-                setSavedMethods(validMethods);
-              } else {
-                setErrorMessage("No saved payment methods found.");
-              }
+  // Define fetchData function outside of useEffect
+  const fetchData = async () => {
+    try {
+      const customerResponse = await fetchCustomerData(token, (data) => {});
+      if (customerResponse) {
+        const { creditSummaries } = await fetchCreditSummariesWithId(
+          customerResponse,
+          token
+        );
+        if (creditSummaries && creditSummaries.length > 0) {
+          const customerId =
+            creditSummaries[0]?.detail?.creditAccount?.customerId;
+          if (customerId) {
+            const methods = await fetchSavedPaymentMethods(token, customerId);
+            if (methods && methods.length > 0) {
+              const validMethods = methods.filter(
+                (method: {
+                  cardNumber: string | null;
+                  accountNumber: string | null;
+                }) =>
+                  method.cardNumber !== null || method.accountNumber !== null
+              );
+              setSavedMethods(validMethods);
             } else {
-              setErrorMessage("No customer ID found.");
+              setErrorMessage("No saved payment methods found.");
             }
           } else {
-            setErrorMessage("No credit summaries found.");
+            setErrorMessage("No customer ID found.");
           }
         } else {
-          setErrorMessage("No customer response found.");
+          setErrorMessage("No credit summaries found.");
         }
-      } catch (error) {
-        console.error("Error fetching data:", error);
-        setErrorMessage("Failed to fetch data.");
-      } finally {
-        setIsLoading(false);
+      } else {
+        setErrorMessage("No customer response found.");
       }
-    };
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      setErrorMessage("Failed to fetch data.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Use fetchData in useEffect
+  useEffect(() => {
     fetchData();
   }, [token]);
 
@@ -124,19 +139,16 @@ const ManagePayments = () => {
     setMethodToDelete(id);
     setConfirmDeleteModalVisible(true);
   };
- 
+
   const closeConfirmDeleteModal = () => {
     setMethodToDelete(null);
     setConfirmDeleteModalVisible(false);
   };
- 
+
   const confirmDeleteMethod = async () => {
     if (!methodToDelete) return;
     try {
-      const success = await deletePaymentMethod(
-        token,
-        methodToDelete
-      );
+      const success = await deletePaymentMethod(token, methodToDelete);
       if (success) {
         setSavedMethods((prev) => prev.filter((m) => m.id !== methodToDelete));
         Toast.show({
@@ -144,9 +156,8 @@ const ManagePayments = () => {
           text1: "Success",
           text2: "Customer Payment Method has been deleted successfully.",
         });
-      } 
-    }
-    catch (error) {
+      }
+    } catch (error) {
       Toast.show({
         type: "error",
         text1: "Deletion Failed",
@@ -157,7 +168,7 @@ const ManagePayments = () => {
       setMethodToDelete(null);
     }
   };
- 
+
   const closeModal = () => setModalVisible(false);
 
   // Form Handling Functions
@@ -175,15 +186,108 @@ const ManagePayments = () => {
       zip: "",
     });
   };
- 
-  const handleButtonPress = () => {
+
+  const handleButtonPress = async () => {
+    const paymentMethodData = {
+      accountNumber: null as string | null,
+      routingNumber: null as string | null,
+      truncatedAccountNumber: null as string | null,
+      truncatedCardNumber: null as string | null,
+      truncatedRoutingNumber: null as string | null,
+      expirationDate: null as Date | null,
+      cardNumber: null as string | null,
+      securityCode: null as string | null,
+      firstName: null as string | null,
+      lastName: null as string | null,
+      zipCode: null as string | null,
+      paymentMethodType: null as number | null,
+    };
+
     if (selectedMethod === "Add Checking Account") {
-      logCheckingAccountInputs();
+      const duplicateMethod = savedMethods.find(
+        (method) => method.accountNumber === accountNumber && !method.isDisabled
+      );
+
+      if (duplicateMethod) {
+        setAccountVerificationError("Account Number Already exists.");
+        return;
+      }
+
+      // Populate paymentMethodData for ACH
+      paymentMethodData.accountNumber = accountNumber;
+      paymentMethodData.routingNumber = routingNumber;
+      paymentMethodData.paymentMethodType = 1; // Example type for ACH
+
+      // Reset properties not relevant to ACH
+      paymentMethodData.cardNumber = null;
+      paymentMethodData.securityCode = null;
+      paymentMethodData.firstName = null;
+      paymentMethodData.lastName = null;
+      paymentMethodData.zipCode = null;
+      paymentMethodData.expirationDate = null;
+
+      try {
+        console.log("Attempting to add payment method with:", {
+          token,
+          creditAccountId,
+          customerPaymentMethodId: 0,
+          isDefault,
+          accountNumber,
+          routingNumber,
+        });
+
+        const paymentMethResp =
+          await updateCreditAccountPaymentMethodWithDefaultPaymentMethodAsync(
+            creditAccountId,
+            paymentMethodData,
+            0,
+            isDefault,
+            token
+          );
+
+        console.log("API Response:", paymentMethResp);
+
+        if (paymentMethResp.type === "data") {
+          Toast.show({
+            type: "success",
+            text1: "Success",
+            text2: "Payment method added successfully.",
+          });
+          resetFormInputs();
+          await fetchData();
+        } else if (
+          paymentMethResp.response &&
+          typeof paymentMethResp.response === "object" &&
+          paymentMethResp.response.errorCode ===
+            ErrorCode.AdminPaymentMethodVerificationFailed
+        ) {
+          setAccountVerificationError(
+            "Please enter a valid routing number and account number."
+          );
+        } else {
+          Toast.show({
+            type: "error",
+            text1: "Error",
+            text2: "There was an error while adding the payment method.",
+          });
+        }
+      } catch (error) {
+        console.error("Error adding payment method:", error);
+        Toast.show({
+          type: "error",
+          text1: "Error",
+          text2: "An unexpected error occurred. Please try again.",
+        });
+      }
     } else if (selectedMethod === "Add Debit Card") {
-      logDebitCardInputs();
-      const { firstName, lastName, cardNumber, expMonth, expYear } = debitCardInputs;
+      const { firstName, lastName, cardNumber, expMonth, expYear } =
+        debitCardInputs;
+
       if (firstName.length < 2 || lastName.length < 2) {
-        Alert.alert("Validation Error", "First name and last name must have at least 2 characters.");
+        Alert.alert(
+          "Validation Error",
+          "First name and last name must have at least 2 characters."
+        );
         return;
       }
       if (cardNumber.length !== 16) {
@@ -191,14 +295,75 @@ const ManagePayments = () => {
         return;
       }
       if (!expMonth || !expYear) {
-        Alert.alert("Validation Error", "Please select expiration month and year.");
+        Alert.alert(
+          "Validation Error",
+          "Please select expiration month and year."
+        );
         return;
       }
+
+      // Populate paymentMethodData for Debit Card
+      paymentMethodData.cardNumber = cardNumber;
+      paymentMethodData.securityCode = debitCardInputs.cvv;
+      paymentMethodData.firstName = firstName;
+      paymentMethodData.lastName = lastName;
+      paymentMethodData.zipCode = debitCardInputs.zip;
+      paymentMethodData.expirationDate = new Date(Number(expYear), Number(expMonth) - 1);
+      paymentMethodData.paymentMethodType = 3; // Example type for Debit
+
+      // Reset properties not relevant to Debit Card
+      paymentMethodData.accountNumber = null;
+      paymentMethodData.routingNumber = null;
+
+      try {
+        const paymentMethResp =
+          await updateCreditAccountPaymentMethodWithDefaultPaymentMethodAsync(
+            creditAccountId,
+            paymentMethodData,
+            0,
+            isDefault,
+            token
+          );
+
+        if (paymentMethResp.type === "data") {
+          Toast.show({
+            type: "success",
+            text1: "Success",
+            text2: "Payment method added successfully.",
+          });
+          resetFormInputs();
+          await fetchData();
+        } else if (
+          paymentMethResp.response &&
+          typeof paymentMethResp.response === "object" &&
+          paymentMethResp.response.errorCode ===
+            ErrorCode.AdminPaymentMethodVerificationFailed
+        ) {
+          Toast.show({
+            type: "error",
+            text1: "Error",
+            text2: paymentMethResp.response.errorMessage,
+          });
+        } else {
+          Toast.show({
+            type: "error",
+            text1: "Error",
+            text2: "There was an error while adding the payment method.",
+          });
+        }
+      } catch (error) {
+        console.error("Error adding payment method:", error);
+        Toast.show({
+          type: "error",
+          text1: "Error",
+          text2: "An unexpected error occurred. Please try again.",
+        });
+      }
     }
-    alert("Form submitted!");
+
     resetFormInputs();
   };
- 
+
   const logCheckingAccountInputs = () => {
     console.log("Checking Account Inputs:", {
       routingNumber,
@@ -206,14 +371,14 @@ const ManagePayments = () => {
       isDefault,
     });
   };
- 
+
   const logDebitCardInputs = () => {
     console.log("Debit Card Inputs:", {
       debitCardInputs,
       isDefault,
     });
   };
- 
+
   const resetFormInputs = () => {
     setRoutingNumber("");
     setAccountNumber("");
@@ -227,42 +392,45 @@ const ManagePayments = () => {
       zip: "",
     });
     setIsDefault(false);
+    setAccountVerificationError(null);
   };
 
   // Utility Functions
   const getLast4Digits = (val: string | null) => (val ? val.slice(-4) : "");
- 
+
   const formatCardExpiryStatus = (expirationDateStr: string): string => {
     if (!expirationDateStr) return "";
- 
+
     const today = new Date();
     const expirationDate = new Date(expirationDateStr);
     expirationDate.setDate(expirationDate.getDate() + 1);
     expirationDate.setHours(23, 59, 59, 999);
- 
+
     const formattedDate = expirationDate.toLocaleDateString("en-US", {
       month: "2-digit",
       year: "2-digit",
     });
 
-    return expirationDate < today ? `Expired - ${formattedDate}` : `Valid Thru - ${formattedDate}`;
+    return expirationDate < today
+      ? `Expired - ${formattedDate}`
+      : `Valid Thru - ${formattedDate}`;
   };
- 
+
   const handleMonthChange = (value: string) => {
     setDebitCardInputs((prev) => ({ ...prev, expMonth: value }));
     setShowMonthPicker(false);
   };
- 
+
   const handleYearChange = (value: string) => {
     setDebitCardInputs((prev) => ({ ...prev, expYear: value }));
     setShowYearPicker(false);
   };
- 
+
   const showMonthPickerHandler = () => {
     setShowMonthPicker(true);
     setShowYearPicker(false);
   };
- 
+
   const showYearPickerHandler = () => {
     setShowYearPicker(true);
     setShowMonthPicker(false);
@@ -270,16 +438,23 @@ const ManagePayments = () => {
 
   // Render Function
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={{ flex: 1 }}
+    >
       <View style={styles.container}>
         <Modal isVisible={isModalVisible} onBackdropPress={closeModal}>
           <View style={styles.modalContainer}>
-            <TouchableOpacity onPress={closeModal} style={styles.modalCloseButton}>
+            <TouchableOpacity
+              onPress={closeModal}
+              style={styles.modalCloseButton}
+            >
               <Ionicons name="close" size={24} color="#333" />
             </TouchableOpacity>
             <Text style={styles.modalTitle}>Update Payment Method</Text>
             <Text style={styles.modalText}>
-              1. Locate your expired payment method under the Saved Payment Methods section and click the delete icon to remove it.
+              1. Locate your expired payment method under the Saved Payment
+              Methods section and click the delete icon to remove it.
             </Text>
             <Text style={styles.modalText}>
               2. Add your new payment method information.
@@ -290,33 +465,48 @@ const ManagePayments = () => {
           </View>
         </Modal>
 
-        <Modal isVisible={isConfirmDeleteModalVisible} onBackdropPress={closeConfirmDeleteModal}>
+        <Modal
+          isVisible={isConfirmDeleteModalVisible}
+          onBackdropPress={closeConfirmDeleteModal}
+        >
           <View style={styles.modalContainer}>
             <Text style={styles.modalTitle}>Delete Payment Method</Text>
             <Text style={styles.modalText}>
               Are you sure you want to delete this payment method?
             </Text>
             <View style={styles.modalButtonContainer}>
-              <TouchableOpacity onPress={closeConfirmDeleteModal} style={styles.modalButton}>
+              <TouchableOpacity
+                onPress={closeConfirmDeleteModal}
+                style={styles.modalButton}
+              >
                 <Text style={styles.modalButtonText}>No</Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={confirmDeleteMethod} style={styles.modalButton}>
+              <TouchableOpacity
+                onPress={confirmDeleteMethod}
+                style={styles.modalButton}
+              >
                 <Text style={styles.modalButtonText}>Yes</Text>
               </TouchableOpacity>
             </View>
           </View>
         </Modal>
- 
+
         <View style={styles.header}>
           <View style={styles.headerContent}>
-            <TouchableOpacity onPress={handleBackPress} style={styles.backButton}>
+            <TouchableOpacity
+              onPress={handleBackPress}
+              style={styles.backButton}
+            >
               <Ionicons name="arrow-back" size={34} color="#FFFFFF" />
             </TouchableOpacity>
             <Text style={styles.headerText}>Manage Payments</Text>
           </View>
         </View>
 
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+        >
           <Text style={styles.sectionTitle}>Saved Payment Methods</Text>
           {isLoading ? (
             <View style={styles.skeletonLoaderContainer}>
@@ -335,7 +525,12 @@ const ManagePayments = () => {
           ) : (
             savedMethods.map((method, index) => (
               <View key={method.id} style={styles.savedMethodContainer}>
-                <FontAwesome name="credit-card" size={28} color="#27446F" style={styles.savedMethodImage} />
+                <FontAwesome
+                  name="credit-card"
+                  size={28}
+                  color="#27446F"
+                  style={styles.savedMethodImage}
+                />
                 <View style={styles.savedMethodTextContainer}>
                   {index === 0 && (
                     <View style={styles.defaultLabelContainer}>
@@ -350,7 +545,8 @@ const ManagePayments = () => {
                     )}
                     {!method.cardNumber && method.accountNumber && (
                       <Text style={styles.savedMethodLabel}>
-                        Checking Account - {getLast4Digits(method.accountNumber)}
+                        Checking Account -{" "}
+                        {getLast4Digits(method.accountNumber)}
                       </Text>
                     )}
                   </Text>
@@ -360,13 +556,16 @@ const ManagePayments = () => {
                     </Text>
                   )}
                 </View>
-                <TouchableOpacity style={styles.deleteButton} onPress={() => openConfirmDeleteModal(method.id)}>
+                <TouchableOpacity
+                  style={styles.deleteButton}
+                  onPress={() => openConfirmDeleteModal(method.id)}
+                >
                   <Ionicons name="trash" size={30} color="#FF0000" />
                 </TouchableOpacity>
               </View>
             ))
           )}
- 
+
           <Text style={styles.addNewPayHeader}>Add New Payment Method</Text>
           <View style={styles.addMethodContainer}>
             {["Add Checking Account", "Add Debit Card"].map((label) => (
@@ -389,7 +588,7 @@ const ManagePayments = () => {
               </TouchableOpacity>
             ))}
           </View>
- 
+
           {selectedMethod === "Add Checking Account" && (
             <>
               <View style={styles.inputFieldContainer}>
@@ -412,6 +611,9 @@ const ManagePayments = () => {
                   placeholderTextColor={"#707073"}
                 />
               </View>
+              {accountVerificationError && (
+                <Text style={styles.errorText}>{accountVerificationError}</Text>
+              )}
             </>
           )}
           {selectedMethod === "Add Debit Card" && (
@@ -421,51 +623,66 @@ const ManagePayments = () => {
                 <TextInput
                   placeholder="Enter first name"
                   value={debitCardInputs.firstName}
-                  onChangeText={(text) => setDebitCardInputs((prev) => ({ ...prev, firstName: text }))}
+                  onChangeText={(text) =>
+                    setDebitCardInputs((prev) => ({ ...prev, firstName: text }))
+                  }
                   style={styles.inputField}
                   placeholderTextColor={"#707073"}
                 />
-                {debitCardInputs.firstName.length < 2 && debitCardInputs.firstName.length > 0 && (
-                  <Text style={styles.errorText}>
-                    First name must be at least 2 characters.
-                  </Text>
-                )}
+                {debitCardInputs.firstName.length < 2 &&
+                  debitCardInputs.firstName.length > 0 && (
+                    <Text style={styles.errorText}>
+                      First name must be at least 2 characters.
+                    </Text>
+                  )}
               </View>
               <View style={styles.inputFieldContainer}>
                 <Text style={styles.inputFieldLabel}>Last Name</Text>
                 <TextInput
                   placeholder="Enter last name"
                   value={debitCardInputs.lastName}
-                  onChangeText={(text) => setDebitCardInputs((prev) => ({ ...prev, lastName: text }))}
+                  onChangeText={(text) =>
+                    setDebitCardInputs((prev) => ({ ...prev, lastName: text }))
+                  }
                   style={styles.inputField}
                   placeholderTextColor={"#707073"}
                 />
-                {debitCardInputs.lastName.length < 2 && debitCardInputs.lastName.length > 0 && (
-                  <Text style={styles.errorText}>
-                    Last name must be at least 2 characters.
-                  </Text>
-                )}
+                {debitCardInputs.lastName.length < 2 &&
+                  debitCardInputs.lastName.length > 0 && (
+                    <Text style={styles.errorText}>
+                      Last name must be at least 2 characters.
+                    </Text>
+                  )}
               </View>
               <View style={styles.inputFieldContainer}>
                 <Text style={styles.inputFieldLabel}>Card Number</Text>
                 <TextInput
                   placeholder="Enter card number"
                   value={debitCardInputs.cardNumber}
-                  onChangeText={(text) => setDebitCardInputs((prev) => ({ ...prev, cardNumber: text }))}
+                  onChangeText={(text) =>
+                    setDebitCardInputs((prev) => ({
+                      ...prev,
+                      cardNumber: text,
+                    }))
+                  }
                   placeholderTextColor={"#707073"}
                   style={styles.inputField}
                   keyboardType="numeric"
                   maxLength={16}
                 />
-                {debitCardInputs.cardNumber.length > 0 && debitCardInputs.cardNumber.length < 16 && (
-                  <Text style={styles.errorText}>
-                    Card number must be 16 digits.
-                  </Text>
-                )}
+                {debitCardInputs.cardNumber.length > 0 &&
+                  debitCardInputs.cardNumber.length < 16 && (
+                    <Text style={styles.errorText}>
+                      Card number must be 16 digits.
+                    </Text>
+                  )}
               </View>
               <View style={styles.inputFieldContainer}>
                 <Text style={styles.inputFieldLabel}>Expiration Month</Text>
-                <TouchableOpacity style={styles.pickerWrapper} onPress={showMonthPickerHandler}>
+                <TouchableOpacity
+                  style={styles.pickerWrapper}
+                  onPress={showMonthPickerHandler}
+                >
                   <View style={styles.pickerContainer}>
                     <Text style={styles.pickerText}>
                       {debitCardInputs.expMonth || "Select Month"}
@@ -491,10 +708,13 @@ const ManagePayments = () => {
                   </Picker>
                 )}
               </View>
- 
+
               <View style={styles.inputFieldContainer}>
                 <Text style={styles.inputFieldLabel}>Expiration Year</Text>
-                <TouchableOpacity style={styles.pickerWrapper} onPress={showYearPickerHandler}>
+                <TouchableOpacity
+                  style={styles.pickerWrapper}
+                  onPress={showYearPickerHandler}
+                >
                   <View style={styles.pickerContainer}>
                     <Text style={styles.pickerText}>
                       {debitCardInputs.expYear || "Select Year"}
@@ -520,30 +740,35 @@ const ManagePayments = () => {
                   </Picker>
                 )}
               </View>
- 
+
               <View style={styles.inputFieldContainer}>
                 <Text style={styles.inputFieldLabel}>Security Code</Text>
                 <TextInput
                   placeholder="Enter security code"
                   value={debitCardInputs.cvv}
-                  onChangeText={(text) => setDebitCardInputs((prev) => ({ ...prev, cvv: text }))}
+                  onChangeText={(text) =>
+                    setDebitCardInputs((prev) => ({ ...prev, cvv: text }))
+                  }
                   style={styles.inputField}
                   placeholderTextColor={"#707073"}
                   keyboardType="numeric"
                   maxLength={3}
                 />
-                {debitCardInputs.cvv.length > 0 && debitCardInputs.cvv.length < 3 && (
-                  <Text style={styles.errorText}>
-                    CVV must be between 3 and 4 digits.
-                  </Text>
-                )}
+                {debitCardInputs.cvv.length > 0 &&
+                  debitCardInputs.cvv.length < 3 && (
+                    <Text style={styles.errorText}>
+                      CVV must be between 3 and 4 digits.
+                    </Text>
+                  )}
               </View>
               <View style={styles.inputFieldContainer}>
                 <Text style={styles.inputFieldLabel}>Zip Code</Text>
                 <TextInput
                   placeholder="Enter zip code"
                   value={debitCardInputs.zip}
-                  onChangeText={(text) => setDebitCardInputs((prev) => ({ ...prev, zip: text }))}
+                  onChangeText={(text) =>
+                    setDebitCardInputs((prev) => ({ ...prev, zip: text }))
+                  }
                   style={styles.inputField}
                   placeholderTextColor={"#707073"}
                   keyboardType="numeric"
@@ -551,7 +776,7 @@ const ManagePayments = () => {
               </View>
             </>
           )}
- 
+
           <View style={styles.defaultPaymentMethodContainer}>
             <TouchableOpacity onPress={() => setIsDefault(!isDefault)}>
               <Ionicons
@@ -564,19 +789,21 @@ const ManagePayments = () => {
               Set as Default Payment Method
             </Text>
           </View>
- 
+
           <View style={styles.submitButtonContainer}>
-            <TouchableOpacity style={styles.submitButton} onPress={handleButtonPress}>
+            <TouchableOpacity
+              style={styles.submitButton}
+              onPress={handleButtonPress}
+            >
               <Text style={styles.submitButtonText}>Submit</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
- 
+
         <Toast />
       </View>
     </KeyboardAvoidingView>
   );
 };
- 
+
 export default ManagePayments;
- 
