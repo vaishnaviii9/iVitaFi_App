@@ -6,7 +6,6 @@ import {
   Text,
   TouchableOpacity,
   Alert,
-  StyleSheet,
   KeyboardAvoidingView,
   Platform,
   useColorScheme,
@@ -24,6 +23,8 @@ import styles from "../components/styles/ManagePaymentsStyles";
 import { deletePaymentMethod } from "./services/paymentMethodService";
 import { updateCreditAccountPaymentMethodWithDefaultPaymentMethodAsync } from "./services/creditAccountPaymentService";
 import { ErrorCode } from "../utils/ErrorCodeUtil";
+import "react-toastify/dist/ReactToastify.css";
+import { toast } from "react-toastify";
 
 const ManagePayments = () => {
   const token = useSelector((state: any) => state.auth.token);
@@ -50,15 +51,22 @@ const ManagePayments = () => {
   const [isModalVisible, setModalVisible] = useState(false);
   const [savedMethods, setSavedMethods] = useState<any[]>([]);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [isConfirmDeleteModalVisible, setConfirmDeleteModalVisible] = useState(false);
+  const [isConfirmDeleteModalVisible, setConfirmDeleteModalVisible] =
+    useState(false);
   const [methodToDelete, setMethodToDelete] = useState<string | null>(null);
   const [selectedMethod, setSelectedMethod] = useState("Add Checking Account");
   const [isLoading, setIsLoading] = useState(true);
   const [showMonthPicker, setShowMonthPicker] = useState(false);
   const [showYearPicker, setShowYearPicker] = useState(false);
-  const [accountVerificationError, setAccountVerificationError] = useState<string | null>(null);
-  const [routingNumberError, setRoutingNumberError] = useState<string | null>(null);
-  const [accountNumberError, setAccountNumberError] = useState<string | null>(null);
+  const [accountVerificationError, setAccountVerificationError] = useState<
+    string | null
+  >(null);
+  const [routingNumberError, setRoutingNumberError] = useState<string | null>(
+    null
+  );
+  const [accountNumberError, setAccountNumberError] = useState<string | null>(
+    null
+  );
   const [paymentVerified, setPaymentVerified] = useState<boolean | null>(null);
   const [activeField, setActiveField] = useState<string | null>(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -216,6 +224,8 @@ const ManagePayments = () => {
     }
   };
 
+  // Configure toast settings globally
+
   const handleButtonPress = async () => {
     setIsSubmitted(true);
     setIsSubmitting(true); // Set submitting to true when submission starts
@@ -274,8 +284,7 @@ const ManagePayments = () => {
             token
           );
 
-        
-
+        // Inside your component or function
         if (paymentMethResp.type === "data") {
           Toast.show({
             type: "success",
@@ -287,30 +296,23 @@ const ManagePayments = () => {
         } else if (
           paymentMethResp.response &&
           typeof paymentMethResp.response === "object" &&
-          paymentMethResp.response.errorCode === ErrorCode.AdminPaymentMethodVerificationFailed
+          paymentMethResp.response.errorCode ===
+            ErrorCode.AdminPaymentMethodVerificationFailed
         ) {
-          setAccountVerificationError(
-            paymentMethResp.response.errorMessage || "Please enter a valid routing number and account number."
-          );
-          setPaymentVerified(false);
+          const errorMessage = paymentMethResp.response.errorMessage;
+          const formattedMessage = errorMessage.split(".").join("\n");
+
           Toast.show({
             type: "error",
             text1: "Error",
-            text2: "Please enter a valid routing number and account number.",
-          });
-        } else {
-          Toast.show({
-            type: "error",
-            text1: "Error",
-            text2: "There was an error while adding the payment method.",
+            text2: formattedMessage,
           });
         }
       } catch (error) {
-        console.error("Error adding payment method:", error);
         Toast.show({
           type: "error",
           text1: "Error",
-          text2: "An unexpected error occurred. Please try again.",
+          text2: "There was an error while adding the payment method.",
         });
       } finally {
         setIsSubmitting(false); // Reset submitting state
@@ -347,7 +349,10 @@ const ManagePayments = () => {
       paymentMethodData.firstName = firstName;
       paymentMethodData.lastName = lastName;
       paymentMethodData.zipCode = debitCardInputs.zip;
-      paymentMethodData.expirationDate = new Date(Number(expYear), Number(expMonth) - 1);
+      paymentMethodData.expirationDate = new Date(
+        Number(expYear),
+        Number(expMonth) - 1
+      );
       paymentMethodData.paymentMethodType = 3; // Example type for Debit
 
       // Reset properties not relevant to Debit Card
@@ -363,8 +368,8 @@ const ManagePayments = () => {
             isDefault,
             token
           );
-        
-          
+        console.log(paymentMethResp.response);
+
         if (paymentMethResp.type === "data") {
           Toast.show({
             type: "success",
@@ -376,34 +381,33 @@ const ManagePayments = () => {
         } else if (
           paymentMethResp.response &&
           typeof paymentMethResp.response === "object" &&
-          paymentMethResp.response.errorCode === ErrorCode.AdminPaymentMethodVerificationFailed
+          paymentMethResp.response.errorCode ===
+            ErrorCode.AdminPaymentMethodVerificationFailed
         ) {
+          // Split the error message into lines
+          const errorMessage = paymentMethResp.response.errorMessage;
+          const lines = errorMessage.split("."); // Split by newline character if available
+
+          // Join lines with a line break for display
+          const formattedMessage = lines.join("\n");
+
           Toast.show({
             type: "error",
             text1: "Error",
-            text2: "An error occurred while verifying the payment method.",
-          });
-        } else {
-          Toast.show({
-            type: "error",
-            text1: "Error",
-            text2: "There was an error while adding the payment method.",
+            text2: formattedMessage,
           });
         }
       } catch (error) {
-        console.error("Error adding payment method:", error);
         Toast.show({
           type: "error",
           text1: "Error",
-          text2: "An unexpected error occurred. Please try again.",
+          text2: "There was an error while adding the payment method.",
         });
       } finally {
         setIsSubmitting(false); // Reset submitting state
       }
     }
   };
-
-
 
   const resetFormInputs = () => {
     setRoutingNumber("");
@@ -632,14 +636,16 @@ const ManagePayments = () => {
                   placeholderTextColor={"#707073"}
                   onFocus={() => setActiveField("routingNumber")}
                 />
-                {isSubmitted && activeField === "routingNumber" && paymentVerified === false && (
-                  <Ionicons
-                    name="close-circle"
-                    size={24}
-                    color="red"
-                    style={styles.validationIcon}
-                  />
-                )}
+                {isSubmitted &&
+                  activeField === "routingNumber" &&
+                  paymentVerified === false && (
+                    <Ionicons
+                      name="close-circle"
+                      size={24}
+                      color="red"
+                      style={styles.validationIcon}
+                    />
+                  )}
                 {routingNumberError && (
                   <Text style={styles.errorText}>{routingNumberError}</Text>
                 )}
@@ -654,14 +660,16 @@ const ManagePayments = () => {
                   placeholderTextColor={"#707073"}
                   onFocus={() => setActiveField("accountNumber")}
                 />
-                {isSubmitted && activeField === "accountNumber" && paymentVerified === false && (
-                  <Ionicons
-                    name="close-circle"
-                    size={24}
-                    color="red"
-                    style={styles.validationIcon}
-                  />
-                )}
+                {isSubmitted &&
+                  activeField === "accountNumber" &&
+                  paymentVerified === false && (
+                    <Ionicons
+                      name="close-circle"
+                      size={24}
+                      color="red"
+                      style={styles.validationIcon}
+                    />
+                  )}
                 {accountNumberError && (
                   <Text style={styles.errorText}>{accountNumberError}</Text>
                 )}
@@ -852,7 +860,7 @@ const ManagePayments = () => {
               disabled={isSubmitting} // Disable button when submitting
             >
               <Text style={styles.submitButtonText}>
-                {isSubmitting ? "Submitting..." : "Submit"} 
+                {isSubmitting ? "Submitting..." : "Submit"}
               </Text>
             </TouchableOpacity>
           </View>
