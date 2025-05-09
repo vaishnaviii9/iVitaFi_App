@@ -322,7 +322,7 @@ const ManagePayments = () => {
       } finally {
         setIsSubmitting(false); // Reset submitting state
       }
-    } 
+    }
     //Debit card
     else if (selectedMethod === "Add Debit Card") {
       const { firstName, lastName, cardNumber, expMonth, expYear } =
@@ -366,6 +366,24 @@ const ManagePayments = () => {
       paymentMethodData.accountNumber = null;
       paymentMethodData.routingNumber = null;
 
+      // Check for duplicate card number
+      var checkCardNumber = savedMethods.filter((item) => "cardNumber" in item);
+      var record = checkCardNumber.filter((m) => m.cardNumber !== null);
+
+      var duplicateMethod = savedMethods.find(
+        (method) => method.cardNumber === cardNumber && !method.isDisabled
+      );
+
+      if (duplicateMethod) {
+        Toast.show({
+          type: "error",
+          text1: "Error",
+          text2: "Card Number Already exists.",
+        });
+        setIsSubmitting(false); // Reset submitting state
+        return;
+      }
+
       try {
         const paymentMethResp =
           await updateCreditAccountPaymentMethodWithDefaultPaymentMethodAsync(
@@ -376,8 +394,7 @@ const ManagePayments = () => {
             token
           );
 
-
-    if (paymentMethResp.type === "data") {
+        if (paymentMethResp.type === "data") {
           Toast.show({
             type: "success",
             text1: "Success",
