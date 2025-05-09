@@ -369,7 +369,7 @@ const ManagePayments = () => {
         Toast.show({
           type: "error",
           text1: "Error",
-          text2: "The debit card has expired.",
+          text2: "The debit card you entered has expired. Please update your payment details.",
         });
         setIsSubmitting(false); // Reset submitting state
         return;
