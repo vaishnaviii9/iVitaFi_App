@@ -87,6 +87,18 @@ const ManagePayments = () => {
     { label: "12 - Dec", value: "12" },
   ];
 
+  // Function to check if the card is expired
+  const isCardExpired = (expMonth: string, expYear: string): boolean => {
+    const currentDate = new Date();
+    const expirationDate = new Date(Number(expYear), Number(expMonth) - 1);
+
+    // Set the expiration date to the last day of the month
+    expirationDate.setMonth(expirationDate.getMonth() + 1, 0);
+    expirationDate.setHours(23, 59, 59, 999);
+
+    return currentDate > expirationDate;
+  };
+
   // Define fetchData function outside of useEffect
   const fetchData = async () => {
     try {
@@ -350,6 +362,19 @@ const ManagePayments = () => {
         return;
       }
 
+      // Check if the card is expired
+      const debitExpirationMonthError = isCardExpired(expMonth, expYear);
+
+      if (debitExpirationMonthError) {
+        Toast.show({
+          type: "error",
+          text1: "Error",
+          text2: "The debit card has expired.",
+        });
+        setIsSubmitting(false); // Reset submitting state
+        return;
+      }
+
       // Populate paymentMethodData for Debit Card
       paymentMethodData.cardNumber = cardNumber;
       paymentMethodData.securityCode = debitCardInputs.cvv;
@@ -453,23 +478,22 @@ const ManagePayments = () => {
   // Utility Functions
   const getLast4Digits = (val: string | null) => (val ? val.slice(-4) : "");
 
-  const formatCardExpiryStatus = (expirationDateStr: string): string => {
-    if (!expirationDateStr) return "";
+ const formatCardExpiryStatus = (expirationDateStr: string): string => {
+  if (!expirationDateStr) return "";
 
-    const today = new Date();
-    const expirationDate = new Date(expirationDateStr);
-    expirationDate.setDate(expirationDate.getDate() + 1);
-    expirationDate.setHours(23, 59, 59, 999);
+  const today = new Date();
+  const expirationDate = new Date(expirationDateStr);
 
-    const formattedDate = expirationDate.toLocaleDateString("en-US", {
-      month: "2-digit",
-      year: "2-digit",
-    });
+  // Format the expiration date as MM/YY
+  const formattedMonth = expirationDate.getMonth() + 1; // Months are 0-indexed
+  const formattedYear = expirationDate.getFullYear().toString().slice(-2); // Get last two digits of the year
+  const formattedDate = `${formattedMonth.toString().padStart(2, '0')}/${formattedYear}`;
 
-    return expirationDate < today
-      ? `Expired - ${formattedDate}`
-      : `Valid Thru - ${formattedDate}`;
-  };
+  return expirationDate < today
+    ? `Expired - ${formattedDate}`
+    : `Valid Thru - ${formattedDate}`;
+};
+
 
   const handleMonthChange = (value: string) => {
     setDebitCardInputs((prev) => ({ ...prev, expMonth: value }));
@@ -694,9 +718,6 @@ const ManagePayments = () => {
                   <Text style={styles.errorText}>{accountNumberError}</Text>
                 )}
               </View>
-              {/* {accountVerificationError && (
-                <Text style={styles.errorText}>{accountVerificationError}</Text>
-              )} */}
             </>
           )}
           {selectedMethod === "Add Debit Card" && (
