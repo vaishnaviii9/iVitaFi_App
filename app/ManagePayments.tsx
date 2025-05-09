@@ -62,6 +62,7 @@ const ManagePayments = () => {
   const [paymentVerified, setPaymentVerified] = useState<boolean | null>(null);
   const [activeField, setActiveField] = useState<string | null>(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false); // New state for submission status
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 11 }, (_, i) => currentYear + i);
   const months = [
@@ -217,6 +218,8 @@ const ManagePayments = () => {
 
   const handleButtonPress = async () => {
     setIsSubmitted(true);
+    setIsSubmitting(true); // Set submitting to true when submission starts
+
     const paymentMethodData = {
       accountNumber: null as string | null,
       routingNumber: null as string | null,
@@ -239,10 +242,12 @@ const ManagePayments = () => {
 
       if (duplicateMethod) {
         setAccountVerificationError("Account Number Already exists.");
+        setIsSubmitting(false); // Reset submitting state
         return;
       }
 
       if (routingNumberError || accountNumberError) {
+        setIsSubmitting(false); // Reset submitting state
         return;
       }
 
@@ -307,6 +312,8 @@ const ManagePayments = () => {
           text1: "Error",
           text2: "An unexpected error occurred. Please try again.",
         });
+      } finally {
+        setIsSubmitting(false); // Reset submitting state
       }
     } else if (selectedMethod === "Add Debit Card") {
       const { firstName, lastName, cardNumber, expMonth, expYear } =
@@ -317,10 +324,12 @@ const ManagePayments = () => {
           "Validation Error",
           "First name and last name must have at least 2 characters."
         );
+        setIsSubmitting(false); // Reset submitting state
         return;
       }
       if (cardNumber.length !== 16) {
         Alert.alert("Validation Error", "Card number must be 16 digits.");
+        setIsSubmitting(false); // Reset submitting state
         return;
       }
       if (!expMonth || !expYear) {
@@ -328,6 +337,7 @@ const ManagePayments = () => {
           "Validation Error",
           "Please select expiration month and year."
         );
+        setIsSubmitting(false); // Reset submitting state
         return;
       }
 
@@ -386,6 +396,8 @@ const ManagePayments = () => {
           text1: "Error",
           text2: "An unexpected error occurred. Please try again.",
         });
+      } finally {
+        setIsSubmitting(false); // Reset submitting state
       }
     }
   };
@@ -630,6 +642,7 @@ const ManagePayments = () => {
                   onChangeText={handleRoutingNumberChange}
                   style={styles.inputField}
                   placeholderTextColor={"#707073"}
+                  onFocus={() => setActiveField("routingNumber")}
                 />
                 {isSubmitted && activeField === "routingNumber" && paymentVerified === false && (
                   <Ionicons
@@ -651,6 +664,7 @@ const ManagePayments = () => {
                   onChangeText={handleAccountNumberChange}
                   style={styles.inputField}
                   placeholderTextColor={"#707073"}
+                  onFocus={() => setActiveField("accountNumber")}
                 />
                 {isSubmitted && activeField === "accountNumber" && paymentVerified === false && (
                   <Ionicons
@@ -847,8 +861,11 @@ const ManagePayments = () => {
             <TouchableOpacity
               style={styles.submitButton}
               onPress={handleButtonPress}
+              disabled={isSubmitting} // Disable button when submitting
             >
-              <Text style={styles.submitButtonText}>Submit</Text>
+              <Text style={styles.submitButtonText}>
+                {isSubmitting ? "Submitting..." : "Submit"} 
+              </Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
@@ -858,7 +875,5 @@ const ManagePayments = () => {
     </KeyboardAvoidingView>
   );
 };
-
-
 
 export default ManagePayments;
