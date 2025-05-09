@@ -274,7 +274,7 @@ const ManagePayments = () => {
             token
           );
 
-        console.log("API Response:", paymentMethResp);
+        
 
         if (paymentMethResp.type === "data") {
           Toast.show({
@@ -363,7 +363,8 @@ const ManagePayments = () => {
             isDefault,
             token
           );
-
+        
+          
         if (paymentMethResp.type === "data") {
           Toast.show({
             type: "success",
@@ -402,20 +403,7 @@ const ManagePayments = () => {
     }
   };
 
-  const logCheckingAccountInputs = () => {
-    console.log("Checking Account Inputs:", {
-      routingNumber,
-      accountNumber,
-      isDefault,
-    });
-  };
 
-  const logDebitCardInputs = () => {
-    console.log("Debit Card Inputs:", {
-      debitCardInputs,
-      isDefault,
-    });
-  };
 
   const resetFormInputs = () => {
     setRoutingNumber("");
