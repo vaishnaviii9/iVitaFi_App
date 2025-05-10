@@ -69,7 +69,7 @@ const ManagePayments = () => {
   const [paymentVerified, setPaymentVerified] = useState<boolean | null>(null);
   const [activeField, setActiveField] = useState<string | null>(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false); // New state for submission status
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 11 }, (_, i) => currentYear + i);
   const months = [
@@ -92,7 +92,6 @@ const ManagePayments = () => {
     const currentDate = new Date();
     const expirationDate = new Date(Number(expYear), Number(expMonth) - 1);
 
-    // Set the expiration date to the last day of the month
     expirationDate.setMonth(expirationDate.getMonth() + 1, 0);
     expirationDate.setHours(23, 59, 59, 999);
 
@@ -217,10 +216,9 @@ const ManagePayments = () => {
     setActiveField("routingNumber");
     setRoutingNumber(text);
     setPaymentVerified(null);
+    setRoutingNumberError(null); // Clear error when user updates the field
     if (!/^[0-9]{9}$/.test(text)) {
       setRoutingNumberError("Please enter your bank's 9 digit routing number.");
-    } else {
-      setRoutingNumberError(null);
     }
   };
 
@@ -228,16 +226,15 @@ const ManagePayments = () => {
     setActiveField("accountNumber");
     setAccountNumber(text);
     setPaymentVerified(null);
+    setAccountNumberError(null); // Clear error when user updates the field
     if (!/^[0-9]{5,17}$/.test(text)) {
       setAccountNumberError("Please enter your bank account number.");
-    } else {
-      setAccountNumberError(null);
     }
   };
 
   const handleButtonPress = async () => {
     setIsSubmitted(true);
-    setIsSubmitting(true); // Set submitting to true when submission starts
+    setIsSubmitting(true);
 
     const paymentMethodData = {
       accountNumber: null as string | null,
@@ -261,21 +258,19 @@ const ManagePayments = () => {
 
       if (duplicateMethod) {
         setAccountVerificationError("Account Number Already exists.");
-        setIsSubmitting(false); // Reset submitting state
+        setIsSubmitting(false);
         return;
       }
 
       if (routingNumberError || accountNumberError) {
-        setIsSubmitting(false); // Reset submitting state
+        setIsSubmitting(false);
         return;
       }
 
-      // Populate paymentMethodData for ACH
       paymentMethodData.accountNumber = accountNumber;
       paymentMethodData.routingNumber = routingNumber;
-      paymentMethodData.paymentMethodType = 1; // Example type for ACH
+      paymentMethodData.paymentMethodType = 1;
 
-      // Reset properties not relevant to ACH
       paymentMethodData.cardNumber = null;
       paymentMethodData.securityCode = null;
       paymentMethodData.firstName = null;
@@ -312,6 +307,8 @@ const ManagePayments = () => {
               "Please enter a valid routing number and account number."
           );
           setPaymentVerified(false);
+          setRoutingNumberError("Invalid routing number.");
+          setAccountNumberError("Invalid account number.");
           Toast.show({
             type: "error",
             text1: "Error",
@@ -332,11 +329,9 @@ const ManagePayments = () => {
           text2: "An unexpected error occurred. Please try again.",
         });
       } finally {
-        setIsSubmitting(false); // Reset submitting state
+        setIsSubmitting(false);
       }
-    }
-    //Debit card
-    else if (selectedMethod === "Add Debit Card") {
+    } else if (selectedMethod === "Add Debit Card") {
       const { firstName, lastName, cardNumber, expMonth, expYear } =
         debitCardInputs;
 
@@ -345,12 +340,12 @@ const ManagePayments = () => {
           "Validation Error",
           "First name and last name must have at least 2 characters."
         );
-        setIsSubmitting(false); // Reset submitting state
+        setIsSubmitting(false);
         return;
       }
       if (cardNumber.length !== 16) {
         Alert.alert("Validation Error", "Card number must be 16 digits.");
-        setIsSubmitting(false); // Reset submitting state
+        setIsSubmitting(false);
         return;
       }
       if (!expMonth || !expYear) {
@@ -358,11 +353,10 @@ const ManagePayments = () => {
           "Validation Error",
           "Please select expiration month and year."
         );
-        setIsSubmitting(false); // Reset submitting state
+        setIsSubmitting(false);
         return;
       }
 
-      // Check if the card is expired
       const debitExpirationMonthError = isCardExpired(expMonth, expYear);
 
       if (debitExpirationMonthError) {
@@ -371,11 +365,10 @@ const ManagePayments = () => {
           text1: "Error",
           text2: "The debit card you entered has expired. Please update your payment details.",
         });
-        setIsSubmitting(false); // Reset submitting state
+        setIsSubmitting(false);
         return;
       }
 
-      // Populate paymentMethodData for Debit Card
       paymentMethodData.cardNumber = cardNumber;
       paymentMethodData.securityCode = debitCardInputs.cvv;
       paymentMethodData.firstName = firstName;
@@ -385,15 +378,10 @@ const ManagePayments = () => {
         Number(expYear),
         Number(expMonth) - 1
       );
-      paymentMethodData.paymentMethodType = 3; // Example type for Debit
+      paymentMethodData.paymentMethodType = 3;
 
-      // Reset properties not relevant to Debit Card
       paymentMethodData.accountNumber = null;
       paymentMethodData.routingNumber = null;
-
-      // Check for duplicate card number
-      var checkCardNumber = savedMethods.filter((item) => "cardNumber" in item);
-      var record = checkCardNumber.filter((m) => m.cardNumber !== null);
 
       var duplicateMethod = savedMethods.find(
         (method) => method.cardNumber === cardNumber && !method.isDisabled
@@ -405,7 +393,7 @@ const ManagePayments = () => {
           text1: "Error",
           text2: "Card Number Already exists.",
         });
-        setIsSubmitting(false); // Reset submitting state
+        setIsSubmitting(false);
         return;
       }
 
@@ -449,7 +437,7 @@ const ManagePayments = () => {
           text2: "There was an error while adding the payment method.",
         });
       } finally {
-        setIsSubmitting(false); // Reset submitting state
+        setIsSubmitting(false);
       }
     }
   };
@@ -475,25 +463,22 @@ const ManagePayments = () => {
     setIsSubmitted(false);
   };
 
-  // Utility Functions
   const getLast4Digits = (val: string | null) => (val ? val.slice(-4) : "");
 
- const formatCardExpiryStatus = (expirationDateStr: string): string => {
-  if (!expirationDateStr) return "";
+  const formatCardExpiryStatus = (expirationDateStr: string): string => {
+    if (!expirationDateStr) return "";
 
-  const today = new Date();
-  const expirationDate = new Date(expirationDateStr);
+    const today = new Date();
+    const expirationDate = new Date(expirationDateStr);
 
-  // Format the expiration date as MM/YY
-  const formattedMonth = expirationDate.getMonth() + 1; // Months are 0-indexed
-  const formattedYear = expirationDate.getFullYear().toString().slice(-2); // Get last two digits of the year
-  const formattedDate = `${formattedMonth.toString().padStart(2, '0')}/${formattedYear}`;
+    const formattedMonth = expirationDate.getMonth() + 1;
+    const formattedYear = expirationDate.getFullYear().toString().slice(-2);
+    const formattedDate = `${formattedMonth.toString().padStart(2, '0')}/${formattedYear}`;
 
-  return expirationDate < today
-    ? `Expired - ${formattedDate}`
-    : `Valid Thru - ${formattedDate}`;
-};
-
+    return expirationDate < today
+      ? `Expired - ${formattedDate}`
+      : `Valid Thru - ${formattedDate}`;
+  };
 
   const handleMonthChange = (value: string) => {
     setDebitCardInputs((prev) => ({ ...prev, expMonth: value }));
@@ -515,7 +500,6 @@ const ManagePayments = () => {
     setShowMonthPicker(false);
   };
 
-  // Render Function
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -676,20 +660,13 @@ const ManagePayments = () => {
                   placeholder="Enter routing number"
                   value={routingNumber}
                   onChangeText={handleRoutingNumberChange}
-                  style={styles.inputField}
+                  style={[
+                    styles.inputField,
+                    (isSubmitted && routingNumberError) && styles.inputFieldError,
+                  ]}
                   placeholderTextColor={"#707073"}
                   onFocus={() => setActiveField("routingNumber")}
                 />
-                {isSubmitted &&
-                  activeField === "routingNumber" &&
-                  paymentVerified === false && (
-                    <Ionicons
-                      name="close-circle"
-                      size={24}
-                      color="red"
-                      style={styles.validationIcon}
-                    />
-                  )}
                 {routingNumberError && (
                   <Text style={styles.errorText}>{routingNumberError}</Text>
                 )}
@@ -700,20 +677,13 @@ const ManagePayments = () => {
                   placeholder="Enter account number"
                   value={accountNumber}
                   onChangeText={handleAccountNumberChange}
-                  style={styles.inputField}
+                  style={[
+                    styles.inputField,
+                    (isSubmitted && accountNumberError) && styles.inputFieldError,
+                  ]}
                   placeholderTextColor={"#707073"}
                   onFocus={() => setActiveField("accountNumber")}
                 />
-                {isSubmitted &&
-                  activeField === "accountNumber" &&
-                  paymentVerified === false && (
-                    <Ionicons
-                      name="close-circle"
-                      size={24}
-                      color="red"
-                      style={styles.validationIcon}
-                    />
-                  )}
                 {accountNumberError && (
                   <Text style={styles.errorText}>{accountNumberError}</Text>
                 )}
@@ -876,7 +846,7 @@ const ManagePayments = () => {
                   style={styles.inputField}
                   placeholderTextColor={"#707073"}
                   keyboardType="numeric"
-                  maxLength={5} // Restrict input to 5 digits
+                  maxLength={5}
                 />
                 {debitCardInputs.zip.length > 0 &&
                   debitCardInputs.zip.length < 5 && (
@@ -905,7 +875,7 @@ const ManagePayments = () => {
             <TouchableOpacity
               style={styles.submitButton}
               onPress={handleButtonPress}
-              disabled={isSubmitting} // Disable button when submitting
+              disabled={isSubmitting}
             >
               <Text style={styles.submitButtonText}>
                 {isSubmitting ? "Submitting..." : "Submit"}

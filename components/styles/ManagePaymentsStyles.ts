@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
- 
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -125,6 +125,9 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     paddingHorizontal: 10,
     color: "#707073",
+  },
+  inputFieldError: {
+    borderColor: "red",
   },
   defaultPaymentMethodContainer: {
     flexDirection: "row",
@@ -280,13 +283,6 @@ const styles = StyleSheet.create({
     color: '#000000', // Ensure picker item text is white
     fontSize: 20,
   },
-  validationIcon: {
-    position: "absolute",
-    top: "50%",
-    right: 10,
-    transform: [{ translateY: -12 }],
-  },
 });
- 
+
 export default styles;
- 
