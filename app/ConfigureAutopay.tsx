@@ -20,6 +20,9 @@ const ConfigureAutopay = () => {
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
+  const [isPaymentMethodExpanded, setIsPaymentMethodExpanded] = useState(false);
+  const [isPaymentFrequencyExpanded, setIsPaymentFrequencyExpanded] = useState(false);
+  const [isDayOfWeekExpanded, setIsDayOfWeekExpanded] = useState(false);
 
   return (
     <View style={styles.container}>
@@ -35,18 +38,20 @@ const ConfigureAutopay = () => {
         <View style={styles.content}>
           <View style={styles.formContainer}>
             <Text style={styles.helpText}>Payment Method</Text>
-            <View style={styles.pickerContainer}>
-              <Picker
-                selectedValue={paymentMethod}
-                style={styles.picker}
-                itemStyle={styles.pickerItem}
-                onValueChange={(itemValue) => setPaymentMethod(itemValue)}
-              >
-                <Picker.Item label="Add Debit Card" value="Add Debit Card" />
-                <Picker.Item label="Add Checking Account" value="Add Checking Account" />
-                <Picker.Item label="Debit card -5566" value="Debit card -5566" />
-              </Picker>
-            </View>
+            <TouchableOpacity onPress={() => setIsPaymentMethodExpanded(!isPaymentMethodExpanded)}>
+              <View style={[styles.pickerContainer, { height: isPaymentMethodExpanded ? 180 : 50 }]}>
+                <Picker
+                  selectedValue={paymentMethod}
+                  style={styles.picker}
+                  itemStyle={styles.pickerItem}
+                  onValueChange={(itemValue) => setPaymentMethod(itemValue)}
+                >
+                  <Picker.Item label="Add Debit Card" value="Add Debit Card" />
+                  <Picker.Item label="Add Checking Account" value="Add Checking Account" />
+                  <Picker.Item label="Debit card -5566" value="Debit card -5566" />
+                </Picker>
+              </View>
+            </TouchableOpacity>
 
             <Text style={styles.helpText}>Routing Number</Text>
             <TextInput
@@ -68,36 +73,40 @@ const ConfigureAutopay = () => {
             </TouchableOpacity>
 
             <Text style={styles.helpText}>Payment will be</Text>
-            <View style={styles.pickerContainer}>
-              <Picker
-                selectedValue={paymentFrequency}
-                style={styles.picker}
-                itemStyle={styles.pickerItem}
-                onValueChange={(itemValue) => setPaymentFrequency(itemValue)}
-              >
-                <Picker.Item label="Select" value="Select" />
-                <Picker.Item label="Weekly" value="Weekly" />
-                <Picker.Item label="Every Two Weeks" value="Every Two Weeks" />
-                <Picker.Item label="Twice per Month" value="Twice per Month" />
-                <Picker.Item label="Monthly" value="Monthly" />
-              </Picker>
-            </View>
+            <TouchableOpacity onPress={() => setIsPaymentFrequencyExpanded(!isPaymentFrequencyExpanded)}>
+              <View style={[styles.pickerContainer, { height: isPaymentFrequencyExpanded ? 180 : 50 }]}>
+                <Picker
+                  selectedValue={paymentFrequency}
+                  style={styles.picker}
+                  itemStyle={styles.pickerItem}
+                  onValueChange={(itemValue) => setPaymentFrequency(itemValue)}
+                >
+                  <Picker.Item label="Select" value="Select" />
+                  <Picker.Item label="Weekly" value="Weekly" />
+                  <Picker.Item label="Every Two Weeks" value="Every Two Weeks" />
+                  <Picker.Item label="Twice per Month" value="Twice per Month" />
+                  <Picker.Item label="Monthly" value="Monthly" />
+                </Picker>
+              </View>
+            </TouchableOpacity>
 
             <Text style={styles.helpText}>Day of Week</Text>
-            <View style={styles.pickerContainer}>
-              <Picker
-                selectedValue={dayOfWeek}
-                style={styles.picker}
-                itemStyle={styles.pickerItem}
-                onValueChange={(itemValue) => setDayOfWeek(itemValue)}
-              >
-                <Picker.Item label="Monday" value="Monday" />
-                <Picker.Item label="Tuesday" value="Tuesday" />
-                <Picker.Item label="Wednesday" value="Wednesday" />
-                <Picker.Item label="Thursday" value="Thursday" />
-                <Picker.Item label="Friday" value="Friday" />
-              </Picker>
-            </View>
+            <TouchableOpacity onPress={() => setIsDayOfWeekExpanded(!isDayOfWeekExpanded)}>
+              <View style={[styles.pickerContainer, { height: isDayOfWeekExpanded ? 180 : 50 }]}>
+                <Picker
+                  selectedValue={dayOfWeek}
+                  style={styles.picker}
+                  itemStyle={styles.pickerItem}
+                  onValueChange={(itemValue) => setDayOfWeek(itemValue)}
+                >
+                  <Picker.Item label="Monday" value="Monday" />
+                  <Picker.Item label="Tuesday" value="Tuesday" />
+                  <Picker.Item label="Wednesday" value="Wednesday" />
+                  <Picker.Item label="Thursday" value="Thursday" />
+                  <Picker.Item label="Friday" value="Friday" />
+                </Picker>
+              </View>
+            </TouchableOpacity>
 
             <Text style={styles.helpText}>Payment Amount</Text>
             <TextInput
