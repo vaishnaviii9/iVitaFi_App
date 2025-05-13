@@ -43,22 +43,31 @@ export const styles = StyleSheet.create({
     marginBottom: 15,
     backgroundColor: '#f9f9f9',
   },
+ pickerWrapper: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 6,
+    overflow: 'hidden',
+    height: 40,
+    justifyContent: 'center',
+    backgroundColor: '#fff',
+  },
   pickerContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+  },
+  pickerText: {
+    fontSize: 16,
+    color: '#707073',
+  },
+  picker: {
     borderRadius: 15,
     height: 180,
     width: '100%',
     backgroundColor: '#c5c5c8',
-    marginBottom: 15,
-    overflow: 'hidden',
-  },
-  picker: {
-    height: 180,
     color: '#fff',
-    ...Platform.select({
-      ios: {
-        paddingVertical: 0,
-      },
-    }),
   },
   pickerItem: {
     color: '#000000',
