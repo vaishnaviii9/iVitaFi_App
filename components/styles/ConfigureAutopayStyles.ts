@@ -7,11 +7,12 @@ export const styles = StyleSheet.create({
   },
   headerContainer: {
     backgroundColor: "#27446F",
-    paddingVertical: 30,
+    paddingTop: Platform.OS === 'ios' ? 50 : 30,
+    paddingBottom: 30,
     paddingHorizontal: 20,
     borderBottomLeftRadius: 60,
     borderBottomRightRadius: 60,
-    height: 130,
+    height: Platform.OS === 'ios' ? 150 : 130,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
@@ -43,14 +44,41 @@ export const styles = StyleSheet.create({
     marginBottom: 15,
     backgroundColor: '#f9f9f9',
   },
- pickerWrapper: {
+  pickerWrapper: {
     borderWidth: 1,
     borderColor: '#ccc',
     borderRadius: 6,
-    overflow: 'hidden',
-    height: 40,
-    justifyContent: 'center',
-    backgroundColor: '#fff',
+    marginBottom: 15,
+    backgroundColor: '#f9f9f9',
+    overflow: Platform.OS === 'android' ? 'hidden' : 'visible',
+    ...Platform.select({
+      ios: {
+        height: 40,
+        justifyContent: 'center',
+        backgroundColor: '#fff',
+      },
+    }),
+  },
+  iosPicker: {
+    ...Platform.select({
+      ios: {
+        height: 200,
+        marginTop: 8,
+        width: '100%',
+        color: '#000000',
+        backgroundColor: '#f9f9f9',
+        borderWidth: 1,
+        borderColor: '#ccc',
+        borderRadius: 6,
+        zIndex: 1000,
+        position: 'relative',
+      },
+    }),
+  },
+  androidPicker: {
+    height: 50,
+    width: '100%',
+    color: '#000000',
   },
   pickerContainer: {
     flexDirection: 'row',
@@ -62,12 +90,16 @@ export const styles = StyleSheet.create({
     fontSize: 16,
     color: '#707073',
   },
-  picker: {
-    borderRadius: 15,
-    height: 180,
-    width: '100%',
-    backgroundColor: '#c5c5c8',
-    color: '#fff',
+  pickerDisplayContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    height: 40,
+  },
+  pickerDisplayText: {
+    fontSize: 16,
+    color: '#000000',
   },
   pickerItem: {
     color: '#000000',
@@ -80,6 +112,21 @@ export const styles = StyleSheet.create({
   helpLink: {
     color: '#27446F',
     marginBottom: 15,
+  },
+  datePickerButton: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    height: 50,
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 5,
+    paddingHorizontal: 10,
+    marginBottom: 15,
+    backgroundColor: '#f9f9f9',
+  },
+  dateText: {
+    color: '#000000',
   },
   submitButton: {
     backgroundColor: '#27446F',

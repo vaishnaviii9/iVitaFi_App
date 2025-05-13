@@ -6,13 +6,14 @@ import {
   TextInput,
   ScrollView,
   Modal,
+  Platform,
   Pressable,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { FontAwesome, Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { styles } from "../components/styles/ConfigureAutopayStyles";
+import { styles } from '../components/styles/ConfigureAutopayStyles';
 
 const handleBackPress = () => {
   router.push("/(tabs)/Home");
@@ -28,20 +29,80 @@ const ConfigureAutopay = () => {
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
-  const [isPaymentMethodExpanded, setIsPaymentMethodExpanded] = useState(false);
-  const [isPaymentFrequencyExpanded, setIsPaymentFrequencyExpanded] = useState(false);
-  const [isDayOfWeekExpanded, setIsDayOfWeekExpanded] = useState(false);
+  
+  // Added states to control iOS picker visibility
+  const [showPaymentMethodPicker, setShowPaymentMethodPicker] = useState(false);
+  const [showFrequencyPicker, setShowFrequencyPicker] = useState(false);
+  const [showDayPicker, setShowDayPicker] = useState(false);
 
   const toggleDatePicker = () => {
-    setShowDatePicker(!showDatePicker);
+    if (Platform.OS === 'android') {
+      setShowDatePicker(true);
+    } else {
+      setShowDatePicker(!showDatePicker);
+    }
   };
 
-  const onChange = ({ type }: any, selectedDate: any) => {
-    if (type == "set") {
-      const currentDate = selectedDate;
-      setDate(currentDate);
-    } else {
-      toggleDatePicker();
+  const onChange = (_event: any, selectedDate?: Date) => {
+    if (Platform.OS === 'android') {
+      setShowDatePicker(false);
+    }
+  
+    if (selectedDate) {
+      setDate(selectedDate);
+    }
+  };
+
+  // Functions to handle iOS picker value changes with auto-close
+  const handlePaymentMethodChange = (value: React.SetStateAction<string>) => {
+    setPaymentMethod(value);
+    if (Platform.OS === 'ios') {
+      setTimeout(() => {
+        setShowPaymentMethodPicker(false);
+      }, 0);
+    }
+  };
+
+  const handleFrequencyChange = (value: React.SetStateAction<string>) => {
+    setPaymentFrequency(value);
+    if (Platform.OS === 'ios') {
+      setTimeout(() => {
+        setShowFrequencyPicker(false);
+      }, 0);
+    }
+  };
+
+  const handleDayChange = (value: React.SetStateAction<string>) => {
+    setDayOfWeek(value);
+    if (Platform.OS === 'ios') {
+      setTimeout(() => {
+        setShowDayPicker(false);
+      }, 0);
+    }
+  };
+
+  // Reset all other picker visibility when opening a new one (iOS only)
+  const openPaymentMethodPicker = () => {
+    if (Platform.OS === 'ios') {
+      setShowFrequencyPicker(false);
+      setShowDayPicker(false);
+      setShowPaymentMethodPicker(!showPaymentMethodPicker);
+    }
+  };
+
+  const openFrequencyPicker = () => {
+    if (Platform.OS === 'ios') {
+      setShowPaymentMethodPicker(false);
+      setShowDayPicker(false);
+      setShowFrequencyPicker(!showFrequencyPicker);
+    }
+  };
+
+  const openDayPicker = () => {
+    if (Platform.OS === 'ios') {
+      setShowPaymentMethodPicker(false);
+      setShowFrequencyPicker(false);
+      setShowDayPicker(!showDayPicker);
     }
   };
 
@@ -59,31 +120,43 @@ const ConfigureAutopay = () => {
         <View style={styles.content}>
           <View style={styles.formContainer}>
             <Text style={styles.helpText}>Payment Method</Text>
-            <TouchableOpacity
-              style={styles.pickerWrapper}
-              onPress={() => setIsPaymentMethodExpanded(!isPaymentMethodExpanded)}
-            >
-              <View style={styles.pickerContainer}>
-                <Text style={styles.pickerText}>
-                  {paymentMethod || "Select Payment Method"}
-                </Text>
-                <FontAwesome name="caret-down" size={16} color="#000" />
+            {Platform.OS === 'ios' ? (
+              <>
+                <Pressable onPress={openPaymentMethodPicker}>
+                  <View style={styles.pickerWrapper}>
+                    <View style={styles.pickerDisplayContainer}>
+                      <Text style={styles.pickerDisplayText}>{paymentMethod}</Text>
+                      <FontAwesome name="chevron-down" size={14} color="#27446F" />
+                    </View>
+                  </View>
+                </Pressable>
+                {showPaymentMethodPicker && (
+                  <View style={{ zIndex: 1000, position: 'relative' }}>
+                    <Picker
+                      selectedValue={paymentMethod}
+                      onValueChange={handlePaymentMethodChange}
+                      style={styles.iosPicker}
+                    >
+                      <Picker.Item label="Add Debit Card" value="Add Debit Card" />
+                      <Picker.Item label="Add Checking Account" value="Add Checking Account" />
+                      <Picker.Item label="Debit card -5566" value="Debit card -5566" />
+                    </Picker>
+                  </View>
+                )}
+              </>
+            ) : (
+              <View style={styles.pickerWrapper}>
+                <Picker
+                  selectedValue={paymentMethod}
+                  onValueChange={setPaymentMethod}
+                  style={styles.androidPicker}
+                  dropdownIconColor="#000000"
+                >
+                  <Picker.Item label="Add Debit Card" value="Add Debit Card" />
+                  <Picker.Item label="Add Checking Account" value="Add Checking Account" />
+                  <Picker.Item label="Debit card -5566" value="Debit card -5566" />
+                </Picker>
               </View>
-            </TouchableOpacity>
-            {isPaymentMethodExpanded && (
-              <Picker
-                selectedValue={paymentMethod}
-                onValueChange={(itemValue) => {
-                  setPaymentMethod(itemValue);
-                  setIsPaymentMethodExpanded(false);
-                }}
-                style={styles.picker}
-                itemStyle={styles.pickerItem}
-              >
-                <Picker.Item label="Add Debit Card" value="Add Debit Card" />
-                <Picker.Item label="Add Checking Account" value="Add Checking Account" />
-                <Picker.Item label="Debit card -5566" value="Debit card -5566" />
-              </Picker>
             )}
 
             <Text style={styles.helpText}>Routing Number</Text>
@@ -92,6 +165,7 @@ const ConfigureAutopay = () => {
               placeholder="Enter routing number"
               value={routingNumber}
               onChangeText={setRoutingNumber}
+              keyboardType="numeric"
             />
 
             <Text style={styles.helpText}>Account Number</Text>
@@ -100,6 +174,7 @@ const ConfigureAutopay = () => {
               placeholder="Enter account number"
               value={accountNumber}
               onChangeText={setAccountNumber}
+              keyboardType="numeric"
             />
             <TouchableOpacity onPress={() => setModalVisible(true)}>
               <Text style={styles.helpLink}>
@@ -108,63 +183,91 @@ const ConfigureAutopay = () => {
             </TouchableOpacity>
 
             <Text style={styles.helpText}>Payment will be</Text>
-            <TouchableOpacity
-              style={styles.pickerWrapper}
-              onPress={() => setIsPaymentFrequencyExpanded(!isPaymentFrequencyExpanded)}
-            >
-              <View style={styles.pickerContainer}>
-                <Text style={styles.pickerText}>
-                  {paymentFrequency || "Select Frequency"}
-                </Text>
-                <FontAwesome name="caret-down" size={16} color="#000" />
+            {Platform.OS === 'ios' ? (
+              <>
+                <Pressable onPress={openFrequencyPicker}>
+                  <View style={styles.pickerWrapper}>
+                    <View style={styles.pickerDisplayContainer}>
+                      <Text style={styles.pickerDisplayText}>{paymentFrequency}</Text>
+                      <FontAwesome name="chevron-down" size={14} color="#27446F" />
+                    </View>
+                  </View>
+                </Pressable>
+                {showFrequencyPicker && (
+                  <View style={{ zIndex: 1000, position: 'relative' }}>
+                    <Picker
+                      selectedValue={paymentFrequency}
+                      onValueChange={handleFrequencyChange}
+                      style={styles.iosPicker}
+                    >
+                      <Picker.Item label="Select" value="Select" />
+                      <Picker.Item label="Weekly" value="Weekly" />
+                      <Picker.Item label="Every Two Weeks" value="Every Two Weeks" />
+                      <Picker.Item label="Twice per Month" value="Twice per Month" />
+                      <Picker.Item label="Monthly" value="Monthly" />
+                    </Picker>
+                  </View>
+                )}
+              </>
+            ) : (
+              <View style={styles.pickerWrapper}>
+                <Picker
+                  selectedValue={paymentFrequency}
+                  onValueChange={setPaymentFrequency}
+                  style={styles.androidPicker}
+                  dropdownIconColor="#000000"
+                >
+                  <Picker.Item label="Select" value="Select" />
+                  <Picker.Item label="Weekly" value="Weekly" />
+                  <Picker.Item label="Every Two Weeks" value="Every Two Weeks" />
+                  <Picker.Item label="Twice per Month" value="Twice per Month" />
+                  <Picker.Item label="Monthly" value="Monthly" />
+                </Picker>
               </View>
-            </TouchableOpacity>
-            {isPaymentFrequencyExpanded && (
-              <Picker
-                selectedValue={paymentFrequency}
-                onValueChange={(itemValue) => {
-                  setPaymentFrequency(itemValue);
-                  setIsPaymentFrequencyExpanded(false);
-                }}
-                style={styles.picker}
-                itemStyle={styles.pickerItem}
-              >
-                <Picker.Item label="Select" value="Select" />
-                <Picker.Item label="Weekly" value="Weekly" />
-                <Picker.Item label="Every Two Weeks" value="Every Two Weeks" />
-                <Picker.Item label="Twice per Month" value="Twice per Month" />
-                <Picker.Item label="Monthly" value="Monthly" />
-              </Picker>
             )}
 
             <Text style={styles.helpText}>Day of Week</Text>
-            <TouchableOpacity
-              style={styles.pickerWrapper}
-              onPress={() => setIsDayOfWeekExpanded(!isDayOfWeekExpanded)}
-            >
-              <View style={styles.pickerContainer}>
-                <Text style={styles.pickerText}>
-                  {dayOfWeek || "Select Day"}
-                </Text>
-                <FontAwesome name="caret-down" size={16} color="#000" />
+            {Platform.OS === 'ios' ? (
+              <>
+                <Pressable onPress={openDayPicker}>
+                  <View style={styles.pickerWrapper}>
+                    <View style={styles.pickerDisplayContainer}>
+                      <Text style={styles.pickerDisplayText}>{dayOfWeek}</Text>
+                      <FontAwesome name="chevron-down" size={14} color="#27446F" />
+                    </View>
+                  </View>
+                </Pressable>
+                {showDayPicker && (
+                  <View style={{ zIndex: 1000, position: 'relative' }}>
+                    <Picker
+                      selectedValue={dayOfWeek}
+                      onValueChange={handleDayChange}
+                      style={styles.iosPicker}
+                    >
+                      <Picker.Item label="Monday" value="Monday" />
+                      <Picker.Item label="Tuesday" value="Tuesday" />
+                      <Picker.Item label="Wednesday" value="Wednesday" />
+                      <Picker.Item label="Thursday" value="Thursday" />
+                      <Picker.Item label="Friday" value="Friday" />
+                    </Picker>
+                  </View>
+                )}
+              </>
+            ) : (
+              <View style={styles.pickerWrapper}>
+                <Picker
+                  selectedValue={dayOfWeek}
+                  onValueChange={setDayOfWeek}
+                  style={styles.androidPicker}
+                  dropdownIconColor="#000000"
+                >
+                  <Picker.Item label="Monday" value="Monday" />
+                  <Picker.Item label="Tuesday" value="Tuesday" />
+                  <Picker.Item label="Wednesday" value="Wednesday" />
+                  <Picker.Item label="Thursday" value="Thursday" />
+                  <Picker.Item label="Friday" value="Friday" />
+                </Picker>
               </View>
-            </TouchableOpacity>
-            {isDayOfWeekExpanded && (
-              <Picker
-                selectedValue={dayOfWeek}
-                onValueChange={(itemValue) => {
-                  setDayOfWeek(itemValue);
-                  setIsDayOfWeekExpanded(false);
-                }}
-                style={styles.picker}
-                itemStyle={styles.pickerItem}
-              >
-                <Picker.Item label="Monday" value="Monday" />
-                <Picker.Item label="Tuesday" value="Tuesday" />
-                <Picker.Item label="Wednesday" value="Wednesday" />
-                <Picker.Item label="Thursday" value="Thursday" />
-                <Picker.Item label="Friday" value="Friday" />
-              </Picker>
             )}
 
             <Text style={styles.helpText}>Payment Amount</Text>
@@ -173,17 +276,21 @@ const ConfigureAutopay = () => {
               placeholder="$32.50"
               value={paymentAmount}
               onChangeText={setPaymentAmount}
+              keyboardType="decimal-pad"
             />
 
             <Text style={styles.helpText}>Payment Start Date</Text>
             <Pressable onPress={toggleDatePicker}>
-              <Text style={styles.input}>{date.toDateString()}</Text>
+              <View style={styles.datePickerButton}>
+                <Text style={styles.dateText}>{date.toDateString()}</Text>
+                <FontAwesome name="calendar" size={16} color="#27446F" />
+              </View>
             </Pressable>
 
             {showDatePicker && (
               <DateTimePicker
                 mode="date"
-                display="spinner"
+                display={Platform.OS === "ios" ? "spinner" : "default"}
                 value={date}
                 onChange={onChange}
               />
