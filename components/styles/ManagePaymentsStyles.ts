@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet } from "react-native";
 
 const styles = StyleSheet.create({
   container: {
@@ -16,7 +16,7 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 30,
     borderBottomRightRadius: 30,
     marginBottom: 10,
-    position: 'relative',
+    position: "relative",
   },
   headerContent: {
     flexDirection: "column",
@@ -57,19 +57,19 @@ const styles = StyleSheet.create({
     marginBottom: 3,
   },
   defaultLabel: {
-    backgroundColor: '#4CAF50', // Green background for the badge
-    color: '#FFFFFF', // White text color
+    backgroundColor: "#4CAF50", // Green background for the badge
+    color: "#FFFFFF", // White text color
     fontSize: 12,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     paddingVertical: 4,
     paddingHorizontal: 8,
     borderRadius: 15,
     marginTop: 0.2,
-    alignSelf: 'flex-start', // Align the badge to the start of the text container
+    alignSelf: "flex-start", // Align the badge to the start of the text container
   },
   defaultLabelContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingVertical: 4,
   },
   deleteButton: {
@@ -88,7 +88,7 @@ const styles = StyleSheet.create({
   },
   addMethodButton: {
     backgroundColor: "#FFFFFF", // Default background color for unselected button
-    borderColor: '#27446F',
+    borderColor: "#27446F",
     borderWidth: 2,
     padding: 15,
     borderRadius: 10,
@@ -103,12 +103,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   selectedMethodButton: {
-    backgroundColor: '#27446F', // Background color for selected button
-    borderColor: '#27446F',
+    backgroundColor: "#27446F", // Background color for selected button
+    borderColor: "#27446F",
     borderWidth: 2,
   },
   selectedMethodButtonText: {
-    color: '#FFFFFF', // Text color for selected button
+    color: "#FFFFFF", // Text color for selected button
   },
   inputFieldContainer: {
     marginBottom: 15,
@@ -153,40 +153,41 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
   },
+
   backButton: {
-    position: 'absolute',
+    position: "absolute",
     left: 20,
   },
   modalContainer: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     padding: 25,
     borderRadius: 20,
     elevation: 10,
-    shadowColor: '#000',
+    shadowColor: "#000",
   },
   modalCloseButton: {
-    alignSelf: 'flex-end',
+    alignSelf: "flex-end",
   },
   modalTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 15,
-    color: '#333',
+    color: "#333",
   },
   modalText: {
     fontSize: 16,
-    color: '#555',
+    color: "#555",
     marginBottom: 10,
   },
   okButton: {
     marginTop: 20,
-    backgroundColor: '#27446F',
+    backgroundColor: "#27446F",
     borderRadius: 10,
     paddingVertical: 10,
-    alignItems: 'center',
+    alignItems: "center",
   },
   okButtonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 16,
   },
   errorMessage: {
@@ -196,25 +197,25 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   modalButtonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    width: '100%',
+    flexDirection: "row",
+    justifyContent: "space-around",
+    width: "100%",
   },
   modalButton: {
-    backgroundColor: '#27446F',
+    backgroundColor: "#27446F",
     padding: 10,
     borderRadius: 5,
-    width: '40%', // Increase the width of the buttons
-    alignItems: 'center',
+    width: "40%", // Increase the width of the buttons
+    alignItems: "center",
   },
   modalButtonText: {
-    color: 'white',
+    color: "white",
     fontSize: 16,
   },
   expirationLabel: {
     fontSize: 13,
-    fontWeight: '600',
-    color: '#FFFFF',
+    fontWeight: "600",
+    color: "#FFFFF",
     marginTop: 2,
   },
   skeletonLoaderContainer: {
@@ -249,38 +250,48 @@ const styles = StyleSheet.create({
     color: "#000000", // Ensure text color is black
   },
   errorText: {
-    color: 'red',
+    color: "red",
     fontSize: 12,
     marginTop: 5,
   },
   pickerWrapper: {
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: "#ccc",
     borderRadius: 6,
-    overflow: 'hidden',
-    height: 40, // Reduce the height
-    justifyContent: 'center',
-    backgroundColor: '#fff', // Ensure background is white
+    overflow: "hidden",
+    height: 40,
+    justifyContent: "center",
+    backgroundColor: "#fff",
   },
   pickerContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingHorizontal: 10,
   },
   pickerText: {
     fontSize: 16,
-    color: '#707073', // Ensure text color is black
+    color: "#707073",
   },
-  picker: {
-    borderRadius: 15,
-    height: 180, // Adjust the height as needed
-    width: '100%',
-    backgroundColor: '#c5c5c8', // Dark background for better visibility in dark mode
-    color: '#fff', // Ensure text color is white for contrast
+  iosPicker: {
+    height: 200,
+    marginTop: 8,
+    width: "100%",
+    color: "#000000",
+    backgroundColor: "#f9f9f9",
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 6,
+    zIndex: 1000,
+    position: "relative",
+  },
+  androidPicker: {
+    height: 50,
+    width: "100%",
+    color: "#000000",
   },
   pickerItem: {
-    color: '#000000', // Ensure picker item text is white
+    color: "#000000",
     fontSize: 20,
   },
 });

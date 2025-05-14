@@ -10,6 +10,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   useColorScheme,
+  Pressable,
 } from "react-native";
 import { Ionicons, FontAwesome } from "@expo/vector-icons";
 import { router, useFocusEffect } from "expo-router";
@@ -27,7 +28,6 @@ import { ErrorCode } from "../utils/ErrorCodeUtil";
 
 const ManagePayments = () => {
   const token = useSelector((state: any) => state.auth.token);
-  const colorScheme = useColorScheme();
 
   // State Initialization
   const creditAccountId = useSelector(
@@ -233,8 +233,8 @@ const ManagePayments = () => {
   };
 
   const handleButtonPress = async () => {
-    setIsSubmitted(true);
     setIsSubmitting(true);
+    setIsSubmitted(true);
 
     const paymentMethodData = {
       accountNumber: null as string | null,
@@ -363,7 +363,8 @@ const ManagePayments = () => {
         Toast.show({
           type: "error",
           text1: "Error",
-          text2: "The debit card you entered has expired. Please update your payment details.",
+          text2:
+            "The debit card you entered has expired. Please update your payment details.",
         });
         setIsSubmitting(false);
         return;
@@ -473,31 +474,40 @@ const ManagePayments = () => {
 
     const formattedMonth = expirationDate.getMonth() + 1;
     const formattedYear = expirationDate.getFullYear().toString().slice(-2);
-    const formattedDate = `${formattedMonth.toString().padStart(2, '0')}/${formattedYear}`;
+    const formattedDate = `${formattedMonth
+      .toString()
+      .padStart(2, "0")}/${formattedYear}`;
 
     return expirationDate < today
       ? `Expired - ${formattedDate}`
       : `Valid Thru - ${formattedDate}`;
   };
-
   const handleMonthChange = (value: string) => {
     setDebitCardInputs((prev) => ({ ...prev, expMonth: value }));
-    setShowMonthPicker(false);
+    if (Platform.OS === "ios") {
+      setShowMonthPicker(false);
+    }
   };
 
   const handleYearChange = (value: string) => {
     setDebitCardInputs((prev) => ({ ...prev, expYear: value }));
-    setShowYearPicker(false);
+    if (Platform.OS === "ios") {
+      setShowYearPicker(false);
+    }
   };
 
   const showMonthPickerHandler = () => {
-    setShowMonthPicker(true);
-    setShowYearPicker(false);
+    if (Platform.OS === "ios") {
+      setShowMonthPicker(true);
+      setShowYearPicker(false);
+    }
   };
 
   const showYearPickerHandler = () => {
-    setShowYearPicker(true);
-    setShowMonthPicker(false);
+    if (Platform.OS === "ios") {
+      setShowYearPicker(true);
+      setShowMonthPicker(false);
+    }
   };
 
   return (
@@ -662,8 +672,9 @@ const ManagePayments = () => {
                   onChangeText={handleRoutingNumberChange}
                   style={[
                     styles.inputField,
-                    (isSubmitted && routingNumberError) && styles.inputFieldError,
+                    isSubmitted && routingNumberError && styles.inputFieldError,
                   ]}
+                  keyboardType="numeric"
                   placeholderTextColor={"#707073"}
                   onFocus={() => setActiveField("routingNumber")}
                 />
@@ -679,8 +690,9 @@ const ManagePayments = () => {
                   onChangeText={handleAccountNumberChange}
                   style={[
                     styles.inputField,
-                    (isSubmitted && accountNumberError) && styles.inputFieldError,
+                    isSubmitted && accountNumberError && styles.inputFieldError,
                   ]}
+                  keyboardType="numeric"
                   placeholderTextColor={"#707073"}
                   onFocus={() => setActiveField("accountNumber")}
                 />
@@ -753,65 +765,107 @@ const ManagePayments = () => {
               </View>
               <View style={styles.inputFieldContainer}>
                 <Text style={styles.inputFieldLabel}>Expiration Month</Text>
-                <TouchableOpacity
-                  style={styles.pickerWrapper}
-                  onPress={showMonthPickerHandler}
-                >
-                  <View style={styles.pickerContainer}>
-                    <Text style={styles.pickerText}>
-                      {debitCardInputs.expMonth || "Select Month"}
-                    </Text>
-                    <FontAwesome name="caret-down" size={16} color="#000" />
+                {Platform.OS === "ios" ? (
+                  <>
+                    <Pressable
+                      style={styles.pickerWrapper}
+                      onPress={showMonthPickerHandler}
+                    >
+                      <View style={styles.pickerContainer}>
+                        <Text style={styles.pickerText}>
+                          {debitCardInputs.expMonth || "Select Month"}
+                        </Text>
+                        <FontAwesome name="caret-down" size={16} color="#000" />
+                      </View>
+                    </Pressable>
+                    {showMonthPicker && (
+                      <Picker
+                        selectedValue={debitCardInputs.expMonth}
+                        onValueChange={handleMonthChange}
+                        style={styles.iosPicker}
+                        itemStyle={styles.pickerItem}
+                      >
+                        {months.map((month) => (
+                          <Picker.Item
+                            key={month.value}
+                            label={month.label}
+                            value={month.value}
+                            style={styles.pickerItem}
+                          />
+                        ))}
+                      </Picker>
+                    )}
+                  </>
+                ) : (
+                  <View style={styles.pickerWrapper}>
+                    <Picker
+                      selectedValue={debitCardInputs.expMonth}
+                      onValueChange={handleMonthChange}
+                      style={styles.androidPicker}
+                      dropdownIconColor="#000000"
+                    >
+                      {months.map((month) => (
+                        <Picker.Item
+                          key={month.value}
+                          label={month.label}
+                          value={month.value}
+                        />
+                      ))}
+                    </Picker>
                   </View>
-                </TouchableOpacity>
-                {showMonthPicker && (
-                  <Picker
-                    selectedValue={debitCardInputs.expMonth}
-                    onValueChange={handleMonthChange}
-                    style={styles.picker}
-                    itemStyle={styles.pickerItem}
-                  >
-                    {months.map((month) => (
-                      <Picker.Item
-                        key={month.value}
-                        label={month.label}
-                        value={month.value}
-                        style={styles.pickerItem}
-                      />
-                    ))}
-                  </Picker>
                 )}
               </View>
 
               <View style={styles.inputFieldContainer}>
                 <Text style={styles.inputFieldLabel}>Expiration Year</Text>
-                <TouchableOpacity
-                  style={styles.pickerWrapper}
-                  onPress={showYearPickerHandler}
-                >
-                  <View style={styles.pickerContainer}>
-                    <Text style={styles.pickerText}>
-                      {debitCardInputs.expYear || "Select Year"}
-                    </Text>
-                    <FontAwesome name="caret-down" size={16} color="#000" />
+                {Platform.OS === "ios" ? (
+                  <>
+                    <Pressable
+                      style={styles.pickerWrapper}
+                      onPress={showYearPickerHandler}
+                    >
+                      <View style={styles.pickerContainer}>
+                        <Text style={styles.pickerText}>
+                          {debitCardInputs.expYear || "Select Year"}
+                        </Text>
+                        <FontAwesome name="caret-down" size={16} color="#000" />
+                      </View>
+                    </Pressable>
+                    {showYearPicker && (
+                      <Picker
+                        selectedValue={debitCardInputs.expYear}
+                        onValueChange={handleYearChange}
+                        style={styles.iosPicker}
+                        itemStyle={styles.pickerItem}
+                      >
+                        {years.map((year) => (
+                          <Picker.Item
+                            key={year}
+                            label={String(year)}
+                            value={String(year)}
+                            style={styles.pickerItem}
+                          />
+                        ))}
+                      </Picker>
+                    )}
+                  </>
+                ) : (
+                  <View style={styles.pickerWrapper}>
+                    <Picker
+                      selectedValue={debitCardInputs.expYear}
+                      onValueChange={handleYearChange}
+                      style={styles.androidPicker}
+                      dropdownIconColor="#000000"
+                    >
+                      {years.map((year) => (
+                        <Picker.Item
+                          key={year}
+                          label={String(year)}
+                          value={String(year)}
+                        />
+                      ))}
+                    </Picker>
                   </View>
-                </TouchableOpacity>
-                {showYearPicker && (
-                  <Picker
-                    selectedValue={debitCardInputs.expYear}
-                    onValueChange={handleYearChange}
-                    style={styles.picker}
-                    itemStyle={styles.pickerItem}
-                  >
-                    {years.map((year) => (
-                      <Picker.Item
-                        key={year}
-                        label={String(year)}
-                        value={String(year)}
-                        style={styles.pickerItem}
-                      />
-                    ))}
-                  </Picker>
                 )}
               </View>
 
