@@ -31,9 +31,11 @@ export const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
+    paddingBottom: 25,
   },
   formContainer: {
     marginTop: 20,
+    
   },
   input: {
     height: 50,
@@ -132,6 +134,8 @@ export const styles = StyleSheet.create({
     fontSize: 15,
   },
   submitButton: {
+    alignSelf: "center",
+    width: "50%",
     backgroundColor: "#27446F",
     padding: 15,
     borderRadius: 20,

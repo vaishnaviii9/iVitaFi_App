@@ -580,6 +580,7 @@ const ManagePayments = () => {
           style={styles.scrollView}
           showsVerticalScrollIndicator={false}
         >
+ 
           <Text style={styles.sectionTitle}>Saved Payment Methods</Text>
           {isLoading ? (
             <View style={styles.skeletonLoaderContainer}>

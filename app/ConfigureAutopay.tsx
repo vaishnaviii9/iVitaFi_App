@@ -125,7 +125,10 @@ const ConfigureAutopay = () => {
           <View style={{ width: 24 }} />
         </View>
 
-        <ScrollView contentContainerStyle={styles.scrollContent}>
+        <ScrollView 
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        >
           <View style={styles.content}>
             <View style={styles.formContainer}>
               <Text style={styles.helpText}>Payment Method</Text>

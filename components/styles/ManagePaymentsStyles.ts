@@ -7,7 +7,7 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
-    padding: 25,
+    padding: 20,
   },
   header: {
     backgroundColor: "#27446F",
@@ -141,6 +141,7 @@ const styles = StyleSheet.create({
   },
   submitButtonContainer: {
     alignItems: "center",
+    marginBottom: 40,
   },
   submitButton: {
     backgroundColor: "#27446F",
@@ -246,6 +247,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     marginBottom: 5,
   },
+  
   inputFieldText: {
     color: "#000000", // Ensure text color is black
   },
