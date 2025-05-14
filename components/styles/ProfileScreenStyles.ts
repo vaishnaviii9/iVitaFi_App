@@ -35,7 +35,7 @@ const styles = StyleSheet.create({
   detailsContainer: {
     flex: 1,
     marginTop: 30,
-    paddingHorizontal: 20,
+    paddingHorizontal: 10,
   },
   scrollViewContent: {
     paddingBottom: 20,
@@ -43,11 +43,11 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 45,
+    marginBottom: 35,
   },
   icon: {
-    marginRight: 40,
-    width: 80,
+    marginRight: 2,
+    width: 60,
     alignItems: "center",
   },
   label: {
