@@ -119,7 +119,7 @@ const ManagePayments = () => {
   const fetchData = async () => {
     try {
       const customerResponse = await fetchCustomerData(token, (data) => {});
-      
+
       setCustomerResponse(customerResponse);
       if (customerResponse) {
         const { creditSummaries } = await fetchCreditSummariesWithId(
@@ -530,28 +530,31 @@ const ManagePayments = () => {
     }
   };
 
- const handleEditMethod = (method: PaymentMethod) => {
-  if (method.cardNumber) {
-    setSelectedMethod("Add Debit Card");
-    setDebitCardInputs({
-       firstName: method.firstName || customerResponse?.user?.firstName || "",
+  const handleEditMethod = (method: PaymentMethod) => {
+    if (method.cardNumber) {
+      setSelectedMethod("Add Debit Card");
+      setDebitCardInputs({
+        firstName: method.firstName || customerResponse?.user?.firstName || "",
         lastName: method.lastName || customerResponse?.user?.lastName || "",
-      cardNumber: method.cardNumber || "",
-      expMonth: method.expirationDate ? String(new Date(method.expirationDate).getMonth() + 1) : "",
-      expYear: method.expirationDate ? String(new Date(method.expirationDate).getFullYear()) : "",
-      cvv: "",
-      zip: method.zipCode || "",
-    });
-  } else if (method.accountNumber) {
-    setSelectedMethod("Add Checking Account");
-    setRoutingNumber(method.routingNumber || "");
-    setAccountNumber(method.accountNumber || "");
-  }
-  setIsDefault(true);
-  setEditingMethod(method); // This should now work correctly
-  setEditModalVisible(true);
-};
-
+        cardNumber: method.cardNumber || "",
+        expMonth: method.expirationDate
+          ? String(new Date(method.expirationDate).getMonth() + 1)
+          : "",
+        expYear: method.expirationDate
+          ? String(new Date(method.expirationDate).getFullYear())
+          : "",
+        cvv: "",
+        zip: method.zipCode || "",
+      });
+    } else if (method.accountNumber) {
+      setSelectedMethod("Add Checking Account");
+      setRoutingNumber(method.routingNumber || "");
+      setAccountNumber(method.accountNumber || "");
+    }
+    setIsDefault(true);
+    setEditingMethod(method);
+    setEditModalVisible(true);
+  };
 
   const handleUpdateButtonPress = async () => {
     setIsSubmitting(true);
@@ -709,16 +712,18 @@ const ManagePayments = () => {
                 style={styles.modalCloseIcon}
               />
             </TouchableOpacity>
-            
-          <View style={styles.modalHeader}>
-      <Text style={styles.modalTitle}>Update Payment Method Details</Text>
-      <TouchableOpacity
-        onPress={() => setEditModalVisible(false)}
-        style={styles.modalCloseIconContainer}
-      >
-        <Ionicons name="close" size={24} color="#000" />
-      </TouchableOpacity>
-    </View>
+
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>
+                Update Payment Method Details
+              </Text>
+              <TouchableOpacity
+                onPress={() => setEditModalVisible(false)}
+                style={styles.modalCloseIconContainer}
+              >
+                <Ionicons name="close" size={24} color="#000" />
+              </TouchableOpacity>
+            </View>
             {editingMethod && (
               <>
                 <View style={styles.inputFieldContainer}>
@@ -734,8 +739,10 @@ const ManagePayments = () => {
                     }
                     style={styles.inputField}
                     placeholderTextColor={"#707073"}
+                    editable={false} // Make this field read-only
                   />
                 </View>
+
                 <View style={styles.inputFieldContainer}>
                   <Text style={styles.inputFieldLabel}>Last Name</Text>
                   <TextInput
@@ -749,8 +756,10 @@ const ManagePayments = () => {
                     }
                     style={styles.inputField}
                     placeholderTextColor={"#707073"}
+                    editable={false} // Make this field read-only
                   />
                 </View>
+
                 <View style={styles.inputFieldContainer}>
                   <Text style={styles.inputFieldLabel}>Card Number</Text>
                   <TextInput
@@ -766,10 +775,12 @@ const ManagePayments = () => {
                     placeholderTextColor={"#707073"}
                     keyboardType="numeric"
                     maxLength={16}
+                    editable={false} // Make this field read-only
                   />
                 </View>
+
                 <View style={styles.inputFieldContainer}>
-                  <Text style={styles.inputFieldLabel}>Expiration Month</Text>
+                  <Text style={styles.inputFieldLabel}>Expiration Month *</Text>
                   {Platform.OS === "ios" ? (
                     <>
                       <Pressable
@@ -825,7 +836,7 @@ const ManagePayments = () => {
                   )}
                 </View>
                 <View style={styles.inputFieldContainer}>
-                  <Text style={styles.inputFieldLabel}>Expiration Year</Text>
+                  <Text style={styles.inputFieldLabel}>Expiration Year *</Text>
                   {Platform.OS === "ios" ? (
                     <>
                       <Pressable
