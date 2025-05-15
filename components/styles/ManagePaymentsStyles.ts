@@ -170,7 +170,7 @@ const styles = StyleSheet.create({
     alignSelf: "flex-end",
   },
   modalTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: "bold",
     marginBottom: 15,
     color: "#333",
@@ -295,6 +295,21 @@ const styles = StyleSheet.create({
   pickerItem: {
     color: "#000000",
     fontSize: 20,
+  },
+   editButton: {
+    marginRight: 10,
+  },
+modalCloseIcon: {
+  color: '#FFFFFF',
+},
+modalCloseIconContainer: {
+    padding: 10,
+  },
+modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
   },
 });
 

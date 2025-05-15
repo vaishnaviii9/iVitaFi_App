@@ -25,6 +25,19 @@ import styles from "../components/styles/ManagePaymentsStyles";
 import { deletePaymentMethod } from "./services/paymentMethodService";
 import { updateCreditAccountPaymentMethodWithDefaultPaymentMethodAsync } from "./services/creditAccountPaymentService";
 import { ErrorCode } from "../utils/ErrorCodeUtil";
+interface PaymentMethod {
+  id: string;
+  cardNumber: string | null;
+  accountNumber: string | null;
+  routingNumber: string | null;
+  firstName: string | null;
+  lastName: string | null;
+  expirationDate: string | null;
+  zipCode: string | null;
+  hasPaymentToken: boolean;
+  isDisabled: boolean;
+  // Add other properties as needed
+}
 
 const ManagePayments = () => {
   const token = useSelector((state: any) => state.auth.token);
@@ -48,7 +61,7 @@ const ManagePayments = () => {
 
   const [isDefault, setIsDefault] = useState(false);
   const [isModalVisible, setModalVisible] = useState(false);
-  const [savedMethods, setSavedMethods] = useState<any[]>([]);
+  const [savedMethods, setSavedMethods] = useState<PaymentMethod[]>([]);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isConfirmDeleteModalVisible, setConfirmDeleteModalVisible] =
     useState(false);
@@ -86,7 +99,11 @@ const ManagePayments = () => {
     { label: "11 - Nov", value: "11" },
     { label: "12 - Dec", value: "12" },
   ];
-
+  const [isEditModalVisible, setEditModalVisible] = useState(false);
+  const [editingMethod, setEditingMethod] = useState<PaymentMethod | null>(
+    null
+  );
+  const [customerResponse, setCustomerResponse] = useState<any>(null);
   // Function to check if the card is expired
   const isCardExpired = (expMonth: string, expYear: string): boolean => {
     const currentDate = new Date();
@@ -102,6 +119,8 @@ const ManagePayments = () => {
   const fetchData = async () => {
     try {
       const customerResponse = await fetchCustomerData(token, (data) => {});
+      
+      setCustomerResponse(customerResponse);
       if (customerResponse) {
         const { creditSummaries } = await fetchCreditSummariesWithId(
           customerResponse,
@@ -121,6 +140,7 @@ const ManagePayments = () => {
                   method.cardNumber !== null || method.accountNumber !== null
               );
               setSavedMethods(validMethods);
+              console.log(validMethods);
             } else {
               setErrorMessage("No saved payment methods found.");
             }
@@ -510,6 +530,115 @@ const ManagePayments = () => {
     }
   };
 
+ const handleEditMethod = (method: PaymentMethod) => {
+  if (method.cardNumber) {
+    setSelectedMethod("Add Debit Card");
+    setDebitCardInputs({
+       firstName: method.firstName || customerResponse?.user?.firstName || "",
+        lastName: method.lastName || customerResponse?.user?.lastName || "",
+      cardNumber: method.cardNumber || "",
+      expMonth: method.expirationDate ? String(new Date(method.expirationDate).getMonth() + 1) : "",
+      expYear: method.expirationDate ? String(new Date(method.expirationDate).getFullYear()) : "",
+      cvv: "",
+      zip: method.zipCode || "",
+    });
+  } else if (method.accountNumber) {
+    setSelectedMethod("Add Checking Account");
+    setRoutingNumber(method.routingNumber || "");
+    setAccountNumber(method.accountNumber || "");
+  }
+  setIsDefault(true);
+  setEditingMethod(method); // This should now work correctly
+  setEditModalVisible(true);
+};
+
+
+  const handleUpdateButtonPress = async () => {
+    setIsSubmitting(true);
+
+    const paymentMethodData = {
+      accountNumber: null as string | null,
+      routingNumber: null as string | null,
+      truncatedAccountNumber: null as string | null,
+      truncatedCardNumber: null as string | null,
+      truncatedRoutingNumber: null as string | null,
+      expirationDate: null as Date | null,
+      cardNumber: null as string | null,
+      securityCode: null as string | null,
+      firstName: null as string | null,
+      lastName: null as string | null,
+      zipCode: null as string | null,
+      paymentMethodType: null as number | null,
+    };
+
+    if (selectedMethod === "Add Checking Account") {
+      paymentMethodData.accountNumber = accountNumber;
+      paymentMethodData.routingNumber = routingNumber;
+      paymentMethodData.paymentMethodType = 1;
+
+      paymentMethodData.cardNumber = null;
+      paymentMethodData.securityCode = null;
+      paymentMethodData.firstName = null;
+      paymentMethodData.lastName = null;
+      paymentMethodData.zipCode = null;
+      paymentMethodData.expirationDate = null;
+    } else if (selectedMethod === "Add Debit Card") {
+      const { firstName, lastName, cardNumber, expMonth, expYear } =
+        debitCardInputs;
+
+      paymentMethodData.cardNumber = cardNumber;
+      paymentMethodData.securityCode = debitCardInputs.cvv;
+      paymentMethodData.firstName = firstName;
+      paymentMethodData.lastName = lastName;
+      paymentMethodData.zipCode = debitCardInputs.zip;
+      paymentMethodData.expirationDate = new Date(
+        Number(expYear),
+        Number(expMonth) - 1
+      );
+      paymentMethodData.paymentMethodType = 3;
+
+      paymentMethodData.accountNumber = null;
+      paymentMethodData.routingNumber = null;
+    }
+
+    try {
+      const paymentMethResp =
+        await updateCreditAccountPaymentMethodWithDefaultPaymentMethodAsync(
+          creditAccountId,
+          paymentMethodData,
+          0,
+          isDefault,
+          token
+        );
+
+      if (paymentMethResp.type === "data") {
+        Toast.show({
+          type: "success",
+          text1: "Success",
+          text2: "Payment method updated successfully.",
+        });
+        resetFormInputs();
+        await fetchData();
+        setEditModalVisible(false);
+      } else {
+        Toast.show({
+          type: "error",
+          text1: "Error",
+          text2: "There was an error while updating the payment method.",
+        });
+      }
+    } catch (error) {
+      console.error("Error updating payment method:", error);
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: "An unexpected error occurred. Please try again.",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -564,6 +693,237 @@ const ManagePayments = () => {
           </View>
         </Modal>
 
+        <Modal
+          isVisible={isEditModalVisible}
+          onBackdropPress={() => setEditModalVisible(false)}
+        >
+          <View style={styles.modalContainer}>
+            <TouchableOpacity
+              onPress={() => setEditModalVisible(false)}
+              style={styles.modalCloseButton}
+            >
+              <Ionicons
+                name="close"
+                size={24}
+                color="#FFFFFF"
+                style={styles.modalCloseIcon}
+              />
+            </TouchableOpacity>
+            
+          <View style={styles.modalHeader}>
+      <Text style={styles.modalTitle}>Update Payment Method Details</Text>
+      <TouchableOpacity
+        onPress={() => setEditModalVisible(false)}
+        style={styles.modalCloseIconContainer}
+      >
+        <Ionicons name="close" size={24} color="#000" />
+      </TouchableOpacity>
+    </View>
+            {editingMethod && (
+              <>
+                <View style={styles.inputFieldContainer}>
+                  <Text style={styles.inputFieldLabel}>First Name</Text>
+                  <TextInput
+                    placeholder="Enter first name"
+                    value={debitCardInputs.firstName}
+                    onChangeText={(text) =>
+                      setDebitCardInputs((prev) => ({
+                        ...prev,
+                        firstName: text,
+                      }))
+                    }
+                    style={styles.inputField}
+                    placeholderTextColor={"#707073"}
+                  />
+                </View>
+                <View style={styles.inputFieldContainer}>
+                  <Text style={styles.inputFieldLabel}>Last Name</Text>
+                  <TextInput
+                    placeholder="Enter last name"
+                    value={debitCardInputs.lastName}
+                    onChangeText={(text) =>
+                      setDebitCardInputs((prev) => ({
+                        ...prev,
+                        lastName: text,
+                      }))
+                    }
+                    style={styles.inputField}
+                    placeholderTextColor={"#707073"}
+                  />
+                </View>
+                <View style={styles.inputFieldContainer}>
+                  <Text style={styles.inputFieldLabel}>Card Number</Text>
+                  <TextInput
+                    placeholder="Enter card number"
+                    value={debitCardInputs.cardNumber}
+                    onChangeText={(text) =>
+                      setDebitCardInputs((prev) => ({
+                        ...prev,
+                        cardNumber: text,
+                      }))
+                    }
+                    style={styles.inputField}
+                    placeholderTextColor={"#707073"}
+                    keyboardType="numeric"
+                    maxLength={16}
+                  />
+                </View>
+                <View style={styles.inputFieldContainer}>
+                  <Text style={styles.inputFieldLabel}>Expiration Month</Text>
+                  {Platform.OS === "ios" ? (
+                    <>
+                      <Pressable
+                        style={styles.pickerWrapper}
+                        onPress={showMonthPickerHandler}
+                      >
+                        <View style={styles.pickerContainer}>
+                          <Text style={styles.pickerText}>
+                            {debitCardInputs.expMonth || "Select Month"}
+                          </Text>
+                          <FontAwesome
+                            name="caret-down"
+                            size={16}
+                            color="#000"
+                          />
+                        </View>
+                      </Pressable>
+                      {showMonthPicker && (
+                        <Picker
+                          selectedValue={debitCardInputs.expMonth}
+                          onValueChange={handleMonthChange}
+                          style={styles.iosPicker}
+                          itemStyle={styles.pickerItem}
+                        >
+                          {months.map((month) => (
+                            <Picker.Item
+                              key={month.value}
+                              label={month.label}
+                              value={month.value}
+                              style={styles.pickerItem}
+                            />
+                          ))}
+                        </Picker>
+                      )}
+                    </>
+                  ) : (
+                    <View style={styles.pickerWrapper}>
+                      <Picker
+                        selectedValue={debitCardInputs.expMonth}
+                        onValueChange={handleMonthChange}
+                        style={styles.androidPicker}
+                        dropdownIconColor="#000000"
+                      >
+                        {months.map((month) => (
+                          <Picker.Item
+                            key={month.value}
+                            label={month.label}
+                            value={month.value}
+                          />
+                        ))}
+                      </Picker>
+                    </View>
+                  )}
+                </View>
+                <View style={styles.inputFieldContainer}>
+                  <Text style={styles.inputFieldLabel}>Expiration Year</Text>
+                  {Platform.OS === "ios" ? (
+                    <>
+                      <Pressable
+                        style={styles.pickerWrapper}
+                        onPress={showYearPickerHandler}
+                      >
+                        <View style={styles.pickerContainer}>
+                          <Text style={styles.pickerText}>
+                            {debitCardInputs.expYear || "Select Year"}
+                          </Text>
+                          <FontAwesome
+                            name="caret-down"
+                            size={16}
+                            color="#000"
+                          />
+                        </View>
+                      </Pressable>
+                      {showYearPicker && (
+                        <Picker
+                          selectedValue={debitCardInputs.expYear}
+                          onValueChange={handleYearChange}
+                          style={styles.iosPicker}
+                          itemStyle={styles.pickerItem}
+                        >
+                          {years.map((year) => (
+                            <Picker.Item
+                              key={year}
+                              label={String(year)}
+                              value={String(year)}
+                              style={styles.pickerItem}
+                            />
+                          ))}
+                        </Picker>
+                      )}
+                    </>
+                  ) : (
+                    <View style={styles.pickerWrapper}>
+                      <Picker
+                        selectedValue={debitCardInputs.expYear}
+                        onValueChange={handleYearChange}
+                        style={styles.androidPicker}
+                        dropdownIconColor="#000000"
+                      >
+                        {years.map((year) => (
+                          <Picker.Item
+                            key={year}
+                            label={String(year)}
+                            value={String(year)}
+                          />
+                        ))}
+                      </Picker>
+                    </View>
+                  )}
+                </View>
+                <View style={styles.inputFieldContainer}>
+                  <Text style={styles.inputFieldLabel}>Security Code</Text>
+                  <TextInput
+                    placeholder="Enter security code"
+                    value={debitCardInputs.cvv}
+                    onChangeText={(text) =>
+                      setDebitCardInputs((prev) => ({ ...prev, cvv: text }))
+                    }
+                    style={styles.inputField}
+                    placeholderTextColor={"#707073"}
+                    keyboardType="numeric"
+                    maxLength={3}
+                  />
+                </View>
+                <View style={styles.inputFieldContainer}>
+                  <Text style={styles.inputFieldLabel}>Zip Code</Text>
+                  <TextInput
+                    placeholder="Enter zip code"
+                    value={debitCardInputs.zip}
+                    onChangeText={(text) =>
+                      setDebitCardInputs((prev) => ({ ...prev, zip: text }))
+                    }
+                    style={styles.inputField}
+                    placeholderTextColor={"#707073"}
+                    keyboardType="numeric"
+                    maxLength={5}
+                  />
+                </View>
+                <View style={styles.submitButtonContainer}>
+                  <TouchableOpacity
+                    style={styles.submitButton}
+                    onPress={handleUpdateButtonPress}
+                    disabled={isSubmitting}
+                  >
+                    <Text style={styles.submitButtonText}>
+                      {isSubmitting ? "Updating..." : "Update"}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </>
+            )}
+          </View>
+        </Modal>
+
         <View style={styles.header}>
           <View style={styles.headerContent}>
             <TouchableOpacity
@@ -580,7 +940,6 @@ const ManagePayments = () => {
           style={styles.scrollView}
           showsVerticalScrollIndicator={false}
         >
- 
           <Text style={styles.sectionTitle}>Saved Payment Methods</Text>
           {isLoading ? (
             <View style={styles.skeletonLoaderContainer}>
@@ -630,6 +989,14 @@ const ManagePayments = () => {
                     </Text>
                   )}
                 </View>
+                {method.hasPaymentToken && (
+                  <TouchableOpacity
+                    style={styles.editButton}
+                    onPress={() => handleEditMethod(method)}
+                  >
+                    <Ionicons name="create" size={30} color="#27446F" />
+                  </TouchableOpacity>
+                )}
                 <TouchableOpacity
                   style={styles.deleteButton}
                   onPress={() => openConfirmDeleteModal(method.id)}
