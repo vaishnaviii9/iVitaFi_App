@@ -25,6 +25,7 @@ import styles from "../components/styles/ManagePaymentsStyles";
 import { deletePaymentMethod } from "./services/paymentMethodService";
 import { updateCreditAccountPaymentMethodWithDefaultPaymentMethodAsync } from "./services/creditAccountPaymentService";
 import { ErrorCode } from "../utils/ErrorCodeUtil";
+
 interface PaymentMethod {
   id: string;
   cardNumber: string | null;
@@ -36,13 +37,10 @@ interface PaymentMethod {
   zipCode: string | null;
   hasPaymentToken: boolean;
   isDisabled: boolean;
-  // Add other properties as needed
 }
 
 const ManagePayments = () => {
   const token = useSelector((state: any) => state.auth.token);
-
-  // State Initialization
   const creditAccountId = useSelector(
     (state: any) => state.creditAccount.creditAccountId
   );
@@ -50,6 +48,16 @@ const ManagePayments = () => {
   const [routingNumber, setRoutingNumber] = useState("");
   const [accountNumber, setAccountNumber] = useState("");
   const [debitCardInputs, setDebitCardInputs] = useState({
+    firstName: "",
+    lastName: "",
+    cardNumber: "",
+    expMonth: "",
+    expYear: "",
+    cvv: "",
+    zip: "",
+  });
+
+  const [editDebitCardInputs, setEditDebitCardInputs] = useState({
     firstName: "",
     lastName: "",
     cardNumber: "",
@@ -104,7 +112,7 @@ const ManagePayments = () => {
     null
   );
   const [customerResponse, setCustomerResponse] = useState<any>(null);
-  // Function to check if the card is expired
+
   const isCardExpired = (expMonth: string, expYear: string): boolean => {
     const currentDate = new Date();
     const expirationDate = new Date(Number(expYear), Number(expMonth) - 1);
@@ -115,7 +123,6 @@ const ManagePayments = () => {
     return currentDate > expirationDate;
   };
 
-  // Define fetchData function outside of useEffect
   const fetchData = async () => {
     try {
       const customerResponse = await fetchCustomerData(token, (data) => {});
@@ -140,7 +147,6 @@ const ManagePayments = () => {
                   method.cardNumber !== null || method.accountNumber !== null
               );
               setSavedMethods(validMethods);
-              console.log(validMethods);
             } else {
               setErrorMessage("No saved payment methods found.");
             }
@@ -161,24 +167,20 @@ const ManagePayments = () => {
     }
   };
 
-  // Use fetchData in useEffect
   useEffect(() => {
     fetchData();
   }, [token]);
 
-  // Lifecycle Hook
   useFocusEffect(
     useCallback(() => {
       setModalVisible(true);
     }, [])
   );
 
-  // Navigation Function
   const handleBackPress = () => {
     router.push("/(tabs)/Home");
   };
 
-  // Modal Management Functions
   const openConfirmDeleteModal = (id: string) => {
     setMethodToDelete(id);
     setConfirmDeleteModalVisible(true);
@@ -215,7 +217,6 @@ const ManagePayments = () => {
 
   const closeModal = () => setModalVisible(false);
 
-  // Form Handling Functions
   const handleMethodSelect = (method: string) => {
     setSelectedMethod(method);
     setRoutingNumber("");
@@ -236,7 +237,7 @@ const ManagePayments = () => {
     setActiveField("routingNumber");
     setRoutingNumber(text);
     setPaymentVerified(null);
-    setRoutingNumberError(null); // Clear error when user updates the field
+    setRoutingNumberError(null);
     if (!/^[0-9]{9}$/.test(text)) {
       setRoutingNumberError("Please enter your bank's 9 digit routing number.");
     }
@@ -246,7 +247,7 @@ const ManagePayments = () => {
     setActiveField("accountNumber");
     setAccountNumber(text);
     setPaymentVerified(null);
-    setAccountNumberError(null); // Clear error when user updates the field
+    setAccountNumberError(null);
     if (!/^[0-9]{5,17}$/.test(text)) {
       setAccountNumberError("Please enter your bank account number.");
     }
@@ -502,6 +503,7 @@ const ManagePayments = () => {
       ? `Expired - ${formattedDate}`
       : `Valid Thru - ${formattedDate}`;
   };
+
   const handleMonthChange = (value: string) => {
     setDebitCardInputs((prev) => ({ ...prev, expMonth: value }));
     if (Platform.OS === "ios") {
@@ -530,22 +532,60 @@ const ManagePayments = () => {
     }
   };
 
-  const handleEditMethod = (method: PaymentMethod) => {
+  const fetchDebitCardInfo = async (customerPaymentMethodId: string) => {
+    try {
+      const response = await fetch(
+        `https://dev.ivitafi.com/api/CreditAccount/${customerPaymentMethodId}/debitcard-info`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch debit card information");
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Error fetching debit card information:", error);
+      throw error;
+    }
+  };
+
+  const handleEditMethod = async (method: PaymentMethod) => {
+    resetFormInputs(); // Reset the add payment form state
+
     if (method.cardNumber) {
-      setSelectedMethod("Add Debit Card");
-      setDebitCardInputs({
-        firstName: method.firstName || customerResponse?.user?.firstName || "",
-        lastName: method.lastName || customerResponse?.user?.lastName || "",
-        cardNumber: method.cardNumber || "",
-        expMonth: method.expirationDate
-          ? String(new Date(method.expirationDate).getMonth() + 1)
-          : "",
-        expYear: method.expirationDate
-          ? String(new Date(method.expirationDate).getFullYear())
-          : "",
-        cvv: "",
-        zip: method.zipCode || "",
-      });
+      try {
+        const debitCardInfo = await fetchDebitCardInfo(method.id);
+
+        setSelectedMethod("Add Debit Card");
+        setEditDebitCardInputs({
+          firstName: debitCardInfo.firstName || customerResponse?.user?.firstName || "",
+          lastName: debitCardInfo.lastName || customerResponse?.user?.lastName || "",
+          cardNumber: debitCardInfo.cardNumber || "",
+          expMonth: debitCardInfo.expirationDate
+            ? String(new Date(debitCardInfo.expirationDate).getMonth() + 1)
+            : "",
+          expYear: debitCardInfo.expirationDate
+            ? String(new Date(debitCardInfo.expirationDate).getFullYear())
+            : "",
+          cvv: "",
+          zip: debitCardInfo.zipCode || "",
+        });
+      } catch (error) {
+        console.error("Error fetching debit card information:", error);
+        Toast.show({
+          type: "error",
+          text1: "Error",
+          text2: "Failed to fetch debit card information.",
+        });
+      }
     } else if (method.accountNumber) {
       setSelectedMethod("Add Checking Account");
       setRoutingNumber(method.routingNumber || "");
@@ -587,13 +627,13 @@ const ManagePayments = () => {
       paymentMethodData.expirationDate = null;
     } else if (selectedMethod === "Add Debit Card") {
       const { firstName, lastName, cardNumber, expMonth, expYear } =
-        debitCardInputs;
+        editDebitCardInputs;
 
       paymentMethodData.cardNumber = cardNumber;
-      paymentMethodData.securityCode = debitCardInputs.cvv;
+      paymentMethodData.securityCode = editDebitCardInputs.cvv;
       paymentMethodData.firstName = firstName;
       paymentMethodData.lastName = lastName;
-      paymentMethodData.zipCode = debitCardInputs.zip;
+      paymentMethodData.zipCode = editDebitCardInputs.zip;
       paymentMethodData.expirationDate = new Date(
         Number(expYear),
         Number(expMonth) - 1
@@ -729,10 +769,9 @@ const ManagePayments = () => {
                 <View style={styles.inputFieldContainer}>
                   <Text style={styles.inputFieldLabel}>First Name</Text>
                   <TextInput
-                    placeholder="Enter first name"
-                    value={debitCardInputs.firstName}
+                    value={editDebitCardInputs.firstName}
                     onChangeText={(text) =>
-                      setDebitCardInputs((prev) => ({
+                      setEditDebitCardInputs((prev) => ({
                         ...prev,
                         firstName: text,
                       }))
@@ -746,10 +785,9 @@ const ManagePayments = () => {
                 <View style={styles.inputFieldContainer}>
                   <Text style={styles.inputFieldLabel}>Last Name</Text>
                   <TextInput
-                    placeholder="Enter last name"
-                    value={debitCardInputs.lastName}
+                    value={editDebitCardInputs.lastName}
                     onChangeText={(text) =>
-                      setDebitCardInputs((prev) => ({
+                      setEditDebitCardInputs((prev) => ({
                         ...prev,
                         lastName: text,
                       }))
@@ -763,10 +801,9 @@ const ManagePayments = () => {
                 <View style={styles.inputFieldContainer}>
                   <Text style={styles.inputFieldLabel}>Card Number</Text>
                   <TextInput
-                    placeholder="Enter card number"
-                    value={debitCardInputs.cardNumber}
+                    value={editDebitCardInputs.cardNumber}
                     onChangeText={(text) =>
-                      setDebitCardInputs((prev) => ({
+                      setEditDebitCardInputs((prev) => ({
                         ...prev,
                         cardNumber: text,
                       }))
@@ -778,7 +815,20 @@ const ManagePayments = () => {
                     editable={false} // Make this field read-only
                   />
                 </View>
-
+                <View style={styles.inputFieldContainer}>
+                  <Text style={styles.inputFieldLabel}>Zip Code</Text>
+                  <TextInput
+                    value={editDebitCardInputs.zip}
+                    onChangeText={(text) =>
+                      setEditDebitCardInputs((prev) => ({ ...prev, zip: text }))
+                    }
+                    style={styles.inputField}
+                    placeholderTextColor={"#707073"}
+                    keyboardType="numeric"
+                    maxLength={5}
+                    editable={false}
+                  />
+                </View>
                 <View style={styles.inputFieldContainer}>
                   <Text style={styles.inputFieldLabel}>Expiration Month *</Text>
                   {Platform.OS === "ios" ? (
@@ -789,7 +839,7 @@ const ManagePayments = () => {
                       >
                         <View style={styles.pickerContainer}>
                           <Text style={styles.pickerText}>
-                            {debitCardInputs.expMonth || "Select Month"}
+                            {editDebitCardInputs.expMonth || "Select Month"}
                           </Text>
                           <FontAwesome
                             name="caret-down"
@@ -800,8 +850,10 @@ const ManagePayments = () => {
                       </Pressable>
                       {showMonthPicker && (
                         <Picker
-                          selectedValue={debitCardInputs.expMonth}
-                          onValueChange={handleMonthChange}
+                          selectedValue={editDebitCardInputs.expMonth}
+                          onValueChange={(value) =>
+                            setEditDebitCardInputs((prev) => ({ ...prev, expMonth: value }))
+                          }
                           style={styles.iosPicker}
                           itemStyle={styles.pickerItem}
                         >
@@ -819,8 +871,10 @@ const ManagePayments = () => {
                   ) : (
                     <View style={styles.pickerWrapper}>
                       <Picker
-                        selectedValue={debitCardInputs.expMonth}
-                        onValueChange={handleMonthChange}
+                        selectedValue={editDebitCardInputs.expMonth}
+                        onValueChange={(value) =>
+                          setEditDebitCardInputs((prev) => ({ ...prev, expMonth: value }))
+                        }
                         style={styles.androidPicker}
                         dropdownIconColor="#000000"
                       >
@@ -845,7 +899,7 @@ const ManagePayments = () => {
                       >
                         <View style={styles.pickerContainer}>
                           <Text style={styles.pickerText}>
-                            {debitCardInputs.expYear || "Select Year"}
+                            {editDebitCardInputs.expYear || "Select Year"}
                           </Text>
                           <FontAwesome
                             name="caret-down"
@@ -856,8 +910,10 @@ const ManagePayments = () => {
                       </Pressable>
                       {showYearPicker && (
                         <Picker
-                          selectedValue={debitCardInputs.expYear}
-                          onValueChange={handleYearChange}
+                          selectedValue={editDebitCardInputs.expYear}
+                          onValueChange={(value) =>
+                            setEditDebitCardInputs((prev) => ({ ...prev, expYear: value }))
+                          }
                           style={styles.iosPicker}
                           itemStyle={styles.pickerItem}
                         >
@@ -875,8 +931,10 @@ const ManagePayments = () => {
                   ) : (
                     <View style={styles.pickerWrapper}>
                       <Picker
-                        selectedValue={debitCardInputs.expYear}
-                        onValueChange={handleYearChange}
+                        selectedValue={editDebitCardInputs.expYear}
+                        onValueChange={(value) =>
+                          setEditDebitCardInputs((prev) => ({ ...prev, expYear: value }))
+                        }
                         style={styles.androidPicker}
                         dropdownIconColor="#000000"
                       >
@@ -895,9 +953,9 @@ const ManagePayments = () => {
                   <Text style={styles.inputFieldLabel}>Security Code</Text>
                   <TextInput
                     placeholder="Enter security code"
-                    value={debitCardInputs.cvv}
+                    value={editDebitCardInputs.cvv}
                     onChangeText={(text) =>
-                      setDebitCardInputs((prev) => ({ ...prev, cvv: text }))
+                      setEditDebitCardInputs((prev) => ({ ...prev, cvv: text }))
                     }
                     style={styles.inputField}
                     placeholderTextColor={"#707073"}
@@ -905,20 +963,7 @@ const ManagePayments = () => {
                     maxLength={3}
                   />
                 </View>
-                <View style={styles.inputFieldContainer}>
-                  <Text style={styles.inputFieldLabel}>Zip Code</Text>
-                  <TextInput
-                    placeholder="Enter zip code"
-                    value={debitCardInputs.zip}
-                    onChangeText={(text) =>
-                      setDebitCardInputs((prev) => ({ ...prev, zip: text }))
-                    }
-                    style={styles.inputField}
-                    placeholderTextColor={"#707073"}
-                    keyboardType="numeric"
-                    maxLength={5}
-                  />
-                </View>
+
                 <View style={styles.submitButtonContainer}>
                   <TouchableOpacity
                     style={styles.submitButton}
@@ -1041,7 +1086,7 @@ const ManagePayments = () => {
             ))}
           </View>
 
-          {selectedMethod === "Add Checking Account" && (
+          {selectedMethod === "Add Checking Account" && !isEditModalVisible && (
             <>
               <View style={styles.inputFieldContainer}>
                 <Text style={styles.inputFieldLabel}>Routing Number</Text>
@@ -1081,7 +1126,8 @@ const ManagePayments = () => {
               </View>
             </>
           )}
-          {selectedMethod === "Add Debit Card" && (
+
+          {selectedMethod === "Add Debit Card" && !isEditModalVisible && (
             <>
               <View style={styles.inputFieldContainer}>
                 <Text style={styles.inputFieldLabel}>First Name</Text>
