@@ -545,14 +545,12 @@ const ManagePayments = () => {
         }
       );
 
-
       if (!response.ok) {
         throw new Error("Failed to fetch debit card information");
       }
 
       const data = await response.json();
-   
-      
+
       return data;
     } catch (error) {
       console.error("Error fetching debit card information:", error);
@@ -566,18 +564,19 @@ const ManagePayments = () => {
     if (method.cardNumber) {
       try {
         const debitCardInfo = await fetchDebitCardInfo(method.id);
-             // Extract month and year from expirationDate
-      const expMonth = debitCardInfo.expirationDate.substring(0, 2);
-      const expYear = debitCardInfo.expirationDate.substring(2, 4);
+        // Extract month and year from expirationDate
+        const expMonth = debitCardInfo.expirationDate.substring(0, 2);
+        const expYear = debitCardInfo.expirationDate.substring(2, 4);
 
-        
         setSelectedMethod("Add Debit Card");
         setEditDebitCardInputs({
-          firstName: debitCardInfo.firstName || customerResponse?.user?.firstName || "",
-          lastName: debitCardInfo.lastName || customerResponse?.user?.lastName || "",
+          firstName:
+            debitCardInfo.firstName || customerResponse?.user?.firstName || "",
+          lastName:
+            debitCardInfo.lastName || customerResponse?.user?.lastName || "",
           cardNumber: debitCardInfo.cardNumber || "",
           expMonth: expMonth,
-        expYear: expYear,
+          expYear: expYear,
           cvv: "",
           zip: debitCardInfo.zipCode || "",
         });
@@ -854,9 +853,13 @@ const ManagePayments = () => {
                       {showMonthPicker && (
                         <Picker
                           selectedValue={editDebitCardInputs.expMonth}
-                          onValueChange={(value) =>
-                            setEditDebitCardInputs((prev) => ({ ...prev, expMonth: value }))
-                          }
+                          onValueChange={(value) => {
+                            setEditDebitCardInputs((prev) => ({
+                              ...prev,
+                              expMonth: value,
+                            }));
+                            setShowMonthPicker(false); // Close the month picker after selection
+                          }}
                           style={styles.iosPicker}
                           itemStyle={styles.pickerItem}
                         >
@@ -875,9 +878,13 @@ const ManagePayments = () => {
                     <View style={styles.pickerWrapper}>
                       <Picker
                         selectedValue={editDebitCardInputs.expMonth}
-                        onValueChange={(value) =>
-                          setEditDebitCardInputs((prev) => ({ ...prev, expMonth: value }))
-                        }
+                        onValueChange={(value) => {
+                          setEditDebitCardInputs((prev) => ({
+                            ...prev,
+                            expMonth: value,
+                          }));
+                          setShowMonthPicker(false); // Close the month picker after selection
+                        }}
                         style={styles.androidPicker}
                         dropdownIconColor="#000000"
                       >
@@ -892,6 +899,7 @@ const ManagePayments = () => {
                     </View>
                   )}
                 </View>
+
                 <View style={styles.inputFieldContainer}>
                   <Text style={styles.inputFieldLabel}>Expiration Year *</Text>
                   {Platform.OS === "ios" ? (
@@ -914,9 +922,13 @@ const ManagePayments = () => {
                       {showYearPicker && (
                         <Picker
                           selectedValue={editDebitCardInputs.expYear}
-                          onValueChange={(value) =>
-                            setEditDebitCardInputs((prev) => ({ ...prev, expYear: value }))
-                          }
+                          onValueChange={(value) => {
+                            setEditDebitCardInputs((prev) => ({
+                              ...prev,
+                              expYear: value,
+                            }));
+                            setShowYearPicker(false); // Close the year picker after selection
+                          }}
                           style={styles.iosPicker}
                           itemStyle={styles.pickerItem}
                         >
@@ -935,9 +947,13 @@ const ManagePayments = () => {
                     <View style={styles.pickerWrapper}>
                       <Picker
                         selectedValue={editDebitCardInputs.expYear}
-                        onValueChange={(value) =>
-                          setEditDebitCardInputs((prev) => ({ ...prev, expYear: value }))
-                        }
+                        onValueChange={(value) => {
+                          setEditDebitCardInputs((prev) => ({
+                            ...prev,
+                            expYear: value,
+                          }));
+                          setShowYearPicker(false); // Close the year picker after selection
+                        }}
                         style={styles.androidPicker}
                         dropdownIconColor="#000000"
                       >
