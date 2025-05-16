@@ -545,11 +545,14 @@ const ManagePayments = () => {
         }
       );
 
+
       if (!response.ok) {
         throw new Error("Failed to fetch debit card information");
       }
 
       const data = await response.json();
+   
+      
       return data;
     } catch (error) {
       console.error("Error fetching debit card information:", error);
@@ -563,18 +566,18 @@ const ManagePayments = () => {
     if (method.cardNumber) {
       try {
         const debitCardInfo = await fetchDebitCardInfo(method.id);
+             // Extract month and year from expirationDate
+      const expMonth = debitCardInfo.expirationDate.substring(0, 2);
+      const expYear = debitCardInfo.expirationDate.substring(2, 4);
 
+        
         setSelectedMethod("Add Debit Card");
         setEditDebitCardInputs({
           firstName: debitCardInfo.firstName || customerResponse?.user?.firstName || "",
           lastName: debitCardInfo.lastName || customerResponse?.user?.lastName || "",
           cardNumber: debitCardInfo.cardNumber || "",
-          expMonth: debitCardInfo.expirationDate
-            ? String(new Date(debitCardInfo.expirationDate).getMonth() + 1)
-            : "",
-          expYear: debitCardInfo.expirationDate
-            ? String(new Date(debitCardInfo.expirationDate).getFullYear())
-            : "",
+          expMonth: expMonth,
+        expYear: expYear,
           cvv: "",
           zip: debitCardInfo.zipCode || "",
         });
