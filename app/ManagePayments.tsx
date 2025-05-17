@@ -39,6 +39,22 @@ interface PaymentMethod {
   isDisabled: boolean;
 }
 
+interface DebitCardInfoDto {
+  firstName: string;
+  lastName: string;
+  cardNumber: string;
+  securityCode: string;
+  expirationDateTime: Date;
+  zipCode: string;
+  customerPaymentMethodId: number;
+  address1?: string | null;
+  address2?: string | null;
+  city?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  state?: string | null;
+}
+
 const ManagePayments = () => {
   const token = useSelector((state: any) => state.auth.token);
   const creditAccountId = useSelector(
@@ -614,89 +630,139 @@ const ManagePayments = () => {
     setEditModalVisible(true);
   };
 
+  const updateDebitCardInfo = async (
+    paymentMethodInfo: DebitCardInfoDto,
+    customerPaymentMethodId: number
+  ) => {
+    try {
+      const response = await fetch(
+        `https://dev.ivitafi.com/api/creditaccount/update-debitcard-info`,
+        {
+          method: "PUT",
+          headers: {
+             'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            ...paymentMethodInfo,
+            customerPaymentMethodId: customerPaymentMethodId,
+          }),
+        }
+      );
+  const contentType = response.headers.get("content-type");
+
+       if (!response.ok) {
+      const errorData = contentType?.includes("application/json")
+        ? await response.json()
+        : { errorMessage: await response.text() };
+
+      return { type: "error", response: errorData };
+    }
+
+    const data = contentType?.includes("application/json")
+      ? await response.json()
+      : await response.text();
+
+    return { type: "data", data };
+  } catch (error) {
+    console.error("Error Error updating debit card information: payment method:", error);
+    return { type: "error", error: { errorCode: ErrorCode.Unknown } };
+  }
+  };
+
   const handleUpdateButtonPress = async () => {
     setIsSubmitting(true);
 
-    const paymentMethodData = {
-      accountNumber: null as string | null,
-      routingNumber: null as string | null,
-      truncatedAccountNumber: null as string | null,
-      truncatedCardNumber: null as string | null,
-      truncatedRoutingNumber: null as string | null,
-      expirationDate: null as Date | null,
-      cardNumber: null as string | null,
-      securityCode: null as string | null,
-      firstName: null as string | null,
-      lastName: null as string | null,
-      zipCode: null as string | null,
-      paymentMethodType: null as number | null,
-    };
-
-    if (selectedMethod === "Add Checking Account") {
-      paymentMethodData.accountNumber = accountNumber;
-      paymentMethodData.routingNumber = routingNumber;
-      paymentMethodData.paymentMethodType = 1;
-
-      paymentMethodData.cardNumber = null;
-      paymentMethodData.securityCode = null;
-      paymentMethodData.firstName = null;
-      paymentMethodData.lastName = null;
-      paymentMethodData.zipCode = null;
-      paymentMethodData.expirationDate = null;
-    } else if (selectedMethod === "Add Debit Card") {
-      const { firstName, lastName, cardNumber, expMonth, expYear } =
+    if (selectedMethod === "Add Debit Card" && editingMethod?.id) {
+      const { firstName, lastName, cardNumber, expMonth, expYear, cvv } =
         editDebitCardInputs;
 
-      paymentMethodData.cardNumber = cardNumber;
-      paymentMethodData.securityCode = editDebitCardInputs.cvv;
-      paymentMethodData.firstName = firstName;
-      paymentMethodData.lastName = lastName;
-      paymentMethodData.zipCode = editDebitCardInputs.zip;
-      paymentMethodData.expirationDate = new Date(
-        Number(expYear),
-        Number(expMonth) - 1
-      );
-      paymentMethodData.paymentMethodType = 3;
+      const month = Number(expMonth);
+      const year = Number(expYear);
 
-      paymentMethodData.accountNumber = null;
-      paymentMethodData.routingNumber = null;
-    }
+      // Get last day of the correct month
+      const lastDay = new Date(year, month, 0).getDate();
 
-    try {
-      const paymentMethResp =
-        await updateCreditAccountPaymentMethodWithDefaultPaymentMethodAsync(
-          creditAccountId,
-          paymentMethodData,
-          0,
-          isDefault,
-          token
-        );
+      // Create expiration date with last day
+      const expirationDateWithTime = new Date(year, month - 1, lastDay, 0, 0, 0);
 
-      if (paymentMethResp.type === "data") {
-        Toast.show({
-          type: "success",
-          text1: "Success",
-          text2: "Payment method updated successfully.",
-        });
-        resetFormInputs();
-        await fetchData();
-        setEditModalVisible(false);
-      } else {
+      const paymentMethodInfo: DebitCardInfoDto = {
+        firstName,
+        lastName,
+        cardNumber,
+        securityCode: cvv,
+        expirationDateTime: expirationDateWithTime,
+        zipCode: editDebitCardInputs.zip,
+        customerPaymentMethodId: Number(editingMethod.id), 
+        // Additional fields
+        address1: null,
+        address2: null,
+        city: null,
+        email: null,
+        phone: null,
+        state: null,
+      };
+
+      const isSecurityCodeEntered = !!cvv;
+      const isSecurityCodeValid = /^[0-9]{3,4}$/.test(cvv || '');
+
+      if (isSecurityCodeEntered && !isSecurityCodeValid) {
         Toast.show({
           type: "error",
           text1: "Error",
-          text2: "There was an error while updating the payment method.",
+          text2: "Invalid security code. It must be 3 or 4 digits.",
         });
+        setIsSubmitting(false);
+        return;
       }
-    } catch (error) {
-      console.error("Error updating payment method:", error);
-      Toast.show({
-        type: "error",
-        text1: "Error",
-        text2: "An unexpected error occurred. Please try again.",
-      });
-    } finally {
-      setIsSubmitting(false);
+
+      const currentYear = new Date().getFullYear();
+      const currentMonth = new Date().getMonth() + 1;
+
+      if (month > 0 && year > 0 && year === currentYear && month < currentMonth) {
+        Toast.show({
+          type: "error",
+          text1: "Error",
+          text2: "The debit card you entered has expired. Please update your payment details.",
+        });
+        setIsSubmitting(false);
+        return;
+      }
+
+      try {
+        const result = await updateDebitCardInfo(
+          paymentMethodInfo,
+         Number(editingMethod.id)
+        );
+
+        if (result?.type === "data") {
+          setEditModalVisible(false);
+          
+          Toast.show({
+            type: "success",
+            text1: "Success",
+            text2: "The payment method information has been updated successfully.",
+          });
+          resetFormInputs();
+          await fetchData();
+          
+        } else {
+          Toast.show({
+            type: "error",
+            text1: "Error",
+            text2: "Failed to update the payment method information. Please try again.",
+          });
+        }
+      } catch (error) {
+        console.error("Error updating debit card information:", error);
+        Toast.show({
+          type: "error",
+          text1: "Error",
+          text2: "An unexpected error occurred. Please try again.",
+        });
+      } finally {
+        setIsSubmitting(false);
+      }
     }
   };
 
