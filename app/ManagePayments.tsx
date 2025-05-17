@@ -564,9 +564,25 @@ const ManagePayments = () => {
     if (method.cardNumber) {
       try {
         const debitCardInfo = await fetchDebitCardInfo(method.id);
+
         // Extract month and year from expirationDate
         const expMonth = debitCardInfo.expirationDate.substring(0, 2);
-        const expYear = debitCardInfo.expirationDate.substring(2, 4);
+        const expYearTwoDigits = debitCardInfo.expirationDate.substring(2, 4);
+
+        // Convert two-digit year to full year
+        const expirationYearTwoDigits = parseInt(expYearTwoDigits, 10);
+        const currentYear = new Date().getFullYear();
+        const currentCentury = Math.floor(currentYear / 100) * 100;
+        const currentYearTwoDigits = currentYear % 100;
+
+        let fullYear: number;
+        if (expirationYearTwoDigits < currentYearTwoDigits) {
+          // Year has already passed in this century — assume next century
+          fullYear = currentCentury + 100 + expirationYearTwoDigits;
+        } else {
+          // Same century
+          fullYear = currentCentury + expirationYearTwoDigits;
+        }
 
         setSelectedMethod("Add Debit Card");
         setEditDebitCardInputs({
@@ -576,16 +592,16 @@ const ManagePayments = () => {
             debitCardInfo.lastName || customerResponse?.user?.lastName || "",
           cardNumber: debitCardInfo.cardNumber || "",
           expMonth: expMonth,
-          expYear: expYear,
+          expYear: fullYear.toString(), // Use the full year
           cvv: "",
           zip: debitCardInfo.zipCode || "",
         });
       } catch (error) {
-        console.error("Error fetching debit card information:", error);
         Toast.show({
           type: "error",
-          text1: "Error",
-          text2: "Failed to fetch debit card information.",
+          text1:
+            "There was an error while fetching debit card payment information.",
+          text2: "Error",
         });
       }
     } else if (method.accountNumber) {
