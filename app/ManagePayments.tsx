@@ -738,13 +738,13 @@ const ManagePayments = () => {
         if (result?.type === "data") {
           setEditModalVisible(false);
           
+          await fetchData();
           Toast.show({
             type: "success",
             text1: "Success",
             text2: "The payment method information has been updated successfully.",
           });
           resetFormInputs();
-          await fetchData();
           
         } else {
           Toast.show({
