@@ -320,6 +320,7 @@ const ProfileScreen = () => {
           </View>
         </ScrollView>
       </View>
+       <Toast />
     </View>
   );
 };
