@@ -18,7 +18,10 @@ import {
   Feather,
   Ionicons,
 } from "@expo/vector-icons";
-import { fetchUserData } from "./services/userService"; // Adjust the import path as necessary
+import { fetchUserData, updateCustomer } from "./services/userService"; // Adjust the import path as necessary
+import { fetchCreditSummariesWithId } from "./services/creditAccountService";
+import { fetchCustomerData } from "./services/customerService";
+import Toast from 'react-native-toast-message';
 
 const ProfileScreen = () => {
   interface UserData {
@@ -36,46 +39,139 @@ const ProfileScreen = () => {
     email: string | null;
   }
 
+  const token = useSelector((state: any) => state.auth.token);
+  const [formSubmitted, setFormSubmitted] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [customer, setCustomer] = useState(null);
+
   const [userData, setUserData] = useState<UserData | null>(null);
   const [emailInput, setEmailInput] = useState<string | null>(null);
-
-  const token = useSelector((state: any) => state.auth.token);
+  const [customerResponse, setCustomerResponse] = useState<any>(null);
+  const getUserData = async () => {
+    const data = await fetchUserData(token, setUserData);
+    if (data) {
+      const mappedData: UserData = {
+        firstName: data.firstName || null,
+        lastName: data.lastName || null,
+        dateOfBirth: data.customer?.dateOfBirth
+          ? new Date(data.customer.dateOfBirth).toLocaleDateString()
+          : null,
+        ssn: formatSSN(data.customer?.taxId) || null,
+        mobilePhone: formatPhoneNumber(data.customer?.mobilePhone) || null,
+        homePhone: data.customer?.homePhone || null,
+        physicalAddress: data.customer?.streetAddress || null,
+        mailingAddress: data.customer?.streetAddressOptional || null,
+        city: data.customer?.city || null,
+        state: formatState(data.customer?.state) || null,
+        zip: data.customer?.zipCode || null,
+        email: data.email || null,
+      };
+      setUserData(mappedData);
+      
+      setEmailInput(data.email || "");
+      
+    }
+  };
 
   useEffect(() => {
-    const getUserData = async () => {
-      const data = await fetchUserData(token, setUserData);
-      if (data) {
-        const mappedData: UserData = {
-          firstName: data.firstName || null,
-          lastName: data.lastName || null,
-          dateOfBirth: data.customer?.dateOfBirth
-            ? new Date(data.customer.dateOfBirth).toLocaleDateString()
-            : null,
-          ssn: formatSSN(data.customer?.taxId) || null,
-          mobilePhone: formatPhoneNumber(data.customer?.mobilePhone) || null,
-          homePhone: data.customer?.homePhone || null,
-          physicalAddress: data.customer?.streetAddress || null,
-          mailingAddress: data.customer?.streetAddressOptional || null,
-          city: data.customer?.city || null,
-          state: formatState(data.customer?.state) || null,
-          zip: data.customer?.zipCode || null,
-          email: data.email || null,
-        };
-        setUserData(mappedData);
-        setEmailInput(data.email || "");
-      }
-    };
-
     getUserData();
   }, [token]);
 
   const handleBackPress = () => {
     router.push("/(tabs)/Home");
   };
+  const capitalizeWords = (str: string) => {
+    if (!str) return str;
+    return str.replace(/\w\S*/g, (txt) => {
+      return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+    });
+  };
+  const handleSave = async () => {
+    if (!emailInput) {
+      console.log("Email is required");
+      return;
+    }
 
-  const handleSave = () => {
-    console.log("Save pressed");
-    // Here you can add your update email API logic
+    setFormSubmitted(true);
+    setIsSaving(true);
+    setIsLoading(true);
+
+    try {
+      const customerResponse = await fetchCustomerData(token, (data) => {});
+      setCustomerResponse(customerResponse);
+     
+      if (customerResponse) {
+        const { creditSummaries } = await fetchCreditSummariesWithId(
+          customerResponse,
+          token
+        );
+
+        if (creditSummaries && creditSummaries.length > 0) {
+          const customerId =
+            creditSummaries[0]?.detail?.creditAccount?.customerId;
+
+          if (customerId) {
+            const updatedCustomer = {
+              ...customerResponse,
+              city: capitalizeWords(customerResponse.city),
+              streetAddress: capitalizeWords(customerResponse.streetAddress),
+              streetAddressOptional: capitalizeWords(
+                customerResponse.streetAddressOptional
+              ),
+              altMobilePhone: customerResponse.altMobilePhone,
+              businessPhone: customerResponse.businessPhone,
+              dateOfBirth: customerResponse.dateOfBirth,
+              homePhone: customerResponse.homePhone,
+              income: customerResponse.income,
+              mobilePhone: customerResponse.mobilePhone,
+              state: customerResponse.state,
+              taxId: customerResponse.taxId,
+              zipCode: customerResponse.zipCode,
+            user: {
+              ...customerResponse.user,
+              email: emailInput, // Update the email in the user object
+            },
+            };
+
+            console.log("Updated Customer Data:", updatedCustomer);
+            const response = await updateCustomer(
+              customerId,
+              updatedCustomer,
+              token
+            );
+            console.log(response);
+            
+
+            if (response?.type === "data") {
+              Toast.show({
+                type: "success",
+                text1: "Success",
+                text2: "Profile updated successfully.",
+              });
+
+              // Call getUserData again to fetch the latest data
+              await getUserData();
+            }
+          } else {
+            Toast.show({
+              type: "error",
+              text1: "Error",
+              text2: "Error occurred..",
+            });
+          }
+        }
+      }
+    } catch (error) {
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: "Error occurred..",
+      });
+    } finally {
+      setIsSaving(false);
+      setIsLoading(false);
+    }
   };
 
   const formatSSN = (ssn: string | null): string | null => {
@@ -132,6 +228,7 @@ const ProfileScreen = () => {
           style={styles.input}
           value={emailInput ?? ""}
           onChangeText={setEmailInput}
+          
           placeholder="Enter email"
           keyboardType="email-address"
         />
@@ -210,17 +307,20 @@ const ProfileScreen = () => {
             </View>
           ))}
           <View style={styles.saveButtonContainer}>
-          <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-            <Text style={styles.saveButtonText}>Save</Text>
-          </TouchableOpacity>
-        </View>
+            <TouchableOpacity
+              style={styles.saveButton}
+              onPress={handleSave}
+              disabled={isSaving}
+            >
+              <Text style={styles.saveButtonText}>
+                {isSaving ? "Saving..." : "Save"}
+              </Text>
+            </TouchableOpacity>
+          </View>
         </ScrollView>
-
-        
       </View>
     </View>
   );
 };
-
 
 export default ProfileScreen;
