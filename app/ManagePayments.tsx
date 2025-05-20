@@ -640,8 +640,8 @@ const ManagePayments = () => {
         {
           method: "PUT",
           headers: {
-             'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({
             ...paymentMethodInfo,
@@ -649,25 +649,28 @@ const ManagePayments = () => {
           }),
         }
       );
-  const contentType = response.headers.get("content-type");
+      const contentType = response.headers.get("content-type");
 
-       if (!response.ok) {
-      const errorData = contentType?.includes("application/json")
+      if (!response.ok) {
+        const errorData = contentType?.includes("application/json")
+          ? await response.json()
+          : { errorMessage: await response.text() };
+
+        return { type: "error", response: errorData };
+      }
+
+      const data = contentType?.includes("application/json")
         ? await response.json()
-        : { errorMessage: await response.text() };
+        : await response.text();
 
-      return { type: "error", response: errorData };
+      return { type: "data", data };
+    } catch (error) {
+      console.error(
+        "Error Error updating debit card information: payment method:",
+        error
+      );
+      return { type: "error", error: { errorCode: ErrorCode.Unknown } };
     }
-
-    const data = contentType?.includes("application/json")
-      ? await response.json()
-      : await response.text();
-
-    return { type: "data", data };
-  } catch (error) {
-    console.error("Error Error updating debit card information: payment method:", error);
-    return { type: "error", error: { errorCode: ErrorCode.Unknown } };
-  }
   };
 
   const handleUpdateButtonPress = async () => {
@@ -684,7 +687,14 @@ const ManagePayments = () => {
       const lastDay = new Date(year, month, 0).getDate();
 
       // Create expiration date with last day
-      const expirationDateWithTime = new Date(year, month - 1, lastDay, 0, 0, 0);
+      const expirationDateWithTime = new Date(
+        year,
+        month - 1,
+        lastDay,
+        0,
+        0,
+        0
+      );
 
       const paymentMethodInfo: DebitCardInfoDto = {
         firstName,
@@ -693,7 +703,7 @@ const ManagePayments = () => {
         securityCode: cvv,
         expirationDateTime: expirationDateWithTime,
         zipCode: editDebitCardInputs.zip,
-        customerPaymentMethodId: Number(editingMethod.id), 
+        customerPaymentMethodId: Number(editingMethod.id),
         // Additional fields
         address1: null,
         address2: null,
@@ -704,7 +714,7 @@ const ManagePayments = () => {
       };
 
       const isSecurityCodeEntered = !!cvv;
-      const isSecurityCodeValid = /^[0-9]{3,4}$/.test(cvv || '');
+      const isSecurityCodeValid = /^[0-9]{3,4}$/.test(cvv || "");
 
       if (isSecurityCodeEntered && !isSecurityCodeValid) {
         Toast.show({
@@ -719,11 +729,17 @@ const ManagePayments = () => {
       const currentYear = new Date().getFullYear();
       const currentMonth = new Date().getMonth() + 1;
 
-      if (month > 0 && year > 0 && year === currentYear && month < currentMonth) {
+      if (
+        month > 0 &&
+        year > 0 &&
+        year === currentYear &&
+        month < currentMonth
+      ) {
         Toast.show({
           type: "error",
           text1: "Error",
-          text2: "The debit card you entered has expired. Please update your payment details.",
+          text2:
+            "The debit card you entered has expired. Please update your payment details.",
         });
         setIsSubmitting(false);
         return;
@@ -732,25 +748,26 @@ const ManagePayments = () => {
       try {
         const result = await updateDebitCardInfo(
           paymentMethodInfo,
-         Number(editingMethod.id)
+          Number(editingMethod.id)
         );
 
         if (result?.type === "data") {
           setEditModalVisible(false);
-          
+
           await fetchData();
           Toast.show({
             type: "success",
             text1: "Success",
-            text2: "The payment method information has been updated successfully.",
+            text2:
+              "The payment method information has been updated successfully.",
           });
           resetFormInputs();
-          
         } else {
           Toast.show({
             type: "error",
             text1: "Error",
-            text2: "Failed to update the payment method information. Please try again.",
+            text2:
+              "Failed to update the payment method information. Please try again.",
           });
         }
       } catch (error) {

@@ -21,7 +21,7 @@ import {
 import { fetchUserData, updateCustomer } from "./services/userService"; // Adjust the import path as necessary
 import { fetchCreditSummariesWithId } from "./services/creditAccountService";
 import { fetchCustomerData } from "./services/customerService";
-import Toast from 'react-native-toast-message';
+import Toast from "react-native-toast-message";
 
 const ProfileScreen = () => {
   interface UserData {
@@ -68,9 +68,8 @@ const ProfileScreen = () => {
         email: data.email || null,
       };
       setUserData(mappedData);
-      
+
       setEmailInput(data.email || "");
-      
     }
   };
 
@@ -100,7 +99,7 @@ const ProfileScreen = () => {
     try {
       const customerResponse = await fetchCustomerData(token, (data) => {});
       setCustomerResponse(customerResponse);
-     
+
       if (customerResponse) {
         const { creditSummaries } = await fetchCreditSummariesWithId(
           customerResponse,
@@ -128,19 +127,18 @@ const ProfileScreen = () => {
               state: customerResponse.state,
               taxId: customerResponse.taxId,
               zipCode: customerResponse.zipCode,
-            user: {
-              ...customerResponse.user,
-              email: emailInput, // Update the email in the user object
-            },
+              user: {
+                ...customerResponse.user,
+                email: emailInput, // Update the email in the user object
+              },
             };
 
-            console.log("Updated Customer Data:", updatedCustomer);
+         
             const response = await updateCustomer(
               customerId,
               updatedCustomer,
               token
             );
-            console.log(response);
             
 
             if (response?.type === "data") {
@@ -148,6 +146,10 @@ const ProfileScreen = () => {
                 type: "success",
                 text1: "Success",
                 text2: "Profile updated successfully.",
+                visibilityTime: 4000, // duration for which toast is visible
+                autoHide: true, // to auto hide the toast
+                topOffset: 30, // offset from top
+                bottomOffset: 40,
               });
 
               // Call getUserData again to fetch the latest data
@@ -228,7 +230,6 @@ const ProfileScreen = () => {
           style={styles.input}
           value={emailInput ?? ""}
           onChangeText={setEmailInput}
-          
           placeholder="Enter email"
           keyboardType="email-address"
         />
