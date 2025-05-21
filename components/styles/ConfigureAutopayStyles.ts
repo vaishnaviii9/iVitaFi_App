@@ -168,9 +168,10 @@ export const styles = StyleSheet.create({
     fontSize: 18,
     marginBottom: 10,
   },
-  closeButton: {
-    marginTop: 15,
-    alignItems: "center",
+closeButton: {
+    position: 'absolute',
+    right: 10,
+    top: 10,
   },
   closeButtonText: {
     color: "#27446F",

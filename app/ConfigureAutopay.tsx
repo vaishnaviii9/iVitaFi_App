@@ -83,7 +83,6 @@ const ConfigureAutopay = () => {
                 );
                 setSavedMethods(validMethods); // Update state with valid payment methods
                 console.log("validMethods", validMethods);
-                
               }
             }
           }
@@ -119,52 +118,69 @@ const ConfigureAutopay = () => {
   };
 
   // Functions to handle iOS picker value changes with auto-close
-const handlePaymentMethodChange = (value: string) => {
-  setPaymentMethod(value); // Update payment method state
+  const handlePaymentMethodChange = (value: string) => {
+    setPaymentMethod(value); // Update payment method state
 
-  // Check if the selected payment method is a saved debit card
-  if (value.startsWith("Debit Card -")) {
-    // Extract the card number from the value
-    const cardNumberFromValue = value.split(" - ")[1];
+    // Check if the selected payment method is a saved debit card
+    if (value.startsWith("Debit Card -")) {
+      // Extract the card number from the value
+      const cardNumberFromValue = value.split(" - ")[1];
 
-    // Find the selected method from savedMethods
-    const selectedMethod = savedMethods.find(method =>
-      method.cardNumber && method.cardNumber.endsWith(cardNumberFromValue)
-    );
+      // Find the selected method from savedMethods
+      const selectedMethod = savedMethods.find(
+        (method) =>
+          method.cardNumber && method.cardNumber.endsWith(cardNumberFromValue)
+      );
 
-    if (selectedMethod && selectedMethod.cardNumber) {
-      // Format the card number to display only the last four digits
-      const formattedCardNumber = 'x'.repeat(selectedMethod.cardNumber.length - 4) + selectedMethod.cardNumber.slice(-4);
+      if (selectedMethod && selectedMethod.cardNumber) {
+        // Format the card number to display only the last four digits
+        const formattedCardNumber =
+          "x".repeat(selectedMethod.cardNumber.length - 4) +
+          selectedMethod.cardNumber.slice(-4);
 
-      // Set the formatted card number
-      setCardNumber(formattedCardNumber);
+        // Set the formatted card number
+        setCardNumber(formattedCardNumber);
 
-      // Parse the expiration date to get month and year
-      const expirationDate = new Date(selectedMethod.expirationDate);
-      const expirationMonth = expirationDate.getMonth()+1; // Months are zero-based
-      const expirationYear = expirationDate.getFullYear();
+        // Parse the expiration date to get month and year
+        const expirationDate = new Date(selectedMethod.expirationDate);
+        const expirationMonth = expirationDate.getMonth() + 1; // Months are zero-based
+        const expirationYear = expirationDate.getFullYear();
 
-      // Format the expiration month
-      const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-      const formattedExpirationMonth = `${expirationMonth.toString().padStart(2, '0')} - ${monthNames[expirationMonth - 1]}`;
+        // Format the expiration month
+        const monthNames = [
+          "January",
+          "February",
+          "March",
+          "April",
+          "May",
+          "June",
+          "July",
+          "August",
+          "September",
+          "October",
+          "November",
+          "December",
+        ];
+        const formattedExpirationMonth = `${expirationMonth
+          .toString()
+          .padStart(2, "0")} - ${monthNames[expirationMonth - 1]}`;
 
-      // Set the formatted expiration month and year
-      setExpirationMonth(formattedExpirationMonth);
-      setExpirationYear(expirationYear.toString());
+        // Set the formatted expiration month and year
+        setExpirationMonth(formattedExpirationMonth);
+        setExpirationYear(expirationYear.toString());
+      }
     }
-  }
 
-  if (value === "Add Debit Card") {
-    router.push("/ManagePayments"); // Navigate to the Manage Payment page if "Add Debit Card" is selected
-  }
+    if (value === "Add Debit Card") {
+      router.push("/ManagePayments"); // Navigate to the Manage Payment page if "Add Debit Card" is selected
+    }
 
-  if (Platform.OS === "ios") {
-    setTimeout(() => {
-      setShowPaymentMethodPicker(false); // Hide payment method picker on iOS after selection
-    }, 0);
-  }
-};
-
+    if (Platform.OS === "ios") {
+      setTimeout(() => {
+        setShowPaymentMethodPicker(false); // Hide payment method picker on iOS after selection
+      }, 0);
+    }
+  };
 
   const handleFrequencyChange = (value: React.SetStateAction<string>) => {
     setPaymentFrequency(value); // Update payment frequency state
@@ -324,8 +340,7 @@ const handlePaymentMethodChange = (value: string) => {
                 </View>
               )}
 
-              {
-              paymentMethod.startsWith("Debit Card -") ? (
+              {paymentMethod.startsWith("Debit Card -") ? (
                 <>
                   <Text style={styles.helpText}>Card Number</Text>
                   <TextInput
@@ -386,9 +401,41 @@ const handlePaymentMethodChange = (value: string) => {
 
               <TouchableOpacity onPress={() => setModalVisible(true)}>
                 <Text style={styles.helpLink}>
-                  Help me find my account information
+                  {paymentMethod.startsWith("Debit Card -")
+                    ? "Help me find my card information"
+                    : "Help me find my account information"}
                 </Text>
               </TouchableOpacity>
+
+              <Modal
+                animationType="slide"
+                transparent={true}
+                visible={modalVisible}
+                onRequestClose={() => {
+                  setModalVisible(!modalVisible);
+                }}
+              >
+                <View style={styles.modalContainer}>
+                  <View style={styles.modalContent}>
+                    <Text style={styles.modalText}>
+                      {paymentMethod.startsWith("Debit Card -")
+                        ? "Debit Card"
+                        : "Checking Account"}
+                    </Text>
+                    <Text>
+                      {paymentMethod.startsWith("Debit Card -")
+                        ? "Here you can provide information or steps to help the user find their card information."
+                        : "Here you can provide information or steps to help the user find their account information."}
+                    </Text>
+                    <TouchableOpacity
+                      style={styles.closeButton}
+                      onPress={() => setModalVisible(!modalVisible)}
+                    >
+                      <Ionicons name="close" size={24} color="black" />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </Modal>
 
               <Text style={styles.helpText}>Payment will be</Text>
               {Platform.OS === "ios" ? (
@@ -562,9 +609,7 @@ const handlePaymentMethodChange = (value: string) => {
               <TouchableOpacity
                 style={styles.closeButton}
                 onPress={() => setModalVisible(!modalVisible)}
-              >
-                <Text style={styles.closeButtonText}>Close</Text>
-              </TouchableOpacity>
+              ></TouchableOpacity>
             </View>
           </View>
         </Modal>
