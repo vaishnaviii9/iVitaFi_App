@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -15,73 +15,130 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import { FontAwesome, Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { styles } from "../components/styles/ConfigureAutopayStyles";
+import { fetchSavedPaymentMethods } from "./services/savedPaymentMethodService";
+import { useSelector } from "react-redux";
+import { fetchCustomerData } from "./services/customerService";
+import { fetchCreditSummariesWithId } from "./services/creditAccountService";
+
+// Define an interface for the payment method to ensure type safety
+interface PaymentMethod {
+  cardNumber: string | null; // Card number of the payment method, can be null
+  accountNumber: string | null; // Account number of the payment method, can be null
+}
 
 // Function to handle back button press, navigating back to the Home screen
 const handleBackPress = () => {
-  router.push("/(tabs)/Home");
+  router.push("/(tabs)/Home"); // Navigate to the Home screen
 };
 
 const ConfigureAutopay = () => {
   // State variables for form fields
-  const [paymentMethod, setPaymentMethod] = useState("Add Checking Account"); // Selected payment method
-  const [routingNumber, setRoutingNumber] = useState(""); // Routing number input
-  const [accountNumber, setAccountNumber] = useState(""); // Account number input
-  const [paymentFrequency, setPaymentFrequency] = useState("Weekly"); // Payment frequency
-  const [dayOfWeek, setDayOfWeek] = useState("Monday"); // Day of the week for payment
-  const [paymentAmount, setPaymentAmount] = useState("$32.50"); // Payment amount
-  const [date, setDate] = useState(new Date()); // Payment start date
-  const [showDatePicker, setShowDatePicker] = useState(false); // Visibility of date picker
-  const [modalVisible, setModalVisible] = useState(false); // Visibility of help modal
+  const [paymentMethod, setPaymentMethod] = useState("Add Checking Account"); // Selected payment method, default is "Add Checking Account"
+  const [routingNumber, setRoutingNumber] = useState(""); // State for routing number input
+  const [accountNumber, setAccountNumber] = useState(""); // State for account number input
+  const [cardNumber, setCardNumber] = useState(""); // State for card number input
+  const [expirationMonth, setExpirationMonth] = useState(""); // State for expiration month input
+  const [expirationYear, setExpirationYear] = useState(""); // State for expiration year input
+  const [paymentFrequency, setPaymentFrequency] = useState("Weekly"); // State for payment frequency, default is "Weekly"
+  const [dayOfWeek, setDayOfWeek] = useState("Monday"); // State for day of the week for payment, default is "Monday"
+  const [paymentAmount, setPaymentAmount] = useState("$32.50"); // State for payment amount, default is "$32.50"
+  const [date, setDate] = useState(new Date()); // State for payment start date, default is current date
+  const [showDatePicker, setShowDatePicker] = useState(false); // State for visibility of date picker
+  const [modalVisible, setModalVisible] = useState(false); // State for visibility of help modal
+  const [savedMethods, setSavedMethods] = useState<PaymentMethod[]>([]); // State for saved payment methods, initialized as empty array
 
   // States to control iOS picker visibility
-  const [showPaymentMethodPicker, setShowPaymentMethodPicker] = useState(false); // Visibility of payment method picker on iOS
-  const [showFrequencyPicker, setShowFrequencyPicker] = useState(false); // Visibility of payment frequency picker on iOS
-  const [showDayPicker, setShowDayPicker] = useState(false); // Visibility of day picker on iOS
+  const [showPaymentMethodPicker, setShowPaymentMethodPicker] = useState(false); // State for visibility of payment method picker on iOS
+  const [showFrequencyPicker, setShowFrequencyPicker] = useState(false); // State for visibility of payment frequency picker on iOS
+  const [showDayPicker, setShowDayPicker] = useState(false); // State for visibility of day picker on iOS
+
+  // Retrieve token from Redux store to authenticate API requests
+  const token = useSelector((state: any) => state.auth.token);
+
+  // Fetch saved payment methods when the component mounts or token changes
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Fetch customer data using the token
+        const customerResponse = await fetchCustomerData(token, (data) => {});
+        if (customerResponse) {
+          // Fetch credit summaries using customer response and token
+          const { creditSummaries } = await fetchCreditSummariesWithId(
+            customerResponse,
+            token
+          );
+          if (creditSummaries && creditSummaries.length > 0) {
+            // Extract customer ID from the first credit summary
+            const customerId =
+              creditSummaries[0]?.detail?.creditAccount?.customerId;
+            if (customerId) {
+              // Fetch saved payment methods using customer ID and token
+              const methods = await fetchSavedPaymentMethods(token, customerId);
+              if (methods && methods.length > 0) {
+                // Filter valid payment methods that have either card number or account number
+                const validMethods = methods.filter(
+                  (method: PaymentMethod) =>
+                    method.cardNumber !== null || method.accountNumber !== null
+                );
+                setSavedMethods(validMethods); // Update state with valid payment methods
+              }
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching customer data:", error); // Log any errors during data fetching
+      }
+    };
+
+    if (token) {
+      fetchData(); // Call fetchData if token is available
+    }
+  }, [token]); // Dependency array ensures effect runs when token changes
 
   // Function to toggle date picker visibility based on platform
   const toggleDatePicker = () => {
     if (Platform.OS === "android") {
-      setShowDatePicker(true);
+      setShowDatePicker(true); // Show date picker on Android
     } else {
-      setShowDatePicker(!showDatePicker);
+      setShowDatePicker(!showDatePicker); // Toggle date picker visibility on iOS
     }
   };
 
   // Function to handle date change in the date picker
   const onChange = (_event: any, selectedDate?: Date) => {
     if (Platform.OS === "android") {
-      setShowDatePicker(false);
+      setShowDatePicker(false); // Hide date picker on Android after selection
     }
 
     if (selectedDate) {
-      setDate(selectedDate);
+      setDate(selectedDate); // Update date state with selected date
     }
   };
 
   // Functions to handle iOS picker value changes with auto-close
   const handlePaymentMethodChange = (value: React.SetStateAction<string>) => {
-    setPaymentMethod(value);
+    setPaymentMethod(value); // Update payment method state
     if (Platform.OS === "ios") {
       setTimeout(() => {
-        setShowPaymentMethodPicker(false);
+        setShowPaymentMethodPicker(false); // Hide payment method picker on iOS after selection
       }, 0);
     }
   };
 
   const handleFrequencyChange = (value: React.SetStateAction<string>) => {
-    setPaymentFrequency(value);
+    setPaymentFrequency(value); // Update payment frequency state
     if (Platform.OS === "ios") {
       setTimeout(() => {
-        setShowFrequencyPicker(false);
+        setShowFrequencyPicker(false); // Hide frequency picker on iOS after selection
       }, 0);
     }
   };
 
   const handleDayChange = (value: React.SetStateAction<string>) => {
-    setDayOfWeek(value);
+    setDayOfWeek(value); // Update day of week state
     if (Platform.OS === "ios") {
       setTimeout(() => {
-        setShowDayPicker(false);
+        setShowDayPicker(false); // Hide day picker on iOS after selection
       }, 0);
     }
   };
@@ -89,25 +146,25 @@ const ConfigureAutopay = () => {
   // Functions to open iOS pickers and reset other picker visibility
   const openPaymentMethodPicker = () => {
     if (Platform.OS === "ios") {
-      setShowFrequencyPicker(false);
-      setShowDayPicker(false);
-      setShowPaymentMethodPicker(!showPaymentMethodPicker);
+      setShowFrequencyPicker(false); // Hide frequency picker
+      setShowDayPicker(false); // Hide day picker
+      setShowPaymentMethodPicker(!showPaymentMethodPicker); // Toggle payment method picker visibility
     }
   };
 
   const openFrequencyPicker = () => {
     if (Platform.OS === "ios") {
-      setShowPaymentMethodPicker(false);
-      setShowDayPicker(false);
-      setShowFrequencyPicker(!showFrequencyPicker);
+      setShowPaymentMethodPicker(false); // Hide payment method picker
+      setShowDayPicker(false); // Hide day picker
+      setShowFrequencyPicker(!showFrequencyPicker); // Toggle frequency picker visibility
     }
   };
 
   const openDayPicker = () => {
     if (Platform.OS === "ios") {
-      setShowPaymentMethodPicker(false);
-      setShowFrequencyPicker(false);
-      setShowDayPicker(!showDayPicker);
+      setShowPaymentMethodPicker(false); // Hide payment method picker
+      setShowFrequencyPicker(false); // Hide frequency picker
+      setShowDayPicker(!showDayPicker); // Toggle day picker visibility
     }
   };
 
@@ -125,9 +182,9 @@ const ConfigureAutopay = () => {
           <View style={{ width: 24 }} />
         </View>
 
-        <ScrollView 
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
         >
           <View style={styles.content}>
             <View style={styles.formContainer}>
@@ -154,7 +211,7 @@ const ConfigureAutopay = () => {
                         selectedValue={paymentMethod}
                         onValueChange={handlePaymentMethodChange}
                         style={styles.iosPicker}
-                        itemStyle={{ color: "black" }} // Ensure picker items are black
+                        itemStyle={{ color: "black" }}
                       >
                         <Picker.Item
                           label="Add Debit Card"
@@ -164,10 +221,23 @@ const ConfigureAutopay = () => {
                           label="Add Checking Account"
                           value="Add Checking Account"
                         />
-                        <Picker.Item
-                          label="Debit card -5566"
-                          value="Debit card -5566"
-                        />
+                        {savedMethods.map((method, index) => (
+                          <Picker.Item
+                            key={index}
+                            label={
+                              method.cardNumber
+                                ? `Debit Card - ${method.cardNumber.slice(-4)}`
+                                : `Checking Account - ${method.accountNumber?.slice(
+                                    -4
+                                  )}`
+                            }
+                            value={  method.cardNumber
+                            ? `Debit Card - ${method.cardNumber.slice(-4)}`
+                            : `Checking Account - ${method.accountNumber?.slice(
+                                -4
+                              )}`}
+                          />
+                        ))}
                       </Picker>
                     </View>
                   )}
@@ -188,33 +258,84 @@ const ConfigureAutopay = () => {
                       label="Add Checking Account"
                       value="Add Checking Account"
                     />
-                    <Picker.Item
-                      label="Debit card -5566"
-                      value="Debit card -5566"
-                    />
+                    {savedMethods.map((method, index) => (
+                      <Picker.Item
+                        key={index}
+                        label={
+                          method.cardNumber
+                            ? `Debit Card - ${method.cardNumber.slice(-4)}`
+                            : `Checking Account - ${method.accountNumber?.slice(
+                                -4
+                              )}`
+                        }
+                        value={  method.cardNumber
+                            ? `Debit Card - ${method.cardNumber.slice(-4)}`
+                            : `Checking Account - ${method.accountNumber?.slice(
+                                -4
+                              )}`}
+                      />
+                    ))}
                   </Picker>
                 </View>
               )}
 
-              <Text style={styles.helpText}>Routing Number</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Enter routing number"
-                placeholderTextColor="black" // Ensure placeholder text is black
-                value={routingNumber}
-                onChangeText={setRoutingNumber}
-                keyboardType="numeric"
-              />
+              {paymentMethod === "Add Debit Card" ||
+              paymentMethod.startsWith("Card -") ? (
+                <>
+                  <Text style={styles.helpText}>Card Number</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Enter card number"
+                    placeholderTextColor="black" // Ensure placeholder text is black
+                    value={cardNumber}
+                    onChangeText={setCardNumber}
+                    keyboardType="numeric"
+                  />
 
-              <Text style={styles.helpText}>Account Number</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Enter account number"
-                placeholderTextColor="black" // Ensure placeholder text is black
-                value={accountNumber}
-                onChangeText={setAccountNumber}
-                keyboardType="numeric"
-              />
+                  <Text style={styles.helpText}>Expiration Month</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Enter expiration month"
+                    placeholderTextColor="black" // Ensure placeholder text is black
+                    value={expirationMonth}
+                    onChangeText={setExpirationMonth}
+                    keyboardType="numeric"
+                  />
+
+                  <Text style={styles.helpText}>Expiration Year</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Enter expiration year"
+                    placeholderTextColor="black" // Ensure placeholder text is black
+                    value={expirationYear}
+                    onChangeText={setExpirationYear}
+                    keyboardType="numeric"
+                  />
+                </>
+              ) : (
+                <>
+                  <Text style={styles.helpText}>Routing Number</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Enter routing number"
+                    placeholderTextColor="black" // Ensure placeholder text is black
+                    value={routingNumber}
+                    onChangeText={setRoutingNumber}
+                    keyboardType="numeric"
+                  />
+
+                  <Text style={styles.helpText}>Account Number</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Enter account number"
+                    placeholderTextColor="black" // Ensure placeholder text is black
+                    value={accountNumber}
+                    onChangeText={setAccountNumber}
+                    keyboardType="numeric"
+                  />
+                </>
+              )}
+
               <TouchableOpacity onPress={() => setModalVisible(true)}>
                 <Text style={styles.helpLink}>
                   Help me find my account information
