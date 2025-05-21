@@ -22,6 +22,7 @@ import { fetchCreditSummariesWithId } from "./services/creditAccountService";
 
 // Define an interface for the payment method to ensure type safety
 interface PaymentMethod {
+  expirationDate: string | number | Date;
   cardNumber: string | null; // Card number of the payment method, can be null
   accountNumber: string | null; // Account number of the payment method, can be null
 }
@@ -81,6 +82,8 @@ const ConfigureAutopay = () => {
                     method.cardNumber !== null || method.accountNumber !== null
                 );
                 setSavedMethods(validMethods); // Update state with valid payment methods
+                console.log("validMethods", validMethods);
+                
               }
             }
           }
@@ -116,14 +119,52 @@ const ConfigureAutopay = () => {
   };
 
   // Functions to handle iOS picker value changes with auto-close
-  const handlePaymentMethodChange = (value: React.SetStateAction<string>) => {
-    setPaymentMethod(value); // Update payment method state
-    if (Platform.OS === "ios") {
-      setTimeout(() => {
-        setShowPaymentMethodPicker(false); // Hide payment method picker on iOS after selection
-      }, 0);
+const handlePaymentMethodChange = (value: string) => {
+  setPaymentMethod(value); // Update payment method state
+
+  // Check if the selected payment method is a saved debit card
+  if (value.startsWith("Debit Card -")) {
+    // Extract the card number from the value
+    const cardNumberFromValue = value.split(" - ")[1];
+
+    // Find the selected method from savedMethods
+    const selectedMethod = savedMethods.find(method =>
+      method.cardNumber && method.cardNumber.endsWith(cardNumberFromValue)
+    );
+
+    if (selectedMethod && selectedMethod.cardNumber) {
+      // Format the card number to display only the last four digits
+      const formattedCardNumber = 'x'.repeat(selectedMethod.cardNumber.length - 4) + selectedMethod.cardNumber.slice(-4);
+
+      // Set the formatted card number
+      setCardNumber(formattedCardNumber);
+
+      // Parse the expiration date to get month and year
+      const expirationDate = new Date(selectedMethod.expirationDate);
+      const expirationMonth = expirationDate.getMonth()+1; // Months are zero-based
+      const expirationYear = expirationDate.getFullYear();
+
+      // Format the expiration month
+      const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+      const formattedExpirationMonth = `${expirationMonth.toString().padStart(2, '0')} - ${monthNames[expirationMonth - 1]}`;
+
+      // Set the formatted expiration month and year
+      setExpirationMonth(formattedExpirationMonth);
+      setExpirationYear(expirationYear.toString());
     }
-  };
+  }
+
+  if (value === "Add Debit Card") {
+    router.push("/ManagePayments"); // Navigate to the Manage Payment page if "Add Debit Card" is selected
+  }
+
+  if (Platform.OS === "ios") {
+    setTimeout(() => {
+      setShowPaymentMethodPicker(false); // Hide payment method picker on iOS after selection
+    }, 0);
+  }
+};
+
 
   const handleFrequencyChange = (value: React.SetStateAction<string>) => {
     setPaymentFrequency(value); // Update payment frequency state
@@ -231,11 +272,13 @@ const ConfigureAutopay = () => {
                                     -4
                                   )}`
                             }
-                            value={  method.cardNumber
-                            ? `Debit Card - ${method.cardNumber.slice(-4)}`
-                            : `Checking Account - ${method.accountNumber?.slice(
-                                -4
-                              )}`}
+                            value={
+                              method.cardNumber
+                                ? `Debit Card - ${method.cardNumber.slice(-4)}`
+                                : `Checking Account - ${method.accountNumber?.slice(
+                                    -4
+                                  )}`
+                            }
                           />
                         ))}
                       </Picker>
@@ -268,48 +311,53 @@ const ConfigureAutopay = () => {
                                 -4
                               )}`
                         }
-                        value={  method.cardNumber
+                        value={
+                          method.cardNumber
                             ? `Debit Card - ${method.cardNumber.slice(-4)}`
                             : `Checking Account - ${method.accountNumber?.slice(
                                 -4
-                              )}`}
+                              )}`
+                        }
                       />
                     ))}
                   </Picker>
                 </View>
               )}
 
-              {paymentMethod === "Add Debit Card" ||
-              paymentMethod.startsWith("Card -") ? (
+              {
+              paymentMethod.startsWith("Debit Card -") ? (
                 <>
                   <Text style={styles.helpText}>Card Number</Text>
                   <TextInput
                     style={styles.input}
                     placeholder="Enter card number"
-                    placeholderTextColor="black" // Ensure placeholder text is black
+                    placeholderTextColor="black"
                     value={cardNumber}
                     onChangeText={setCardNumber}
                     keyboardType="numeric"
+                    editable={paymentMethod === "Add Debit Card"} // Make read-only if not "Add Debit Card"
                   />
 
                   <Text style={styles.helpText}>Expiration Month</Text>
                   <TextInput
                     style={styles.input}
                     placeholder="Enter expiration month"
-                    placeholderTextColor="black" // Ensure placeholder text is black
+                    placeholderTextColor="black"
                     value={expirationMonth}
                     onChangeText={setExpirationMonth}
                     keyboardType="numeric"
+                    editable={paymentMethod === "Add Debit Card"} // Make read-only if not "Add Debit Card"
                   />
 
                   <Text style={styles.helpText}>Expiration Year</Text>
                   <TextInput
                     style={styles.input}
                     placeholder="Enter expiration year"
-                    placeholderTextColor="black" // Ensure placeholder text is black
+                    placeholderTextColor="black"
                     value={expirationYear}
                     onChangeText={setExpirationYear}
                     keyboardType="numeric"
+                    editable={paymentMethod === "Add Debit Card"} // Make read-only if not "Add Debit Card"
                   />
                 </>
               ) : (
@@ -318,7 +366,7 @@ const ConfigureAutopay = () => {
                   <TextInput
                     style={styles.input}
                     placeholder="Enter routing number"
-                    placeholderTextColor="black" // Ensure placeholder text is black
+                    placeholderTextColor="black"
                     value={routingNumber}
                     onChangeText={setRoutingNumber}
                     keyboardType="numeric"
@@ -328,7 +376,7 @@ const ConfigureAutopay = () => {
                   <TextInput
                     style={styles.input}
                     placeholder="Enter account number"
-                    placeholderTextColor="black" // Ensure placeholder text is black
+                    placeholderTextColor="black"
                     value={accountNumber}
                     onChangeText={setAccountNumber}
                     keyboardType="numeric"
