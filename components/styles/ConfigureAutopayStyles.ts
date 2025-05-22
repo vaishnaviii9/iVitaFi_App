@@ -44,10 +44,18 @@ export const styles = StyleSheet.create({
     borderRadius: 5,
     paddingHorizontal: 10,
     marginBottom: 15,
-    backgroundColor: "##ffffff",
+    backgroundColor: "#ffffff",
     fontSize: 15,
   },
-
+specificInput: {
+    height: 40,
+    borderColor: "#ccc",
+    borderWidth: 1,
+    marginBottom: 10,
+    paddingHorizontal: 10,
+    backgroundColor: "#f0f0f0", // Light grey background
+    color: "black", // Black text color
+  },
   pickerWrapper: {
     borderWidth: 1,
     borderColor: "#ccc",

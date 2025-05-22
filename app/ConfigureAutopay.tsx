@@ -25,6 +25,7 @@ interface PaymentMethod {
   expirationDate: string | number | Date;
   cardNumber: string | null; // Card number of the payment method, can be null
   accountNumber: string | null; // Account number of the payment method, can be null
+  routingNumber: string | null; // Routing number of the payment method, can be null
 }
 
 // Function to handle back button press, navigating back to the Home screen
@@ -168,6 +169,25 @@ const ConfigureAutopay = () => {
         // Set the formatted expiration month and year
         setExpirationMonth(formattedExpirationMonth);
         setExpirationYear(expirationYear.toString());
+      }
+    }
+
+    // Check if the selected payment method is a saved checking account
+    if (value.startsWith("Checking Account -")) {
+      // Extract the account number from the value
+      const accountNumberFromValue = value.split(" - ")[1];
+
+      // Find the selected method from savedMethods
+      const selectedMethod = savedMethods.find(
+        (method) =>
+          method.accountNumber &&
+          method.accountNumber.endsWith(accountNumberFromValue)
+      );
+
+      if (selectedMethod) {
+        // Set the account number and routing number
+        setAccountNumber(selectedMethod.accountNumber || "");
+        setRoutingNumber(selectedMethod.routingNumber || "");
       }
     }
 
@@ -344,7 +364,7 @@ const ConfigureAutopay = () => {
                 <>
                   <Text style={styles.helpText}>Card Number</Text>
                   <TextInput
-                    style={styles.input}
+                    style={styles.specificInput}
                     placeholder="Enter card number"
                     placeholderTextColor="black"
                     value={cardNumber}
@@ -355,7 +375,7 @@ const ConfigureAutopay = () => {
 
                   <Text style={styles.helpText}>Expiration Month</Text>
                   <TextInput
-                    style={styles.input}
+                    style={styles.specificInput}
                     placeholder="Enter expiration month"
                     placeholderTextColor="black"
                     value={expirationMonth}
@@ -366,7 +386,7 @@ const ConfigureAutopay = () => {
 
                   <Text style={styles.helpText}>Expiration Year</Text>
                   <TextInput
-                    style={styles.input}
+                    style={styles.specificInput}
                     placeholder="Enter expiration year"
                     placeholderTextColor="black"
                     value={expirationYear}
@@ -379,22 +399,24 @@ const ConfigureAutopay = () => {
                 <>
                   <Text style={styles.helpText}>Routing Number</Text>
                   <TextInput
-                    style={styles.input}
+                    style={styles.specificInput}
                     placeholder="Enter routing number"
                     placeholderTextColor="black"
                     value={routingNumber}
                     onChangeText={setRoutingNumber}
                     keyboardType="numeric"
+                    editable={paymentMethod === "Add Checking Account"} // Make read-only if not "Add Checking Account"
                   />
 
                   <Text style={styles.helpText}>Account Number</Text>
                   <TextInput
-                    style={styles.input}
+                    style={styles.specificInput}
                     placeholder="Enter account number"
                     placeholderTextColor="black"
                     value={accountNumber}
                     onChangeText={setAccountNumber}
                     keyboardType="numeric"
+                    editable={paymentMethod === "Add Checking Account"} // Make read-only if not "Add Checking Account"
                   />
                 </>
               )}
