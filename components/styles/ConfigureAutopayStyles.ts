@@ -185,4 +185,20 @@ closeButton: {
     color: "#27446F",
     fontSize: 16,
   },
+  warningText: {
+    color: "#D97706", // Amber or warning color
+    backgroundColor: "#FFF8E1",
+    padding: 10,
+    borderRadius: 6,
+    marginVertical: 10,
+    fontSize: 14,
+    textAlign: "center",
+  },
+  errorText: {
+  color: "#FF0000",
+  fontSize: 14,
+  marginTop: 5,
+  marginBottom: 5,
+  textAlign: "left",
+},
 });

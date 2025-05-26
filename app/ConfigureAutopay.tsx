@@ -49,6 +49,30 @@ interface PaymentMethod {
   routingNumber: string | null; // Routing number of the payment method, can be null
 }
 
+// Enum for income frequencies
+enum IncomeFrequency {
+  Unknown = 0,
+  Weekly = 1,
+  BiWeekly = 2,
+  SemiMonthly = 3,
+  Monthly = 4,
+}
+
+// Enum for payment sub-frequencies
+enum PaymentSubFrequency {
+  SpecificDay = "Specific day",
+  SpecificWeekAndDay = "Specific week and day",
+}
+
+// Array of income frequencies for the dropdown
+const incomeFrequencies = [
+  { name: "Select", value: IncomeFrequency.Unknown },
+  { name: "Weekly", value: IncomeFrequency.Weekly },
+  { name: "Every Two Weeks", value: IncomeFrequency.BiWeekly },
+  { name: "Twice per Month", value: IncomeFrequency.SemiMonthly },
+  { name: "Monthly", value: IncomeFrequency.Monthly },
+];
+
 // Function to handle back button press, navigating back to the Home screen
 const handleBackPress = () => {
   router.push("/(tabs)/Home"); // Navigate to the Home screen
@@ -56,30 +80,33 @@ const handleBackPress = () => {
 
 const ConfigureAutopay = () => {
   // State variables for form fields
-  const [paymentMethod, setPaymentMethod] = useState("Add Checking Account"); // Selected payment method, default is "Add Checking Account"
+  const [paymentMethod, setPaymentMethod] = useState(""); // Selected payment method
   const [routingNumber, setRoutingNumber] = useState(""); // State for routing number input
   const [accountNumber, setAccountNumber] = useState(""); // State for account number input
   const [cardNumber, setCardNumber] = useState(""); // State for card number input
   const [expirationMonth, setExpirationMonth] = useState(""); // State for expiration month input
   const [expirationYear, setExpirationYear] = useState(""); // State for expiration year input
-  const [paymentFrequency, setPaymentFrequency] = useState("Weekly"); // State for payment frequency, default is "Weekly"
-  const [dayOfWeek, setDayOfWeek] = useState("Monday"); // State for day of the week for payment, default is "Monday"
-  const [paymentAmount, setPaymentAmount] = useState("$32.50"); // State for payment amount, default is "$32.50"
+  const [paymentFrequency, setPaymentFrequency] = useState(""); // State for payment frequency
+  const [dayOfWeek, setDayOfWeek] = useState(""); // State for day of the week for payment
+  const [paymentAmount, setPaymentAmount] = useState(""); // State for payment amount
   const [date, setDate] = useState(new Date()); // State for payment start date, default is current date
   const [showDatePicker, setShowDatePicker] = useState(false); // State for visibility of date picker
   const [modalVisible, setModalVisible] = useState(false); // State for visibility of help modal
   const [savedMethods, setSavedMethods] = useState<PaymentMethod[]>([]); // State for saved payment methods, initialized as empty array
   const [lastPayDate, setLastPayDate] = useState(new Date()); // State for last pay date
   const [showLastPayDatePicker, setShowLastPayDatePicker] = useState(false); // State for visibility of last pay date picker
-  const [paydayOne, setPaydayOne] = useState("1"); // State for payday one
-  const [paydayTwo, setPaydayTwo] = useState("15"); // State for payday two
-  const [paymentDate, setPaymentDate] = useState("1"); // State for payment date
-  const [whichDaysOption, setWhichDaysOption] = useState("Specific day"); // State for which days option
+  const [paydayOne, setPaydayOne] = useState(""); // State for payday one
+  const [paydayTwo, setPaydayTwo] = useState(""); // State for payday two
+  const [paymentDate, setPaymentDate] = useState(""); // State for payment date
+  const [whichDaysOption, setWhichDaysOption] = useState(""); // State for which days option
   const [showPaydayOnePicker, setShowPaydayOnePicker] = useState(false); // State for visibility of payday one picker
   const [showPaydayTwoPicker, setShowPaydayTwoPicker] = useState(false); // State for visibility of payday two picker
   const [showPaymentDatePicker, setShowPaymentDatePicker] = useState(false); // State for visibility of payment date picker
-  const [paymentWeek, setPaymentWeek] = useState("1st week"); // State for payment week
+  const [paymentWeek, setPaymentWeek] = useState(""); // State for payment week
   const [showWeekPicker, setShowWeekPicker] = useState(false); // State for visibility of week picker
+  const [spDay, setSpDay] = useState(false); // State for specific day flag
+  const [paymentSchedule, setPaymentSchedule] = useState<any>(null); // State for payment schedule
+  const [amountDueMonthly, setAmountDueMonthly] = useState(""); // State for amount due monthly
 
   // States to control iOS picker visibility
   const [showPaymentMethodPicker, setShowPaymentMethodPicker] = useState(false); // State for visibility of payment method picker on iOS
@@ -90,7 +117,7 @@ const ConfigureAutopay = () => {
   // Retrieve token from Redux store to authenticate API requests
   const token = useSelector((state: any) => state.auth.token);
 
-  // Fetch saved payment methods when the component mounts or token changes
+  // Fetch saved payment methods and credit summaries when the component mounts or token changes
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -106,6 +133,25 @@ const ConfigureAutopay = () => {
             // Extract customer ID from the first credit summary
             const customerId =
               creditSummaries[0]?.detail?.creditAccount?.customerId;
+            const amountDue = creditSummaries[0]?.detail?.creditAccount?.amountDueMonthly;
+            const paymentAmount = creditSummaries[0]?.detail?.creditAccount?.paymentSchedule?.paymentAmount;
+            const paymentFrequency = creditSummaries[0]?.detail?.creditAccount?.paymentSchedule?.paymentFrequency;
+
+            setAmountDueMonthly(amountDue);
+            setPaymentAmount(formatPaymentAmount(paymentAmount));
+
+            // Map the numeric payment frequency to the corresponding string representation
+            const frequencyMap: Record<IncomeFrequency, string> = {
+              [IncomeFrequency.Unknown]: "Select",
+              [IncomeFrequency.Weekly]: "Weekly",
+              [IncomeFrequency.BiWeekly]: "Every Two Weeks",
+              [IncomeFrequency.SemiMonthly]: "Twice per Month",
+              [IncomeFrequency.Monthly]: "Monthly",
+            };
+
+            const paymentFrequencyString = frequencyMap[paymentFrequency as IncomeFrequency] || "Select";
+            setPaymentFrequency(paymentFrequencyString);
+
             if (customerId) {
               // Fetch saved payment methods using customer ID and token
               const methods = await fetchSavedPaymentMethods(token, customerId);
@@ -116,8 +162,15 @@ const ConfigureAutopay = () => {
                     method.cardNumber !== null || method.accountNumber !== null
                 );
                 setSavedMethods(validMethods); // Update state with valid payment methods
-                console.log("validMethods", validMethods);
               }
+            }
+
+            // Extract payment schedule from the first credit summary
+            const paymentSchedule =
+              creditSummaries[0]?.detail?.creditAccount?.paymentSchedule;
+            if (paymentSchedule) {
+              setPaymentSchedule(paymentSchedule); // Update state with payment schedule
+              updatePaymentSchedulePaymentAmount(paymentSchedule, Number(amountDue));
             }
           }
         }
@@ -130,6 +183,42 @@ const ConfigureAutopay = () => {
       fetchData(); // Call fetchData if token is available
     }
   }, [token]); // Dependency array ensures effect runs when token changes
+
+  // Function to format payment amount
+  const formatPaymentAmount = (amount: number) => {
+    return `$${amount.toFixed(2)}`;
+  };
+
+  // Function to update payment amount based on payment schedule and amount due monthly
+  const updatePaymentSchedulePaymentAmount = (paymentSchedule: { paymentFrequency: IncomeFrequency; paymentSubFrequency: PaymentSubFrequency | null; paymentAmount: number; }, amountDueMonthly: number) => {
+    let amount = 0;
+
+    if (paymentSchedule.paymentFrequency === IncomeFrequency.Monthly) {
+      amount = amountDueMonthly;
+    } else if (
+      paymentSchedule.paymentFrequency === IncomeFrequency.SemiMonthly ||
+      paymentSchedule.paymentFrequency === IncomeFrequency.BiWeekly
+    ) {
+      amount = amountDueMonthly / 2;
+    } else if (paymentSchedule.paymentFrequency === IncomeFrequency.Weekly) {
+      amount = amountDueMonthly / 4;
+    }
+
+    if (paymentSchedule.paymentSubFrequency !== null) {
+      if (
+        paymentSchedule.paymentFrequency === IncomeFrequency.SemiMonthly &&
+        paymentSchedule.paymentSubFrequency === PaymentSubFrequency.SpecificDay
+      ) {
+        setSpDay(true);
+      } else {
+        setSpDay(false);
+      }
+    } else {
+      setSpDay(false);
+    }
+
+    setPaymentAmount(formatPaymentAmount(amount)); // Update payment amount state
+  };
 
   // Function to toggle date picker visibility based on platform
   const toggleDatePicker = () => {
@@ -278,8 +367,25 @@ const ConfigureAutopay = () => {
     setShowPaymentMethodPicker(false); // Close the payment method picker
   };
 
-  const handleFrequencyChange = (value: React.SetStateAction<string>) => {
+  const handleFrequencyChange = (value: string) => {
     setPaymentFrequency(value); // Update payment frequency state
+
+    // Map the selected frequency name to the corresponding IncomeFrequency enum value
+    const frequencyMap: { [key: string]: IncomeFrequency } = {
+      "Weekly": IncomeFrequency.Weekly,
+      "Every Two Weeks": IncomeFrequency.BiWeekly,
+      "Twice per Month": IncomeFrequency.SemiMonthly,
+      "Monthly": IncomeFrequency.Monthly,
+    };
+
+    const selectedFrequency = frequencyMap[value] || IncomeFrequency.Unknown;
+
+    // Update paymentSchedule.paymentFrequency with the selected enum value
+    if (paymentSchedule) {
+      paymentSchedule.paymentFrequency = selectedFrequency;
+      updatePaymentSchedulePaymentAmount(paymentSchedule, Number(amountDueMonthly)); // Reuse the updatePaymentAmount function
+    }
+
     setShowFrequencyPicker(false); // Close the frequency picker
   };
 
@@ -376,7 +482,7 @@ const ConfigureAutopay = () => {
                     <View style={styles.pickerWrapper}>
                       <View style={styles.pickerDisplayContainer}>
                         <Text style={styles.pickerDisplayText}>
-                          {paymentMethod}
+                          {paymentMethod || "Select a payment method"}
                         </Text>
                         <FontAwesome
                           name="chevron-down"
@@ -570,7 +676,7 @@ const ConfigureAutopay = () => {
                     <View style={styles.pickerWrapper}>
                       <View style={styles.pickerDisplayContainer}>
                         <Text style={styles.pickerDisplayText}>
-                          {paymentFrequency}
+                          {paymentFrequency || "Select frequency"}
                         </Text>
                         <FontAwesome
                           name="chevron-down"
@@ -588,17 +694,13 @@ const ConfigureAutopay = () => {
                         style={styles.iosPicker}
                         itemStyle={{ color: "black" }} // Ensure picker items are black
                       >
-                        <Picker.Item label="Select" value="Select" />
-                        <Picker.Item label="Weekly" value="Weekly" />
-                        <Picker.Item
-                          label="Every Two Weeks"
-                          value="Every Two Weeks"
-                        />
-                        <Picker.Item
-                          label="Twice per Month"
-                          value="Twice per Month"
-                        />
-                        <Picker.Item label="Monthly" value="Monthly" />
+                        {incomeFrequencies.map((frequency, index) => (
+                          <Picker.Item
+                            key={index}
+                            label={frequency.name}
+                            value={frequency.name}
+                          />
+                        ))}
                       </Picker>
                     </View>
                   )}
@@ -607,21 +709,17 @@ const ConfigureAutopay = () => {
                 <View style={styles.pickerWrapper}>
                   <Picker
                     selectedValue={paymentFrequency}
-                    onValueChange={setPaymentFrequency}
+                    onValueChange={handleFrequencyChange}
                     style={styles.androidPicker}
                     dropdownIconColor="#000000"
                   >
-                    <Picker.Item label="Select" value="Select" />
-                    <Picker.Item label="Weekly" value="Weekly" />
-                    <Picker.Item
-                      label="Every Two Weeks"
-                      value="Every Two Weeks"
-                    />
-                    <Picker.Item
-                      label="Twice per Month"
-                      value="Twice per Month"
-                    />
-                    <Picker.Item label="Monthly" value="Monthly" />
+                    {incomeFrequencies.map((frequency, index) => (
+                      <Picker.Item
+                        key={index}
+                        label={frequency.name}
+                        value={frequency.name}
+                      />
+                    ))}
                   </Picker>
                 </View>
               )}
@@ -635,7 +733,7 @@ const ConfigureAutopay = () => {
                         <View style={styles.pickerWrapper}>
                           <View style={styles.pickerDisplayContainer}>
                             <Text style={styles.pickerDisplayText}>
-                              {dayOfWeek}
+                              {dayOfWeek || "Select day"}
                             </Text>
                             <FontAwesome
                               name="chevron-down"
@@ -690,7 +788,7 @@ const ConfigureAutopay = () => {
                         <View style={styles.pickerWrapper}>
                           <View style={styles.pickerDisplayContainer}>
                             <Text style={styles.pickerDisplayText}>
-                              {dayOfWeek}
+                              {dayOfWeek || "Select day"}
                             </Text>
                             <FontAwesome
                               name="chevron-down"
@@ -767,7 +865,7 @@ const ConfigureAutopay = () => {
                         <View style={styles.pickerWrapper}>
                           <View style={styles.pickerDisplayContainer}>
                             <Text style={styles.pickerDisplayText}>
-                              {whichDaysOption}
+                              {whichDaysOption || "Select days option"}
                             </Text>
                             <FontAwesome
                               name="chevron-down"
@@ -935,7 +1033,7 @@ const ConfigureAutopay = () => {
                         <View style={styles.pickerWrapper}>
                           <View style={styles.pickerDisplayContainer}>
                             <Text style={styles.pickerDisplayText}>
-                              {whichDaysOption}
+                              {whichDaysOption || "Select days option"}
                             </Text>
                             <FontAwesome
                               name="chevron-down"
@@ -1065,7 +1163,7 @@ const ConfigureAutopay = () => {
                             <View style={styles.pickerWrapper}>
                               <View style={styles.pickerDisplayContainer}>
                                 <Text style={styles.pickerDisplayText}>
-                                  {paymentWeek}
+                                  {paymentWeek || "Select week"}
                                 </Text>
                                 <FontAwesome
                                   name="chevron-down"
@@ -1128,7 +1226,7 @@ const ConfigureAutopay = () => {
                             <View style={styles.pickerWrapper}>
                               <View style={styles.pickerDisplayContainer}>
                                 <Text style={styles.pickerDisplayText}>
-                                  {dayOfWeek}
+                                  {dayOfWeek || "Select day"}
                                 </Text>
                                 <FontAwesome
                                   name="chevron-down"
@@ -1150,14 +1248,8 @@ const ConfigureAutopay = () => {
                               >
                                 <Picker.Item label="Monday" value="Monday" />
                                 <Picker.Item label="Tuesday" value="Tuesday" />
-                                <Picker.Item
-                                  label="Wednesday"
-                                  value="Wednesday"
-                                />
-                                <Picker.Item
-                                  label="Thursday"
-                                  value="Thursday"
-                                />
+                                <Picker.Item label="Wednesday" value="Wednesday" />
+                                <Picker.Item label="Thursday" value="Thursday" />
                                 <Picker.Item label="Friday" value="Friday" />
                               </Picker>
                             </View>
@@ -1187,7 +1279,7 @@ const ConfigureAutopay = () => {
               <Text style={styles.helpText}>Payment Amount</Text>
               <TextInput
                 style={styles.input}
-                placeholder="$32.50"
+                placeholder="Payment amount"
                 value={paymentAmount}
                 onChangeText={setPaymentAmount}
                 keyboardType="decimal-pad"
