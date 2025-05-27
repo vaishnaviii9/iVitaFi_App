@@ -1156,6 +1156,55 @@ const ConfigureAutopay = () => {
 
               {paymentFrequency === "Twice per Month" && (
                 <>
+                  <Text style={styles.helpText}>Which Days</Text>
+                  {Platform.OS === "ios" ? (
+                    <>
+                      <Pressable onPress={toggleWhichDaysPicker}>
+                        <View style={styles.pickerWrapper}>
+                          <View style={styles.pickerDisplayContainer}>
+                            <Text style={styles.pickerDisplayText}>
+                              {whichDaysOption || "Select days option"}
+                            </Text>
+                            <FontAwesome
+                              name="chevron-down"
+                              size={14}
+                              color="#27446F"
+                            />
+                          </View>
+                        </View>
+                      </Pressable>
+                      {showWhichDaysPicker && (
+                        <View style={{ zIndex: 1000, position: "relative" }}>
+                          <Picker
+                            selectedValue={whichDaysOption}
+                            onValueChange={handleWhichDaysChange}
+                            style={styles.iosPicker}
+                            itemStyle={{ color: "black" }}
+                          >
+                            <Picker.Item
+                              label="Two Specific Days"
+                              value="Two Specific Days"
+                            />
+                          </Picker>
+                        </View>
+                      )}
+                    </>
+                  ) : (
+                    <View style={styles.pickerWrapper}>
+                      <Picker
+                        selectedValue={whichDaysOption}
+                        onValueChange={handleWhichDaysChange}
+                        style={styles.androidPicker}
+                        dropdownIconColor="#000000"
+                      >
+                        <Picker.Item
+                          label="Two Specific Days"
+                          value="Two Specific Days"
+                        />
+                      </Picker>
+                    </View>
+                  )}
+
                   <Text style={styles.helpText}>Payday One</Text>
                   {Platform.OS === "ios" ? (
                     <>
