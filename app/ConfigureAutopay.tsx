@@ -262,6 +262,10 @@ const ConfigureAutopay = () => {
               setDayOfWeek(mappedSchedule.paymentDayOneLabel);
               setPaydayOne(mappedSchedule.paymentDayOneLabel);
               setPaydayTwo(mappedSchedule.paymentDayTwoLabel);
+              const initialPaymentDate = new Date(
+                paymentSchedule.initialPaymentDate
+              );
+              setLastPayDate(initialPaymentDate);
             }
           }
         }
@@ -274,6 +278,16 @@ const ConfigureAutopay = () => {
       fetchData();
     }
   }, [token]);
+
+  const formatDate = (date: Date) => {
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+    const year = date.getFullYear();
+
+    return `${month.toString().padStart(2, "0")}/${day
+      .toString()
+      .padStart(2, "0")}/${year}`;
+  };
 
   // Function to format payment amount
   const formatPaymentAmount = (amount: number) => {
@@ -1089,7 +1103,7 @@ const ConfigureAutopay = () => {
                           <View style={styles.pickerDisplayContainer}>
                             <Text style={styles.pickerDisplayText}>
                               {lastPayDate
-                                ? lastPayDate.toDateString()
+                                ? formatDate(lastPayDate)
                                 : "Select date"}
                             </Text>
                             <FontAwesome
@@ -1116,7 +1130,7 @@ const ConfigureAutopay = () => {
                           <View style={styles.pickerDisplayContainer}>
                             <Text style={styles.pickerDisplayText}>
                               {lastPayDate
-                                ? lastPayDate.toDateString()
+                                ? formatDate(lastPayDate)
                                 : "Select date"}
                             </Text>
                             <FontAwesome
