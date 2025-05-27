@@ -207,4 +207,11 @@ closeButton: {
     resizeMode: 'contain', // Adjust the resizeMode as needed
     marginVertical: 10,
   },
+  confirmationText: {
+    marginTop: 20,
+    fontSize: 16,
+    color: 'black', // You can choose any color you prefer
+    textAlign: 'center',
+   
+  },
 });

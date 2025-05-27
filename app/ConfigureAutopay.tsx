@@ -147,6 +147,7 @@ const ConfigureAutopay = () => {
   const [showDayPicker, setShowDayPicker] = useState(false);
   const [showWhichDaysPicker, setShowWhichDaysPicker] = useState(false);
   const [showSubFrequencyPicker, setShowSubFrequencyPicker] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
 
   // Retrieve token from Redux store to authenticate API requests
   const token = useSelector((state: any) => state.auth.token);
@@ -660,6 +661,33 @@ const ConfigureAutopay = () => {
     }
   };
 
+  const generateConfirmationMessage = (
+    paymentFrequency: string,
+    paymentAmount: string,
+    dayOfWeek: string,
+    paymentMethod: string
+  ) => {
+    switch (paymentFrequency) {
+      case "Weekly":
+        return `You have selected to pay ${paymentAmount} every week on ${dayOfWeek}, from your ${paymentMethod}.`;
+      case "Every Two Weeks":
+        return `You have selected to pay ${paymentAmount} every other ${dayOfWeek}, from your ${paymentMethod}. In months with more than 2 pay periods, you will only make 2 payments.`;
+      case "Twice per Month":
+        return `You have selected to pay ${paymentAmount} on the 1st and 5th of each month, from your ${paymentMethod}.`;
+      case "Monthly":
+        return `You have selected to pay ${paymentAmount} on the 1st of each month, from your ${paymentMethod}.`;
+      default:
+        return "";
+    }
+  };
+
+  const confirmationMessage = generateConfirmationMessage(
+    paymentFrequency,
+    paymentAmount,
+    dayOfWeek,
+    paymentMethod.startsWith("Debit Card -") ? "debit card" : "checking account"
+  );
+
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -991,6 +1019,123 @@ const ConfigureAutopay = () => {
                         ))}
                       </Picker>
                     </View>
+                  )}
+                </>
+              )}
+
+              {paymentFrequency === "Every Two Weeks" && (
+                <>
+                  <Text style={styles.helpText}>Day of Week</Text>
+                  {Platform.OS === "ios" ? (
+                    <>
+                      <Pressable onPress={openDayPicker}>
+                        <View style={styles.pickerWrapper}>
+                          <View style={styles.pickerDisplayContainer}>
+                            <Text style={styles.pickerDisplayText}>
+                              {dayOfWeek || "Select day"}
+                            </Text>
+                            <FontAwesome
+                              name="chevron-down"
+                              size={14}
+                              color="#27446F"
+                            />
+                          </View>
+                        </View>
+                      </Pressable>
+                      {showDayPicker && (
+                        <View style={{ zIndex: 1000, position: "relative" }}>
+                          <Picker
+                            selectedValue={dayOfWeek}
+                            onValueChange={handleDayChange}
+                            style={styles.iosPicker}
+                            itemStyle={{ color: "black" }}
+                          >
+                            {daysOfTheWeek.map((day, index) => (
+                              <Picker.Item
+                                key={index}
+                                label={day.name}
+                                value={day.name}
+                              />
+                            ))}
+                          </Picker>
+                        </View>
+                      )}
+                    </>
+                  ) : (
+                    <View style={styles.pickerWrapper}>
+                      <Picker
+                        selectedValue={dayOfWeek}
+                        onValueChange={setDayOfWeek}
+                        style={styles.androidPicker}
+                        dropdownIconColor="#000000"
+                      >
+                        {daysOfTheWeek.map((day, index) => (
+                          <Picker.Item
+                            key={index}
+                            label={day.name}
+                            value={day.name}
+                          />
+                        ))}
+                      </Picker>
+                    </View>
+                  )}
+
+                  {/* Last Pay Date Picker */}
+                  <Text style={styles.helpText}>Last Pay Date</Text>
+                  {Platform.OS === "ios" ? (
+                    <>
+                      <Pressable onPress={toggleLastPayDatePicker}>
+                        <View style={styles.pickerWrapper}>
+                          <View style={styles.pickerDisplayContainer}>
+                            <Text style={styles.pickerDisplayText}>
+                              {lastPayDate
+                                ? lastPayDate.toDateString()
+                                : "Select date"}
+                            </Text>
+                            <FontAwesome
+                              name="chevron-down"
+                              size={14}
+                              color="#27446F"
+                            />
+                          </View>
+                        </View>
+                      </Pressable>
+                      {showLastPayDatePicker && (
+                        <DateTimePicker
+                          value={lastPayDate || new Date()}
+                          mode="date"
+                          display="default"
+                          onChange={onLastPayDateChange}
+                        />
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      <Pressable onPress={toggleLastPayDatePicker}>
+                        <View style={styles.pickerWrapper}>
+                          <View style={styles.pickerDisplayContainer}>
+                            <Text style={styles.pickerDisplayText}>
+                              {lastPayDate
+                                ? lastPayDate.toDateString()
+                                : "Select date"}
+                            </Text>
+                            <FontAwesome
+                              name="chevron-down"
+                              size={14}
+                              color="#27446F"
+                            />
+                          </View>
+                        </View>
+                      </Pressable>
+                      {showLastPayDatePicker && (
+                        <DateTimePicker
+                          value={lastPayDate || new Date()}
+                          mode="date"
+                          display="default"
+                          onChange={onLastPayDateChange}
+                        />
+                      )}
+                    </>
                   )}
                 </>
               )}
@@ -1401,6 +1546,8 @@ const ConfigureAutopay = () => {
                   textColor="black"
                 />
               )}
+
+              <Text style={styles.confirmationText}>{confirmationMessage}</Text>
 
               <TouchableOpacity style={styles.submitButton}>
                 <Text style={styles.submitButtonText}>SUBMIT</Text>
