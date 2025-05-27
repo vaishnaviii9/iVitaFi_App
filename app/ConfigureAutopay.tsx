@@ -162,6 +162,50 @@ const ConfigureAutopay = () => {
                     method.cardNumber !== null || method.accountNumber !== null
                 );
                 setSavedMethods(validMethods); // Update state with valid payment methods
+
+                // Set the default payment method from creditSummaries
+                const defaultPaymentMethod = creditSummaries[0]?.paymentMethod;
+                if (defaultPaymentMethod) {
+                  if (defaultPaymentMethod.cardNumber) {
+                    const formattedCardNumber =
+                      "x".repeat(defaultPaymentMethod.cardNumber.length - 4) +
+                      defaultPaymentMethod.cardNumber.slice(-4);
+                    setCardNumber(formattedCardNumber);
+                    setPaymentMethod(`Debit Card - ${defaultPaymentMethod.cardNumber.slice(-4)}`);
+
+                    // Parse the expiration date to get month and year
+                    const expirationDate = new Date(defaultPaymentMethod.expirationDate);
+                    const expirationMonth = expirationDate.getMonth() + 1; // Months are zero-based
+                    const expirationYear = expirationDate.getFullYear();
+
+                    // Format the expiration month
+                    const monthNames = [
+                      "January",
+                      "February",
+                      "March",
+                      "April",
+                      "May",
+                      "June",
+                      "July",
+                      "August",
+                      "September",
+                      "October",
+                      "November",
+                      "December",
+                    ];
+                    const formattedExpirationMonth = `${expirationMonth
+                      .toString()
+                      .padStart(2, "0")} - ${monthNames[expirationMonth - 1]}`;
+
+                    // Set the formatted expiration month and year
+                    setExpirationMonth(formattedExpirationMonth);
+                    setExpirationYear(expirationYear.toString());
+                  } else if (defaultPaymentMethod.accountNumber) {
+                    setAccountNumber(defaultPaymentMethod.accountNumber);
+                    setRoutingNumber(defaultPaymentMethod.routingNumber || "");
+                    setPaymentMethod(`Checking Account - ${defaultPaymentMethod.accountNumber.slice(-4)}`);
+                  }
+                }
               }
             }
 
@@ -288,84 +332,85 @@ const ConfigureAutopay = () => {
   };
 
   // Functions to handle iOS picker value changes with auto-close
-  const handlePaymentMethodChange = (value: string) => {
-    setPaymentMethod(value); // Update payment method state
+ const handlePaymentMethodChange = (value: string) => {
+  setPaymentMethod(value); // Update payment method state
 
-    // Check if the selected payment method is a saved debit card
-    if (value.startsWith("Debit Card -")) {
-      // Extract the card number from the value
-      const cardNumberFromValue = value.split(" - ")[1];
+  // Check if the selected payment method is a saved debit card
+  if (value.startsWith("Debit Card -")) {
+    // Extract the card number from the value
+    const cardNumberFromValue = value.split(" - ")[1];
 
-      // Find the selected method from savedMethods
-      const selectedMethod = savedMethods.find(
-        (method) =>
-          method.cardNumber && method.cardNumber.endsWith(cardNumberFromValue)
-      );
+    // Find the selected method from savedMethods
+    const selectedMethod = savedMethods.find(
+      (method) =>
+        method.cardNumber && method.cardNumber.endsWith(cardNumberFromValue)
+    );
 
-      if (selectedMethod && selectedMethod.cardNumber) {
-        // Format the card number to display only the last four digits
-        const formattedCardNumber =
-          "x".repeat(selectedMethod.cardNumber.length - 4) +
-          selectedMethod.cardNumber.slice(-4);
+    if (selectedMethod && selectedMethod.cardNumber) {
+      // Format the card number to display only the last four digits
+      const formattedCardNumber =
+        "x".repeat(selectedMethod.cardNumber.length - 4) +
+        selectedMethod.cardNumber.slice(-4);
 
-        // Set the formatted card number
-        setCardNumber(formattedCardNumber);
+      // Set the formatted card number
+      setCardNumber(formattedCardNumber);
 
-        // Parse the expiration date to get month and year
-        const expirationDate = new Date(selectedMethod.expirationDate);
-        const expirationMonth = expirationDate.getMonth() + 1; // Months are zero-based
-        const expirationYear = expirationDate.getFullYear();
+      // Parse the expiration date to get month and year
+      const expirationDate = new Date(selectedMethod.expirationDate);
+      const expirationMonth = expirationDate.getMonth() + 1; // Months are zero-based
+      const expirationYear = expirationDate.getFullYear();
 
-        // Format the expiration month
-        const monthNames = [
-          "January",
-          "February",
-          "March",
-          "April",
-          "May",
-          "June",
-          "July",
-          "August",
-          "September",
-          "October",
-          "November",
-          "December",
-        ];
-        const formattedExpirationMonth = `${expirationMonth
-          .toString()
-          .padStart(2, "0")} - ${monthNames[expirationMonth - 1]}`;
+      // Format the expiration month
+      const monthNames = [
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December",
+      ];
+      const formattedExpirationMonth = `${expirationMonth
+        .toString()
+        .padStart(2, "0")} - ${monthNames[expirationMonth - 1]}`;
 
-        // Set the formatted expiration month and year
-        setExpirationMonth(formattedExpirationMonth);
-        setExpirationYear(expirationYear.toString());
-      }
+      // Set the formatted expiration month and year
+      setExpirationMonth(formattedExpirationMonth);
+      setExpirationYear(expirationYear.toString());
     }
+  }
 
-    // Check if the selected payment method is a saved checking account
-    if (value.startsWith("Checking Account -")) {
-      // Extract the account number from the value
-      const accountNumberFromValue = value.split(" - ")[1];
+  // Check if the selected payment method is a saved checking account
+  if (value.startsWith("Checking Account -")) {
+    // Extract the account number from the value
+    const accountNumberFromValue = value.split(" - ")[1];
 
-      // Find the selected method from savedMethods
-      const selectedMethod = savedMethods.find(
-        (method) =>
-          method.accountNumber &&
-          method.accountNumber.endsWith(accountNumberFromValue)
-      );
+    // Find the selected method from savedMethods
+    const selectedMethod = savedMethods.find(
+      (method) =>
+        method.accountNumber &&
+        method.accountNumber.endsWith(accountNumberFromValue)
+    );
 
-      if (selectedMethod) {
-        // Set the account number and routing number
-        setAccountNumber(selectedMethod.accountNumber || "");
-        setRoutingNumber(selectedMethod.routingNumber || "");
-      }
+    if (selectedMethod) {
+      // Set the account number and routing number
+      setAccountNumber(selectedMethod.accountNumber || "");
+      setRoutingNumber(selectedMethod.routingNumber || "");
     }
+  }
 
-    if (value === "Add Debit Card") {
-      router.push("/ManagePayments"); // Navigate to the Manage Payment page if "Add Debit Card" is selected
-    }
+  if (value === "Add Debit Card") {
+    router.push("/ManagePayments"); // Navigate to the Manage Payment page if "Add Debit Card" is selected
+  }
 
-    setShowPaymentMethodPicker(false); // Close the payment method picker
-  };
+  setShowPaymentMethodPicker(false); // Close the payment method picker
+};
+
 
   const handleFrequencyChange = (value: string) => {
     setPaymentFrequency(value); // Update payment frequency state
