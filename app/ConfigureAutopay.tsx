@@ -44,10 +44,25 @@ const getOrdinalSuffix = (day: number | string) => {
 // Define an interface for the payment method to ensure type safety
 interface PaymentMethod {
   expirationDate: string | number | Date;
-  cardNumber: string | null; // Card number of the payment method, can be null
-  accountNumber: string | null; // Account number of the payment method, can be null
-  routingNumber: string | null; // Routing number of the payment method, can be null
+  cardNumber: string | null;
+  accountNumber: string | null;
+  routingNumber: string | null;
 }
+
+const daysOfTheWeek = [
+  { name: "Monday", value: 1 },
+  { name: "Tuesday", value: 2 },
+  { name: "Wednesday", value: 3 },
+  { name: "Thursday", value: 4 },
+  { name: "Friday", value: 5 },
+];
+
+const weeksOfTheMonth = [
+  { name: "1st Week", value: 1 },
+  { name: "2nd Week", value: 2 },
+  { name: "3rd Week", value: 3 },
+  { name: "4th Week", value: 4 },
+];
 
 // Enum for income frequencies
 enum IncomeFrequency {
@@ -60,8 +75,10 @@ enum IncomeFrequency {
 
 // Enum for payment sub-frequencies
 enum PaymentSubFrequency {
-  SpecificDay = "Specific day",
-  SpecificWeekAndDay = "Specific week and day",
+  Unknown = 0,
+  SpecificDay = 1,
+  SpecificWeekAndDay = 2,
+  BusinessDaysAfterDay = 3,
 }
 
 // Array of income frequencies for the dropdown
@@ -73,46 +90,55 @@ const incomeFrequencies = [
   { name: "Monthly", value: IncomeFrequency.Monthly },
 ];
 
+// Array of payment sub-frequencies for the dropdown
+const paymentSubFrequencies = [
+  { name: "Specific Day", value: PaymentSubFrequency.SpecificDay },
+  { name: "Specific Week And Day", value: PaymentSubFrequency.SpecificWeekAndDay },
+  { name: "Business Days After Day", value: PaymentSubFrequency.BusinessDaysAfterDay },
+];
+
 // Function to handle back button press, navigating back to the Home screen
 const handleBackPress = () => {
-  router.push("/(tabs)/Home"); // Navigate to the Home screen
+  router.push("/(tabs)/Home");
 };
 
 const ConfigureAutopay = () => {
   // State variables for form fields
-  const [paymentMethod, setPaymentMethod] = useState(""); // Selected payment method
-  const [routingNumber, setRoutingNumber] = useState(""); // State for routing number input
-  const [accountNumber, setAccountNumber] = useState(""); // State for account number input
-  const [cardNumber, setCardNumber] = useState(""); // State for card number input
-  const [expirationMonth, setExpirationMonth] = useState(""); // State for expiration month input
-  const [expirationYear, setExpirationYear] = useState(""); // State for expiration year input
-  const [paymentFrequency, setPaymentFrequency] = useState(""); // State for payment frequency
-  const [dayOfWeek, setDayOfWeek] = useState(""); // State for day of the week for payment
-  const [paymentAmount, setPaymentAmount] = useState(""); // State for payment amount
-  const [date, setDate] = useState(new Date()); // State for payment start date, default is current date
-  const [showDatePicker, setShowDatePicker] = useState(false); // State for visibility of date picker
-  const [modalVisible, setModalVisible] = useState(false); // State for visibility of help modal
-  const [savedMethods, setSavedMethods] = useState<PaymentMethod[]>([]); // State for saved payment methods, initialized as empty array
-  const [lastPayDate, setLastPayDate] = useState(new Date()); // State for last pay date
-  const [showLastPayDatePicker, setShowLastPayDatePicker] = useState(false); // State for visibility of last pay date picker
-  const [paydayOne, setPaydayOne] = useState(""); // State for payday one
-  const [paydayTwo, setPaydayTwo] = useState(""); // State for payday two
-  const [paymentDate, setPaymentDate] = useState(""); // State for payment date
-  const [whichDaysOption, setWhichDaysOption] = useState(""); // State for which days option
-  const [showPaydayOnePicker, setShowPaydayOnePicker] = useState(false); // State for visibility of payday one picker
-  const [showPaydayTwoPicker, setShowPaydayTwoPicker] = useState(false); // State for visibility of payday two picker
-  const [showPaymentDatePicker, setShowPaymentDatePicker] = useState(false); // State for visibility of payment date picker
-  const [paymentWeek, setPaymentWeek] = useState(""); // State for payment week
-  const [showWeekPicker, setShowWeekPicker] = useState(false); // State for visibility of week picker
-  const [spDay, setSpDay] = useState(false); // State for specific day flag
-  const [paymentSchedule, setPaymentSchedule] = useState<any>(null); // State for payment schedule
-  const [amountDueMonthly, setAmountDueMonthly] = useState(""); // State for amount due monthly
+  const [paymentMethod, setPaymentMethod] = useState("");
+  const [routingNumber, setRoutingNumber] = useState("");
+  const [accountNumber, setAccountNumber] = useState("");
+  const [cardNumber, setCardNumber] = useState("");
+  const [expirationMonth, setExpirationMonth] = useState("");
+  const [expirationYear, setExpirationYear] = useState("");
+  const [paymentFrequency, setPaymentFrequency] = useState("");
+  const [dayOfWeek, setDayOfWeek] = useState("");
+  const [paymentAmount, setPaymentAmount] = useState("");
+  const [date, setDate] = useState(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [savedMethods, setSavedMethods] = useState<PaymentMethod[]>([]);
+  const [lastPayDate, setLastPayDate] = useState(new Date());
+  const [showLastPayDatePicker, setShowLastPayDatePicker] = useState(false);
+  const [paydayOne, setPaydayOne] = useState("");
+  const [paydayTwo, setPaydayTwo] = useState("");
+  const [paymentDate, setPaymentDate] = useState("");
+  const [whichDaysOption, setWhichDaysOption] = useState("");
+  const [showPaydayOnePicker, setShowPaydayOnePicker] = useState(false);
+  const [showPaydayTwoPicker, setShowPaydayTwoPicker] = useState(false);
+  const [showPaymentDatePicker, setShowPaymentDatePicker] = useState(false);
+  const [paymentWeek, setPaymentWeek] = useState("");
+  const [showWeekPicker, setShowWeekPicker] = useState(false);
+  const [spDay, setSpDay] = useState(false);
+  const [paymentSchedule, setPaymentSchedule] = useState<any>(null);
+  const [amountDueMonthly, setAmountDueMonthly] = useState("");
+  const [paymentSubFrequency, setPaymentSubFrequency] = useState<PaymentSubFrequency>(PaymentSubFrequency.Unknown);
 
   // States to control iOS picker visibility
-  const [showPaymentMethodPicker, setShowPaymentMethodPicker] = useState(false); // State for visibility of payment method picker on iOS
-  const [showFrequencyPicker, setShowFrequencyPicker] = useState(false); // State for visibility of payment frequency picker on iOS
-  const [showDayPicker, setShowDayPicker] = useState(false); // State for visibility of day picker on iOS
-  const [showWhichDaysPicker, setShowWhichDaysPicker] = useState(false); // State for visibility of which days picker on iOS
+  const [showPaymentMethodPicker, setShowPaymentMethodPicker] = useState(false);
+  const [showFrequencyPicker, setShowFrequencyPicker] = useState(false);
+  const [showDayPicker, setShowDayPicker] = useState(false);
+  const [showWhichDaysPicker, setShowWhichDaysPicker] = useState(false);
+  const [showSubFrequencyPicker, setShowSubFrequencyPicker] = useState(false);
 
   // Retrieve token from Redux store to authenticate API requests
   const token = useSelector((state: any) => state.auth.token);
@@ -121,16 +147,13 @@ const ConfigureAutopay = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch customer data using the token
         const customerResponse = await fetchCustomerData(token, (data) => {});
         if (customerResponse) {
-          // Fetch credit summaries using customer response and token
           const { creditSummaries } = await fetchCreditSummariesWithId(
             customerResponse,
             token
           );
           if (creditSummaries && creditSummaries.length > 0) {
-            // Extract customer ID from the first credit summary
             const customerId =
               creditSummaries[0]?.detail?.creditAccount?.customerId;
             const amountDue = creditSummaries[0]?.detail?.creditAccount?.amountDueMonthly;
@@ -140,7 +163,6 @@ const ConfigureAutopay = () => {
             setAmountDueMonthly(amountDue);
             setPaymentAmount(formatPaymentAmount(paymentAmount));
 
-            // Map the numeric payment frequency to the corresponding string representation
             const frequencyMap: Record<IncomeFrequency, string> = {
               [IncomeFrequency.Unknown]: "Select",
               [IncomeFrequency.Weekly]: "Weekly",
@@ -153,17 +175,14 @@ const ConfigureAutopay = () => {
             setPaymentFrequency(paymentFrequencyString);
 
             if (customerId) {
-              // Fetch saved payment methods using customer ID and token
               const methods = await fetchSavedPaymentMethods(token, customerId);
               if (methods && methods.length > 0) {
-                // Filter valid payment methods that have either card number or account number
                 const validMethods = methods.filter(
                   (method: PaymentMethod) =>
                     method.cardNumber !== null || method.accountNumber !== null
                 );
-                setSavedMethods(validMethods); // Update state with valid payment methods
+                setSavedMethods(validMethods);
 
-                // Set the default payment method from creditSummaries
                 const defaultPaymentMethod = creditSummaries[0]?.paymentMethod;
                 if (defaultPaymentMethod) {
                   if (defaultPaymentMethod.cardNumber) {
@@ -173,31 +192,18 @@ const ConfigureAutopay = () => {
                     setCardNumber(formattedCardNumber);
                     setPaymentMethod(`Debit Card - ${defaultPaymentMethod.cardNumber.slice(-4)}`);
 
-                    // Parse the expiration date to get month and year
                     const expirationDate = new Date(defaultPaymentMethod.expirationDate);
-                    const expirationMonth = expirationDate.getMonth() + 1; // Months are zero-based
+                    const expirationMonth = expirationDate.getMonth() + 1;
                     const expirationYear = expirationDate.getFullYear();
 
-                    // Format the expiration month
                     const monthNames = [
-                      "January",
-                      "February",
-                      "March",
-                      "April",
-                      "May",
-                      "June",
-                      "July",
-                      "August",
-                      "September",
-                      "October",
-                      "November",
-                      "December",
+                      "January", "February", "March", "April", "May", "June",
+                      "July", "August", "September", "October", "November", "December",
                     ];
                     const formattedExpirationMonth = `${expirationMonth
                       .toString()
                       .padStart(2, "0")} - ${monthNames[expirationMonth - 1]}`;
 
-                    // Set the formatted expiration month and year
                     setExpirationMonth(formattedExpirationMonth);
                     setExpirationYear(expirationYear.toString());
                   } else if (defaultPaymentMethod.accountNumber) {
@@ -209,24 +215,27 @@ const ConfigureAutopay = () => {
               }
             }
 
-            // Extract payment schedule from the first credit summary
             const paymentSchedule =
               creditSummaries[0]?.detail?.creditAccount?.paymentSchedule;
             if (paymentSchedule) {
-              setPaymentSchedule(paymentSchedule); // Update state with payment schedule
+              setPaymentSchedule(paymentSchedule);
               updatePaymentSchedulePaymentAmount(paymentSchedule, Number(amountDue));
+              const mappedSchedule = mapPaymentSchedule(paymentSchedule);
+              setDayOfWeek(mappedSchedule.paymentDayOneLabel);
+              setPaydayOne(mappedSchedule.paymentDayOneLabel);
+              setPaydayTwo(mappedSchedule.paymentDayTwoLabel);
             }
           }
         }
       } catch (error) {
-        console.error("Error fetching customer data:", error); // Log any errors during data fetching
+        console.error("Error fetching customer data:", error);
       }
     };
 
     if (token) {
-      fetchData(); // Call fetchData if token is available
+      fetchData();
     }
-  }, [token]); // Dependency array ensures effect runs when token changes
+  }, [token]);
 
   // Function to format payment amount
   const formatPaymentAmount = (amount: number) => {
@@ -261,161 +270,232 @@ const ConfigureAutopay = () => {
       setSpDay(false);
     }
 
-    setPaymentAmount(formatPaymentAmount(amount)); // Update payment amount state
+    setPaymentAmount(formatPaymentAmount(amount));
   };
 
-  // Function to toggle date picker visibility based on platform
+  // Function to map payment schedule data
+const mapPaymentSchedule = (paymentSchedule: {
+  paymentFrequency: number;
+  paymentSubFrequency: number;
+  paymentDayOne: number;
+  paymentDayTwo: number;
+  paymentWeekOne: number;
+  paymentWeekTwo: number;
+}) => {
+  let paymentFrequencyLabel = "";
+  let paymentSubFrequencyLabel = "";
+  let paymentDayOneLabel = "";
+  let paymentDayTwoLabel = "";
+  let paymentWeekOneLabel = "";
+  let paymentWeekTwoLabel = "";
+
+  // Map payment frequency
+  switch (paymentSchedule.paymentFrequency) {
+    case IncomeFrequency.Weekly:
+      paymentFrequencyLabel = "Weekly";
+      break;
+    case IncomeFrequency.BiWeekly:
+      paymentFrequencyLabel = "Every Two Weeks";
+      break;
+    case IncomeFrequency.SemiMonthly:
+      paymentFrequencyLabel = "Twice per Month";
+      break;
+    case IncomeFrequency.Monthly:
+      paymentFrequencyLabel = "Monthly";
+      break;
+    default:
+      paymentFrequencyLabel = "Unknown";
+  }
+
+  // Map payment sub-frequency
+  switch (paymentSchedule.paymentSubFrequency) {
+    case PaymentSubFrequency.SpecificDay:
+      paymentSubFrequencyLabel = "Specific Day";
+      break;
+    case PaymentSubFrequency.SpecificWeekAndDay:
+      paymentSubFrequencyLabel = "Specific Week And Day";
+      break;
+    case PaymentSubFrequency.BusinessDaysAfterDay:
+      paymentSubFrequencyLabel = "Business Days After Day";
+      break;
+    default:
+      paymentSubFrequencyLabel = "Unknown";
+  }
+
+  // Map payment day one
+  const dayOne = daysOfTheWeek.find(
+    (day) => day.value === paymentSchedule.paymentDayOne
+  );
+  paymentDayOneLabel = dayOne ? dayOne.name : "Unknown";
+
+  // Map payment day two
+  const dayTwo = daysOfTheWeek.find(
+    (day) => day.value === paymentSchedule.paymentDayTwo
+  );
+  paymentDayTwoLabel = dayTwo ? dayTwo.name : "Unknown";
+
+  // Map payment week one
+  const weekOne = weeksOfTheMonth.find(
+    (week) => week.value === paymentSchedule.paymentWeekOne
+  );
+  paymentWeekOneLabel = weekOne ? weekOne.name : "Unknown";
+
+  // Map payment week two
+  const weekTwo = weeksOfTheMonth.find(
+    (week) => week.value === paymentSchedule.paymentWeekTwo
+  );
+  paymentWeekTwoLabel = weekTwo ? weekTwo.name : "Unknown";
+
+  return {
+    paymentFrequencyLabel,
+    paymentSubFrequencyLabel,
+    paymentDayOneLabel,
+    paymentDayTwoLabel,
+    paymentWeekOneLabel,
+    paymentWeekTwoLabel,
+  };
+};
+
+
+  const examplePaymentSchedule = {
+    paymentFrequency: 3,
+    paymentSubFrequency: 2,
+    paymentDayOne: 1,
+    paymentDayTwo: 5,
+    paymentWeekOne: 1,
+    paymentWeekTwo: 2,
+  };
+
+  const {
+    paymentFrequencyLabel,
+    paymentSubFrequencyLabel,
+    paymentDayOneLabel,
+    paymentDayTwoLabel,
+    paymentWeekOneLabel,
+    paymentWeekTwoLabel,
+  } = mapPaymentSchedule(examplePaymentSchedule);
+
   const toggleDatePicker = () => {
     if (Platform.OS === "android") {
-      setShowDatePicker(true); // Show date picker on Android
+      setShowDatePicker(true);
     } else {
-      setShowDatePicker(!showDatePicker); // Toggle date picker visibility on iOS
+      setShowDatePicker(!showDatePicker);
     }
   };
 
-  // Function to handle date change in the date picker
   const onChange = (_event: any, selectedDate?: Date) => {
     if (Platform.OS === "android") {
-      setShowDatePicker(false); // Hide date picker on Android after selection
+      setShowDatePicker(false);
     }
 
     if (selectedDate) {
-      setDate(selectedDate); // Update date state with selected date
+      setDate(selectedDate);
     }
   };
 
-  // Function to toggle last pay date picker visibility based on platform
   const toggleLastPayDatePicker = () => {
     if (Platform.OS === "android") {
-      setShowLastPayDatePicker(true); // Show last pay date picker on Android
+      setShowLastPayDatePicker(true);
     } else {
-      setShowLastPayDatePicker(!showLastPayDatePicker); // Toggle last pay date picker visibility on iOS
+      setShowLastPayDatePicker(!showLastPayDatePicker);
     }
   };
 
-  // Function to handle last pay date change in the date picker
   const onLastPayDateChange = (_event: any, selectedDate?: Date) => {
     if (Platform.OS === "android") {
-      setShowLastPayDatePicker(false); // Hide last pay date picker on Android after selection
+      setShowLastPayDatePicker(false);
     }
 
     if (selectedDate) {
-      setLastPayDate(selectedDate); // Update last pay date state with selected date
+      setLastPayDate(selectedDate);
     }
   };
 
-  // Function to toggle payday one picker visibility
   const togglePaydayOnePicker = () => {
     setShowPaydayOnePicker(!showPaydayOnePicker);
   };
 
-  // Function to toggle payday two picker visibility
   const togglePaydayTwoPicker = () => {
     setShowPaydayTwoPicker(!showPaydayTwoPicker);
   };
 
-  // Function to toggle payment date picker visibility
   const togglePaymentDatePicker = () => {
     setShowPaymentDatePicker(!showPaymentDatePicker);
   };
 
-  // Function to toggle week picker visibility
   const toggleWeekPicker = () => {
     setShowWeekPicker(!showWeekPicker);
   };
 
-  // Function to toggle which days picker visibility
   const toggleWhichDaysPicker = () => {
     if (Platform.OS === "ios") {
-      setShowWhichDaysPicker(!showWhichDaysPicker); // Toggle which days picker visibility on iOS
+      setShowWhichDaysPicker(!showWhichDaysPicker);
     }
   };
 
-  // Functions to handle iOS picker value changes with auto-close
- const handlePaymentMethodChange = (value: string) => {
-  setPaymentMethod(value); // Update payment method state
-
-  // Check if the selected payment method is a saved debit card
-  if (value.startsWith("Debit Card -")) {
-    // Extract the card number from the value
-    const cardNumberFromValue = value.split(" - ")[1];
-
-    // Find the selected method from savedMethods
-    const selectedMethod = savedMethods.find(
-      (method) =>
-        method.cardNumber && method.cardNumber.endsWith(cardNumberFromValue)
-    );
-
-    if (selectedMethod && selectedMethod.cardNumber) {
-      // Format the card number to display only the last four digits
-      const formattedCardNumber =
-        "x".repeat(selectedMethod.cardNumber.length - 4) +
-        selectedMethod.cardNumber.slice(-4);
-
-      // Set the formatted card number
-      setCardNumber(formattedCardNumber);
-
-      // Parse the expiration date to get month and year
-      const expirationDate = new Date(selectedMethod.expirationDate);
-      const expirationMonth = expirationDate.getMonth() + 1; // Months are zero-based
-      const expirationYear = expirationDate.getFullYear();
-
-      // Format the expiration month
-      const monthNames = [
-        "January",
-        "February",
-        "March",
-        "April",
-        "May",
-        "June",
-        "July",
-        "August",
-        "September",
-        "October",
-        "November",
-        "December",
-      ];
-      const formattedExpirationMonth = `${expirationMonth
-        .toString()
-        .padStart(2, "0")} - ${monthNames[expirationMonth - 1]}`;
-
-      // Set the formatted expiration month and year
-      setExpirationMonth(formattedExpirationMonth);
-      setExpirationYear(expirationYear.toString());
+  const toggleSubFrequencyPicker = () => {
+    if (Platform.OS === "ios") {
+      setShowSubFrequencyPicker(!showSubFrequencyPicker);
     }
-  }
+  };
 
-  // Check if the selected payment method is a saved checking account
-  if (value.startsWith("Checking Account -")) {
-    // Extract the account number from the value
-    const accountNumberFromValue = value.split(" - ")[1];
+  const handlePaymentMethodChange = (value: string) => {
+    setPaymentMethod(value);
 
-    // Find the selected method from savedMethods
-    const selectedMethod = savedMethods.find(
-      (method) =>
-        method.accountNumber &&
-        method.accountNumber.endsWith(accountNumberFromValue)
-    );
+    if (value.startsWith("Debit Card -")) {
+      const cardNumberFromValue = value.split(" - ")[1];
+      const selectedMethod = savedMethods.find(
+        (method) =>
+          method.cardNumber && method.cardNumber.endsWith(cardNumberFromValue)
+      );
 
-    if (selectedMethod) {
-      // Set the account number and routing number
-      setAccountNumber(selectedMethod.accountNumber || "");
-      setRoutingNumber(selectedMethod.routingNumber || "");
+      if (selectedMethod && selectedMethod.cardNumber) {
+        const formattedCardNumber =
+          "x".repeat(selectedMethod.cardNumber.length - 4) +
+          selectedMethod.cardNumber.slice(-4);
+        setCardNumber(formattedCardNumber);
+
+        const expirationDate = new Date(selectedMethod.expirationDate);
+        const expirationMonth = expirationDate.getMonth() + 1;
+        const expirationYear = expirationDate.getFullYear();
+
+        const monthNames = [
+          "January", "February", "March", "April", "May", "June",
+          "July", "August", "September", "October", "November", "December",
+        ];
+        const formattedExpirationMonth = `${expirationMonth
+          .toString()
+          .padStart(2, "0")} - ${monthNames[expirationMonth - 1]}`;
+
+        setExpirationMonth(formattedExpirationMonth);
+        setExpirationYear(expirationYear.toString());
+      }
     }
-  }
 
-  if (value === "Add Debit Card") {
-    router.push("/ManagePayments"); // Navigate to the Manage Payment page if "Add Debit Card" is selected
-  }
+    if (value.startsWith("Checking Account -")) {
+      const accountNumberFromValue = value.split(" - ")[1];
+      const selectedMethod = savedMethods.find(
+        (method) =>
+          method.accountNumber &&
+          method.accountNumber.endsWith(accountNumberFromValue)
+      );
 
-  setShowPaymentMethodPicker(false); // Close the payment method picker
-};
+      if (selectedMethod) {
+        setAccountNumber(selectedMethod.accountNumber || "");
+        setRoutingNumber(selectedMethod.routingNumber || "");
+      }
+    }
 
+    if (value === "Add Debit Card") {
+      router.push("/ManagePayments");
+    }
+
+    setShowPaymentMethodPicker(false);
+  };
 
   const handleFrequencyChange = (value: string) => {
-    setPaymentFrequency(value); // Update payment frequency state
+    setPaymentFrequency(value);
 
-    // Map the selected frequency name to the corresponding IncomeFrequency enum value
     const frequencyMap: { [key: string]: IncomeFrequency } = {
       "Weekly": IncomeFrequency.Weekly,
       "Every Two Weeks": IncomeFrequency.BiWeekly,
@@ -425,78 +505,102 @@ const ConfigureAutopay = () => {
 
     const selectedFrequency = frequencyMap[value] || IncomeFrequency.Unknown;
 
-    // Update paymentSchedule.paymentFrequency with the selected enum value
     if (paymentSchedule) {
       paymentSchedule.paymentFrequency = selectedFrequency;
-      updatePaymentSchedulePaymentAmount(paymentSchedule, Number(amountDueMonthly)); // Reuse the updatePaymentAmount function
+      updatePaymentSchedulePaymentAmount(paymentSchedule, Number(amountDueMonthly));
     }
 
-    setShowFrequencyPicker(false); // Close the frequency picker
+    setShowFrequencyPicker(false);
   };
 
   const handleDayChange = (value: React.SetStateAction<string>) => {
-    setDayOfWeek(value); // Update day of week state
-    setShowDayPicker(false); // Close the day picker
+    setDayOfWeek(value);
+    setShowDayPicker(false);
   };
 
   const handleWeekChange = (value: React.SetStateAction<string>) => {
-    setPaymentWeek(value); // Update payment week state
-    setShowWeekPicker(false); // Close the week picker
+    setPaymentWeek(value);
+    setShowWeekPicker(false);
   };
 
   const handleWhichDaysChange = (value: React.SetStateAction<string>) => {
-    setWhichDaysOption(value); // Update which days option state
-    setShowWhichDaysPicker(false); // Close the which days picker
+    setWhichDaysOption(value);
+    setShowWhichDaysPicker(false);
   };
 
-  // Functions to open iOS pickers and reset other picker visibility
+  const handleSubFrequencyChange = (value: PaymentSubFrequency) => {
+    setPaymentSubFrequency(value);
+
+    if (paymentSchedule) {
+      paymentSchedule.paymentSubFrequency = value;
+    }
+
+    setShowSubFrequencyPicker(false);
+  };
+
   const openPaymentMethodPicker = () => {
     if (Platform.OS === "ios") {
-      setShowFrequencyPicker(false); // Hide frequency picker
-      setShowDayPicker(false); // Hide day picker
-      setShowWhichDaysPicker(false); // Hide which days picker
-      setShowWeekPicker(false); // Hide week picker
-      setShowPaymentMethodPicker(!showPaymentMethodPicker); // Toggle payment method picker visibility
+      setShowFrequencyPicker(false);
+      setShowDayPicker(false);
+      setShowWhichDaysPicker(false);
+      setShowWeekPicker(false);
+      setShowSubFrequencyPicker(false);
+      setShowPaymentMethodPicker(!showPaymentMethodPicker);
     }
   };
 
   const openFrequencyPicker = () => {
     if (Platform.OS === "ios") {
-      setShowPaymentMethodPicker(false); // Hide payment method picker
-      setShowDayPicker(false); // Hide day picker
-      setShowWhichDaysPicker(false); // Hide which days picker
-      setShowWeekPicker(false); // Hide week picker
-      setShowFrequencyPicker(!showFrequencyPicker); // Toggle frequency picker visibility
+      setShowPaymentMethodPicker(false);
+      setShowDayPicker(false);
+      setShowWhichDaysPicker(false);
+      setShowWeekPicker(false);
+      setShowSubFrequencyPicker(false);
+      setShowFrequencyPicker(!showFrequencyPicker);
     }
   };
 
   const openDayPicker = () => {
     if (Platform.OS === "ios") {
-      setShowPaymentMethodPicker(false); // Hide payment method picker
-      setShowFrequencyPicker(false); // Hide frequency picker
-      setShowWhichDaysPicker(false); // Hide which days picker
-      setShowWeekPicker(false); // Hide week picker
-      setShowDayPicker(!showDayPicker); // Toggle day picker visibility
+      setShowPaymentMethodPicker(false);
+      setShowFrequencyPicker(false);
+      setShowWhichDaysPicker(false);
+      setShowWeekPicker(false);
+      setShowSubFrequencyPicker(false);
+      setShowDayPicker(!showDayPicker);
     }
   };
 
   const openWeekPicker = () => {
     if (Platform.OS === "ios") {
-      setShowPaymentMethodPicker(false); // Hide payment method picker
-      setShowFrequencyPicker(false); // Hide frequency picker
-      setShowDayPicker(false); // Hide day picker
-      setShowWhichDaysPicker(false); // Hide which days picker
-      setShowWeekPicker(!showWeekPicker); // Toggle week picker visibility
+      setShowPaymentMethodPicker(false);
+      setShowFrequencyPicker(false);
+      setShowDayPicker(false);
+      setShowWhichDaysPicker(false);
+      setShowSubFrequencyPicker(false);
+      setShowWeekPicker(!showWeekPicker);
     }
   };
 
   const openWhichDaysPicker = () => {
     if (Platform.OS === "ios") {
-      setShowPaymentMethodPicker(false); // Hide payment method picker
-      setShowFrequencyPicker(false); // Hide frequency picker
-      setShowDayPicker(false); // Hide day picker
-      setShowWeekPicker(false); // Hide week picker
-      setShowWhichDaysPicker(!showWhichDaysPicker); // Toggle which days picker visibility
+      setShowPaymentMethodPicker(false);
+      setShowFrequencyPicker(false);
+      setShowDayPicker(false);
+      setShowWeekPicker(false);
+      setShowSubFrequencyPicker(false);
+      setShowWhichDaysPicker(!showWhichDaysPicker);
+    }
+  };
+
+  const openSubFrequencyPicker = () => {
+    if (Platform.OS === "ios") {
+      setShowPaymentMethodPicker(false);
+      setShowFrequencyPicker(false);
+      setShowDayPicker(false);
+      setShowWhichDaysPicker(false);
+      setShowWeekPicker(false);
+      setShowSubFrequencyPicker(!showSubFrequencyPicker);
     }
   };
 
@@ -625,7 +729,7 @@ const ConfigureAutopay = () => {
                     value={cardNumber}
                     onChangeText={setCardNumber}
                     keyboardType="numeric"
-                    editable={paymentMethod === "Add Debit Card"} // Make read-only if not "Add Debit Card"
+                    editable={paymentMethod === "Add Debit Card"}
                   />
 
                   <Text style={styles.helpText}>Expiration Month</Text>
@@ -636,7 +740,7 @@ const ConfigureAutopay = () => {
                     value={expirationMonth}
                     onChangeText={setExpirationMonth}
                     keyboardType="numeric"
-                    editable={paymentMethod === "Add Debit Card"} // Make read-only if not "Add Debit Card"
+                    editable={paymentMethod === "Add Debit Card"}
                   />
 
                   <Text style={styles.helpText}>Expiration Year</Text>
@@ -647,7 +751,7 @@ const ConfigureAutopay = () => {
                     value={expirationYear}
                     onChangeText={setExpirationYear}
                     keyboardType="numeric"
-                    editable={paymentMethod === "Add Debit Card"} // Make read-only if not "Add Debit Card"
+                    editable={paymentMethod === "Add Debit Card"}
                   />
                 </>
               ) : (
@@ -660,7 +764,7 @@ const ConfigureAutopay = () => {
                     value={routingNumber}
                     onChangeText={setRoutingNumber}
                     keyboardType="numeric"
-                    editable={paymentMethod === "Add Checking Account"} // Make read-only if not "Add Checking Account"
+                    editable={paymentMethod === "Add Checking Account"}
                   />
 
                   <Text style={styles.helpText}>Account Number</Text>
@@ -671,7 +775,7 @@ const ConfigureAutopay = () => {
                     value={accountNumber}
                     onChangeText={setAccountNumber}
                     keyboardType="numeric"
-                    editable={paymentMethod === "Add Checking Account"} // Make read-only if not "Add Checking Account"
+                    editable={paymentMethod === "Add Checking Account"}
                   />
                 </>
               )}
@@ -737,7 +841,7 @@ const ConfigureAutopay = () => {
                         selectedValue={paymentFrequency}
                         onValueChange={handleFrequencyChange}
                         style={styles.iosPicker}
-                        itemStyle={{ color: "black" }} // Ensure picker items are black
+                        itemStyle={{ color: "black" }}
                       >
                         {incomeFrequencies.map((frequency, index) => (
                           <Picker.Item
@@ -769,7 +873,7 @@ const ConfigureAutopay = () => {
                 </View>
               )}
 
-              {paymentFrequency === "Weekly" && (
+           {paymentFrequency === "Weekly" && (
                 <>
                   <Text style={styles.helpText}>Day of Week</Text>
                   {Platform.OS === "ios" ? (
@@ -794,13 +898,15 @@ const ConfigureAutopay = () => {
                             selectedValue={dayOfWeek}
                             onValueChange={handleDayChange}
                             style={styles.iosPicker}
-                            itemStyle={{ color: "black" }} // Ensure picker items are black
+                            itemStyle={{ color: "black" }}
                           >
-                            <Picker.Item label="Monday" value="Monday" />
-                            <Picker.Item label="Tuesday" value="Tuesday" />
-                            <Picker.Item label="Wednesday" value="Wednesday" />
-                            <Picker.Item label="Thursday" value="Thursday" />
-                            <Picker.Item label="Friday" value="Friday" />
+                            {daysOfTheWeek.map((day, index) => (
+                              <Picker.Item
+                                key={index}
+                                label={day.name}
+                                value={day.name}
+                              />
+                            ))}
                           </Picker>
                         </View>
                       )}
@@ -813,104 +919,29 @@ const ConfigureAutopay = () => {
                         style={styles.androidPicker}
                         dropdownIconColor="#000000"
                       >
-                        <Picker.Item label="Monday" value="Monday" />
-                        <Picker.Item label="Tuesday" value="Tuesday" />
-                        <Picker.Item label="Wednesday" value="Wednesday" />
-                        <Picker.Item label="Thursday" value="Thursday" />
-                        <Picker.Item label="Friday" value="Friday" />
+                        {daysOfTheWeek.map((day, index) => (
+                          <Picker.Item
+                            key={index}
+                            label={day.name}
+                            value={day.name}
+                          />
+                        ))}
                       </Picker>
                     </View>
-                  )}
-                </>
-              )}
-
-              {paymentFrequency === "Every Two Weeks" && (
-                <>
-                  <Text style={styles.helpText}>Day of Week</Text>
-                  {Platform.OS === "ios" ? (
-                    <>
-                      <Pressable onPress={openDayPicker}>
-                        <View style={styles.pickerWrapper}>
-                          <View style={styles.pickerDisplayContainer}>
-                            <Text style={styles.pickerDisplayText}>
-                              {dayOfWeek || "Select day"}
-                            </Text>
-                            <FontAwesome
-                              name="chevron-down"
-                              size={14}
-                              color="#27446F"
-                            />
-                          </View>
-                        </View>
-                      </Pressable>
-                      {showDayPicker && (
-                        <View style={{ zIndex: 1000, position: "relative" }}>
-                          <Picker
-                            selectedValue={dayOfWeek}
-                            onValueChange={handleDayChange}
-                            style={styles.iosPicker}
-                            itemStyle={{ color: "black" }} // Ensure picker items are black
-                          >
-                            <Picker.Item label="Monday" value="Monday" />
-                            <Picker.Item label="Tuesday" value="Tuesday" />
-                            <Picker.Item label="Wednesday" value="Wednesday" />
-                            <Picker.Item label="Thursday" value="Thursday" />
-                            <Picker.Item label="Friday" value="Friday" />
-                          </Picker>
-                        </View>
-                      )}
-                    </>
-                  ) : (
-                    <View style={styles.pickerWrapper}>
-                      <Picker
-                        selectedValue={dayOfWeek}
-                        onValueChange={setDayOfWeek}
-                        style={styles.androidPicker}
-                        dropdownIconColor="#000000"
-                      >
-                        <Picker.Item label="Monday" value="Monday" />
-                        <Picker.Item label="Tuesday" value="Tuesday" />
-                        <Picker.Item label="Wednesday" value="Wednesday" />
-                        <Picker.Item label="Thursday" value="Thursday" />
-                        <Picker.Item label="Friday" value="Friday" />
-                      </Picker>
-                    </View>
-                  )}
-
-                  <Text style={styles.helpText}>Last Pay Date</Text>
-                  <Pressable onPress={toggleLastPayDatePicker}>
-                    <View style={styles.datePickerButton}>
-                      <Text style={styles.dateText}>
-                        {lastPayDate.toDateString()}
-                      </Text>
-                      <FontAwesome name="calendar" size={16} color="#27446F" />
-                    </View>
-                  </Pressable>
-
-                  {showLastPayDatePicker && (
-                    <DateTimePicker
-                      mode="date"
-                      display={Platform.OS === "ios" ? "spinner" : "default"}
-                      value={lastPayDate}
-                      onChange={onLastPayDateChange}
-                      textColor="black" // Ensure text color is black
-                    />
                   )}
                 </>
               )}
 
               {paymentFrequency === "Twice per Month" && (
                 <>
-                  <Text style={styles.helpText}>Which Days</Text>
+                  <Text style={styles.helpText}>Payday One</Text>
                   {Platform.OS === "ios" ? (
                     <>
-                      <Pressable
-                        onPress={() => setWhichDaysOption("Two specific days")}
-                      >
+                      <Pressable onPress={togglePaydayOnePicker}>
                         <View style={styles.pickerWrapper}>
                           <View style={styles.pickerDisplayContainer}>
                             <Text style={styles.pickerDisplayText}>
-                              {whichDaysOption || "Select days option"}
+                              {paymentDayOneLabel || "Select day"}
                             </Text>
                             <FontAwesome
                               name="chevron-down"
@@ -920,135 +951,13 @@ const ConfigureAutopay = () => {
                           </View>
                         </View>
                       </Pressable>
-                    </>
-                  ) : (
-                    <View style={styles.pickerWrapper}>
-                      <Picker
-                        selectedValue={whichDaysOption}
-                        onValueChange={(value) => setWhichDaysOption(value)}
-                        style={styles.androidPicker}
-                        dropdownIconColor="#000000"
-                      >
-                        <Picker.Item
-                          label="Two specific days"
-                          value="Two specific days"
-                        />
-                      </Picker>
-                    </View>
-                  )}
-
-                  {whichDaysOption === "Two specific days" && (
-                    <>
-                      <Text style={styles.helpText}>Payday One</Text>
-                      {Platform.OS === "ios" ? (
-                        <>
-                          <Pressable onPress={togglePaydayOnePicker}>
-                            <View style={styles.pickerWrapper}>
-                              <View style={styles.pickerDisplayContainer}>
-                                <Text style={styles.pickerDisplayText}>
-                                  {paydayOne === "End of the Month"
-                                    ? "End of the Month"
-                                    : getOrdinalSuffix(parseInt(paydayOne))}
-                                </Text>
-                                <FontAwesome
-                                  name="chevron-down"
-                                  size={14}
-                                  color="#27446F"
-                                />
-                              </View>
-                            </View>
-                          </Pressable>
-                          {showPaydayOnePicker && (
-                            <View
-                              style={{ zIndex: 1000, position: "relative" }}
-                            >
-                              <Picker
-                                selectedValue={paydayOne}
-                                onValueChange={(value) => setPaydayOne(value)}
-                                style={styles.iosPicker}
-                                itemStyle={{ color: "black" }}
-                              >
-                                {Array.from({ length: 18 }, (_, i) => (
-                                  <Picker.Item
-                                    key={i}
-                                    label={getOrdinalSuffix(i + 1)}
-                                    value={`${i + 1}`}
-                                  />
-                                ))}
-                              </Picker>
-                            </View>
-                          )}
-                        </>
-                      ) : (
-                        <View style={styles.pickerWrapper}>
+                      {showPaydayOnePicker && (
+                        <View style={{ zIndex: 1000, position: "relative" }}>
                           <Picker
-                            selectedValue={paydayOne}
+                            selectedValue={paymentDayOneLabel}
                             onValueChange={(value) => setPaydayOne(value)}
-                            style={styles.androidPicker}
-                            dropdownIconColor="#000000"
-                          >
-                            {Array.from({ length: 18 }, (_, i) => (
-                              <Picker.Item
-                                key={i}
-                                label={getOrdinalSuffix(i + 1)}
-                                value={`${i + 1}`}
-                              />
-                            ))}
-                          </Picker>
-                        </View>
-                      )}
-
-                      <Text style={styles.helpText}>Payday Two</Text>
-                      {Platform.OS === "ios" ? (
-                        <>
-                          <Pressable onPress={togglePaydayTwoPicker}>
-                            <View style={styles.pickerWrapper}>
-                              <View style={styles.pickerDisplayContainer}>
-                                <Text style={styles.pickerDisplayText}>
-                                  {paydayTwo === "End of the Month"
-                                    ? "End of the Month"
-                                    : getOrdinalSuffix(paydayTwo)}
-                                </Text>
-                                <FontAwesome
-                                  name="chevron-down"
-                                  size={14}
-                                  color="#27446F"
-                                />
-                              </View>
-                            </View>
-                          </Pressable>
-                          {showPaydayTwoPicker && (
-                            <View
-                              style={{ zIndex: 1000, position: "relative" }}
-                            >
-                              <Picker
-                                selectedValue={paydayTwo}
-                                onValueChange={(value) => setPaydayTwo(value)}
-                                style={styles.iosPicker}
-                                itemStyle={{ color: "black" }}
-                              >
-                                {Array.from({ length: 31 }, (_, i) => (
-                                  <Picker.Item
-                                    key={i}
-                                    label={getOrdinalSuffix(i + 1)}
-                                    value={`${i + 1}`}
-                                  />
-                                ))}
-                                <Picker.Item
-                                  label="End of the Month"
-                                  value="End of the Month"
-                                />
-                              </Picker>
-                            </View>
-                          )}
-                        </>
-                      ) : (
-                        <View style={styles.pickerWrapper}>
-                          <Picker
-                            selectedValue={paydayTwo}
-                            onValueChange={(value) => setPaydayTwo(value)}
-                            style={styles.androidPicker}
-                            dropdownIconColor="#000000"
+                            style={styles.iosPicker}
+                            itemStyle={{ color: "black" }}
                           >
                             {Array.from({ length: 31 }, (_, i) => (
                               <Picker.Item
@@ -1065,6 +974,90 @@ const ConfigureAutopay = () => {
                         </View>
                       )}
                     </>
+                  ) : (
+                    <View style={styles.pickerWrapper}>
+                      <Picker
+                        selectedValue={paymentDayOneLabel}
+                        onValueChange={(value) => setPaydayOne(value)}
+                        style={styles.androidPicker}
+                        dropdownIconColor="#000000"
+                      >
+                        {Array.from({ length: 31 }, (_, i) => (
+                          <Picker.Item
+                            key={i}
+                            label={getOrdinalSuffix(i + 1)}
+                            value={`${i + 1}`}
+                          />
+                        ))}
+                        <Picker.Item
+                          label="End of the Month"
+                          value="End of the Month"
+                        />
+                      </Picker>
+                    </View>
+                  )}
+
+                  <Text style={styles.helpText}>Payday Two</Text>
+                  {Platform.OS === "ios" ? (
+                    <>
+                      <Pressable onPress={togglePaydayTwoPicker}>
+                        <View style={styles.pickerWrapper}>
+                          <View style={styles.pickerDisplayContainer}>
+                            <Text style={styles.pickerDisplayText}>
+                              {paymentDayTwoLabel || "Select day"}
+                            </Text>
+                            <FontAwesome
+                              name="chevron-down"
+                              size={14}
+                              color="#27446F"
+                            />
+                          </View>
+                        </View>
+                      </Pressable>
+                      {showPaydayTwoPicker && (
+                        <View style={{ zIndex: 1000, position: "relative" }}>
+                          <Picker
+                            selectedValue={paymentDayTwoLabel}
+                            onValueChange={(value) => setPaydayTwo(value)}
+                            style={styles.iosPicker}
+                            itemStyle={{ color: "black" }}
+                          >
+                            {Array.from({ length: 31 }, (_, i) => (
+                              <Picker.Item
+                                key={i}
+                                label={getOrdinalSuffix(i + 1)}
+                                value={`${i + 1}`}
+                              />
+                            ))}
+                            <Picker.Item
+                              label="End of the Month"
+                              value="End of the Month"
+                            />
+                          </Picker>
+                        </View>
+                      )}
+                    </>
+                  ) : (
+                    <View style={styles.pickerWrapper}>
+                      <Picker
+                        selectedValue={paymentDayTwoLabel}
+                        onValueChange={(value) => setPaydayTwo(value)}
+                        style={styles.androidPicker}
+                        dropdownIconColor="#000000"
+                      >
+                        {Array.from({ length: 31 }, (_, i) => (
+                          <Picker.Item
+                            key={i}
+                            label={getOrdinalSuffix(i + 1)}
+                            value={`${i + 1}`}
+                          />
+                        ))}
+                        <Picker.Item
+                          label="End of the Month"
+                          value="End of the Month"
+                        />
+                      </Picker>
+                    </View>
                   )}
                 </>
               )}
@@ -1228,22 +1221,13 @@ const ConfigureAutopay = () => {
                                 style={styles.iosPicker}
                                 itemStyle={{ color: "black" }}
                               >
-                                <Picker.Item
-                                  label="1st week"
-                                  value="1st week"
-                                />
-                                <Picker.Item
-                                  label="2nd week"
-                                  value="2nd week"
-                                />
-                                <Picker.Item
-                                  label="3rd week"
-                                  value="3rd week"
-                                />
-                                <Picker.Item
-                                  label="4th week"
-                                  value="4th week"
-                                />
+                                {weeksOfTheMonth.map((week, index) => (
+                                  <Picker.Item
+                                    key={index}
+                                    label={week.name}
+                                    value={week.name}
+                                  />
+                                ))}
                               </Picker>
                             </View>
                           )}
@@ -1256,10 +1240,13 @@ const ConfigureAutopay = () => {
                             style={styles.androidPicker}
                             dropdownIconColor="#000000"
                           >
-                            <Picker.Item label="1st week" value="1st week" />
-                            <Picker.Item label="2nd week" value="2nd week" />
-                            <Picker.Item label="3rd week" value="3rd week" />
-                            <Picker.Item label="4th week" value="4th week" />
+                            {weeksOfTheMonth.map((week, index) => (
+                              <Picker.Item
+                                key={index}
+                                label={week.name}
+                                value={week.name}
+                              />
+                            ))}
                           </Picker>
                         </View>
                       )}
@@ -1289,13 +1276,15 @@ const ConfigureAutopay = () => {
                                 selectedValue={dayOfWeek}
                                 onValueChange={handleDayChange}
                                 style={styles.iosPicker}
-                                itemStyle={{ color: "black" }} // Ensure picker items are black
+                                itemStyle={{ color: "black" }}
                               >
-                                <Picker.Item label="Monday" value="Monday" />
-                                <Picker.Item label="Tuesday" value="Tuesday" />
-                                <Picker.Item label="Wednesday" value="Wednesday" />
-                                <Picker.Item label="Thursday" value="Thursday" />
-                                <Picker.Item label="Friday" value="Friday" />
+                                {daysOfTheWeek.map((day, index) => (
+                                  <Picker.Item
+                                    key={index}
+                                    label={day.name}
+                                    value={day.name}
+                                  />
+                                ))}
                               </Picker>
                             </View>
                           )}
@@ -1308,11 +1297,13 @@ const ConfigureAutopay = () => {
                             style={styles.androidPicker}
                             dropdownIconColor="#000000"
                           >
-                            <Picker.Item label="Monday" value="Monday" />
-                            <Picker.Item label="Tuesday" value="Tuesday" />
-                            <Picker.Item label="Wednesday" value="Wednesday" />
-                            <Picker.Item label="Thursday" value="Thursday" />
-                            <Picker.Item label="Friday" value="Friday" />
+                            {daysOfTheWeek.map((day, index) => (
+                              <Picker.Item
+                                key={index}
+                                label={day.name}
+                                value={day.name}
+                              />
+                            ))}
                           </Picker>
                         </View>
                       )}
@@ -1344,15 +1335,9 @@ const ConfigureAutopay = () => {
                   display={Platform.OS === "ios" ? "spinner" : "default"}
                   value={date}
                   onChange={onChange}
-                  textColor="black" // Ensure text color is black
+                  textColor="black"
                 />
               )}
-
-              <Text style={styles.summaryText}>
-                You have selected to pay {paymentAmount} every{" "}
-                {paymentFrequency.toLowerCase()} on {dayOfWeek}, from your{" "}
-                {paymentMethod.toLowerCase()} account.
-              </Text>
 
               <TouchableOpacity style={styles.submitButton}>
                 <Text style={styles.submitButtonText}>SUBMIT</Text>
