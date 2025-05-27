@@ -201,4 +201,10 @@ closeButton: {
   marginBottom: 5,
   textAlign: "left",
 },
+ modalImage: {
+    width: '100%', // Adjust the width as needed
+    height: 200, // Adjust the height as needed
+    resizeMode: 'contain', // Adjust the resizeMode as needed
+    marginVertical: 10,
+  },
 });

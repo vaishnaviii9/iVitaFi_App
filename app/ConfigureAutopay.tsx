@@ -9,6 +9,7 @@ import {
   Platform,
   Pressable,
   KeyboardAvoidingView,
+  Image,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import DateTimePicker from "@react-native-community/datetimepicker";
@@ -93,8 +94,14 @@ const incomeFrequencies = [
 // Array of payment sub-frequencies for the dropdown
 const paymentSubFrequencies = [
   { name: "Specific Day", value: PaymentSubFrequency.SpecificDay },
-  { name: "Specific Week And Day", value: PaymentSubFrequency.SpecificWeekAndDay },
-  { name: "Business Days After Day", value: PaymentSubFrequency.BusinessDaysAfterDay },
+  {
+    name: "Specific Week And Day",
+    value: PaymentSubFrequency.SpecificWeekAndDay,
+  },
+  {
+    name: "Business Days After Day",
+    value: PaymentSubFrequency.BusinessDaysAfterDay,
+  },
 ];
 
 // Function to handle back button press, navigating back to the Home screen
@@ -131,7 +138,8 @@ const ConfigureAutopay = () => {
   const [spDay, setSpDay] = useState(false);
   const [paymentSchedule, setPaymentSchedule] = useState<any>(null);
   const [amountDueMonthly, setAmountDueMonthly] = useState("");
-  const [paymentSubFrequency, setPaymentSubFrequency] = useState<PaymentSubFrequency>(PaymentSubFrequency.Unknown);
+  const [paymentSubFrequency, setPaymentSubFrequency] =
+    useState<PaymentSubFrequency>(PaymentSubFrequency.Unknown);
 
   // States to control iOS picker visibility
   const [showPaymentMethodPicker, setShowPaymentMethodPicker] = useState(false);
@@ -156,9 +164,14 @@ const ConfigureAutopay = () => {
           if (creditSummaries && creditSummaries.length > 0) {
             const customerId =
               creditSummaries[0]?.detail?.creditAccount?.customerId;
-            const amountDue = creditSummaries[0]?.detail?.creditAccount?.amountDueMonthly;
-            const paymentAmount = creditSummaries[0]?.detail?.creditAccount?.paymentSchedule?.paymentAmount;
-            const paymentFrequency = creditSummaries[0]?.detail?.creditAccount?.paymentSchedule?.paymentFrequency;
+            const amountDue =
+              creditSummaries[0]?.detail?.creditAccount?.amountDueMonthly;
+            const paymentAmount =
+              creditSummaries[0]?.detail?.creditAccount?.paymentSchedule
+                ?.paymentAmount;
+            const paymentFrequency =
+              creditSummaries[0]?.detail?.creditAccount?.paymentSchedule
+                ?.paymentFrequency;
 
             setAmountDueMonthly(amountDue);
             setPaymentAmount(formatPaymentAmount(paymentAmount));
@@ -171,7 +184,8 @@ const ConfigureAutopay = () => {
               [IncomeFrequency.Monthly]: "Monthly",
             };
 
-            const paymentFrequencyString = frequencyMap[paymentFrequency as IncomeFrequency] || "Select";
+            const paymentFrequencyString =
+              frequencyMap[paymentFrequency as IncomeFrequency] || "Select";
             setPaymentFrequency(paymentFrequencyString);
 
             if (customerId) {
@@ -190,15 +204,31 @@ const ConfigureAutopay = () => {
                       "x".repeat(defaultPaymentMethod.cardNumber.length - 4) +
                       defaultPaymentMethod.cardNumber.slice(-4);
                     setCardNumber(formattedCardNumber);
-                    setPaymentMethod(`Debit Card - ${defaultPaymentMethod.cardNumber.slice(-4)}`);
+                    setPaymentMethod(
+                      `Debit Card - ${defaultPaymentMethod.cardNumber.slice(
+                        -4
+                      )}`
+                    );
 
-                    const expirationDate = new Date(defaultPaymentMethod.expirationDate);
+                    const expirationDate = new Date(
+                      defaultPaymentMethod.expirationDate
+                    );
                     const expirationMonth = expirationDate.getMonth() + 1;
                     const expirationYear = expirationDate.getFullYear();
 
                     const monthNames = [
-                      "January", "February", "March", "April", "May", "June",
-                      "July", "August", "September", "October", "November", "December",
+                      "January",
+                      "February",
+                      "March",
+                      "April",
+                      "May",
+                      "June",
+                      "July",
+                      "August",
+                      "September",
+                      "October",
+                      "November",
+                      "December",
                     ];
                     const formattedExpirationMonth = `${expirationMonth
                       .toString()
@@ -209,7 +239,11 @@ const ConfigureAutopay = () => {
                   } else if (defaultPaymentMethod.accountNumber) {
                     setAccountNumber(defaultPaymentMethod.accountNumber);
                     setRoutingNumber(defaultPaymentMethod.routingNumber || "");
-                    setPaymentMethod(`Checking Account - ${defaultPaymentMethod.accountNumber.slice(-4)}`);
+                    setPaymentMethod(
+                      `Checking Account - ${defaultPaymentMethod.accountNumber.slice(
+                        -4
+                      )}`
+                    );
                   }
                 }
               }
@@ -219,7 +253,10 @@ const ConfigureAutopay = () => {
               creditSummaries[0]?.detail?.creditAccount?.paymentSchedule;
             if (paymentSchedule) {
               setPaymentSchedule(paymentSchedule);
-              updatePaymentSchedulePaymentAmount(paymentSchedule, Number(amountDue));
+              updatePaymentSchedulePaymentAmount(
+                paymentSchedule,
+                Number(amountDue)
+              );
               const mappedSchedule = mapPaymentSchedule(paymentSchedule);
               setDayOfWeek(mappedSchedule.paymentDayOneLabel);
               setPaydayOne(mappedSchedule.paymentDayOneLabel);
@@ -243,7 +280,14 @@ const ConfigureAutopay = () => {
   };
 
   // Function to update payment amount based on payment schedule and amount due monthly
-  const updatePaymentSchedulePaymentAmount = (paymentSchedule: { paymentFrequency: IncomeFrequency; paymentSubFrequency: PaymentSubFrequency | null; paymentAmount: number; }, amountDueMonthly: number) => {
+  const updatePaymentSchedulePaymentAmount = (
+    paymentSchedule: {
+      paymentFrequency: IncomeFrequency;
+      paymentSubFrequency: PaymentSubFrequency | null;
+      paymentAmount: number;
+    },
+    amountDueMonthly: number
+  ) => {
     let amount = 0;
 
     if (paymentSchedule.paymentFrequency === IncomeFrequency.Monthly) {
@@ -274,88 +318,87 @@ const ConfigureAutopay = () => {
   };
 
   // Function to map payment schedule data
-const mapPaymentSchedule = (paymentSchedule: {
-  paymentFrequency: number;
-  paymentSubFrequency: number;
-  paymentDayOne: number;
-  paymentDayTwo: number;
-  paymentWeekOne: number;
-  paymentWeekTwo: number;
-}) => {
-  let paymentFrequencyLabel = "";
-  let paymentSubFrequencyLabel = "";
-  let paymentDayOneLabel = "";
-  let paymentDayTwoLabel = "";
-  let paymentWeekOneLabel = "";
-  let paymentWeekTwoLabel = "";
+  const mapPaymentSchedule = (paymentSchedule: {
+    paymentFrequency: number;
+    paymentSubFrequency: number;
+    paymentDayOne: number;
+    paymentDayTwo: number;
+    paymentWeekOne: number;
+    paymentWeekTwo: number;
+  }) => {
+    let paymentFrequencyLabel = "";
+    let paymentSubFrequencyLabel = "";
+    let paymentDayOneLabel = "";
+    let paymentDayTwoLabel = "";
+    let paymentWeekOneLabel = "";
+    let paymentWeekTwoLabel = "";
 
-  // Map payment frequency
-  switch (paymentSchedule.paymentFrequency) {
-    case IncomeFrequency.Weekly:
-      paymentFrequencyLabel = "Weekly";
-      break;
-    case IncomeFrequency.BiWeekly:
-      paymentFrequencyLabel = "Every Two Weeks";
-      break;
-    case IncomeFrequency.SemiMonthly:
-      paymentFrequencyLabel = "Twice per Month";
-      break;
-    case IncomeFrequency.Monthly:
-      paymentFrequencyLabel = "Monthly";
-      break;
-    default:
-      paymentFrequencyLabel = "Unknown";
-  }
+    // Map payment frequency
+    switch (paymentSchedule.paymentFrequency) {
+      case IncomeFrequency.Weekly:
+        paymentFrequencyLabel = "Weekly";
+        break;
+      case IncomeFrequency.BiWeekly:
+        paymentFrequencyLabel = "Every Two Weeks";
+        break;
+      case IncomeFrequency.SemiMonthly:
+        paymentFrequencyLabel = "Twice per Month";
+        break;
+      case IncomeFrequency.Monthly:
+        paymentFrequencyLabel = "Monthly";
+        break;
+      default:
+        paymentFrequencyLabel = "Unknown";
+    }
 
-  // Map payment sub-frequency
-  switch (paymentSchedule.paymentSubFrequency) {
-    case PaymentSubFrequency.SpecificDay:
-      paymentSubFrequencyLabel = "Specific Day";
-      break;
-    case PaymentSubFrequency.SpecificWeekAndDay:
-      paymentSubFrequencyLabel = "Specific Week And Day";
-      break;
-    case PaymentSubFrequency.BusinessDaysAfterDay:
-      paymentSubFrequencyLabel = "Business Days After Day";
-      break;
-    default:
-      paymentSubFrequencyLabel = "Unknown";
-  }
+    // Map payment sub-frequency
+    switch (paymentSchedule.paymentSubFrequency) {
+      case PaymentSubFrequency.SpecificDay:
+        paymentSubFrequencyLabel = "Specific Day";
+        break;
+      case PaymentSubFrequency.SpecificWeekAndDay:
+        paymentSubFrequencyLabel = "Specific Week And Day";
+        break;
+      case PaymentSubFrequency.BusinessDaysAfterDay:
+        paymentSubFrequencyLabel = "Business Days After Day";
+        break;
+      default:
+        paymentSubFrequencyLabel = "Unknown";
+    }
 
-  // Map payment day one
-  const dayOne = daysOfTheWeek.find(
-    (day) => day.value === paymentSchedule.paymentDayOne
-  );
-  paymentDayOneLabel = dayOne ? dayOne.name : "Unknown";
+    // Map payment day one
+    const dayOne = daysOfTheWeek.find(
+      (day) => day.value === paymentSchedule.paymentDayOne
+    );
+    paymentDayOneLabel = dayOne ? dayOne.name : "Unknown";
 
-  // Map payment day two
-  const dayTwo = daysOfTheWeek.find(
-    (day) => day.value === paymentSchedule.paymentDayTwo
-  );
-  paymentDayTwoLabel = dayTwo ? dayTwo.name : "Unknown";
+    // Map payment day two
+    const dayTwo = daysOfTheWeek.find(
+      (day) => day.value === paymentSchedule.paymentDayTwo
+    );
+    paymentDayTwoLabel = dayTwo ? dayTwo.name : "Unknown";
 
-  // Map payment week one
-  const weekOne = weeksOfTheMonth.find(
-    (week) => week.value === paymentSchedule.paymentWeekOne
-  );
-  paymentWeekOneLabel = weekOne ? weekOne.name : "Unknown";
+    // Map payment week one
+    const weekOne = weeksOfTheMonth.find(
+      (week) => week.value === paymentSchedule.paymentWeekOne
+    );
+    paymentWeekOneLabel = weekOne ? weekOne.name : "Unknown";
 
-  // Map payment week two
-  const weekTwo = weeksOfTheMonth.find(
-    (week) => week.value === paymentSchedule.paymentWeekTwo
-  );
-  paymentWeekTwoLabel = weekTwo ? weekTwo.name : "Unknown";
+    // Map payment week two
+    const weekTwo = weeksOfTheMonth.find(
+      (week) => week.value === paymentSchedule.paymentWeekTwo
+    );
+    paymentWeekTwoLabel = weekTwo ? weekTwo.name : "Unknown";
 
-  return {
-    paymentFrequencyLabel,
-    paymentSubFrequencyLabel,
-    paymentDayOneLabel,
-    paymentDayTwoLabel,
-    paymentWeekOneLabel,
-    paymentWeekTwoLabel,
+    return {
+      paymentFrequencyLabel,
+      paymentSubFrequencyLabel,
+      paymentDayOneLabel,
+      paymentDayTwoLabel,
+      paymentWeekOneLabel,
+      paymentWeekTwoLabel,
+    };
   };
-};
-
 
   const examplePaymentSchedule = {
     paymentFrequency: 3,
@@ -460,8 +503,18 @@ const mapPaymentSchedule = (paymentSchedule: {
         const expirationYear = expirationDate.getFullYear();
 
         const monthNames = [
-          "January", "February", "March", "April", "May", "June",
-          "July", "August", "September", "October", "November", "December",
+          "January",
+          "February",
+          "March",
+          "April",
+          "May",
+          "June",
+          "July",
+          "August",
+          "September",
+          "October",
+          "November",
+          "December",
         ];
         const formattedExpirationMonth = `${expirationMonth
           .toString()
@@ -497,17 +550,20 @@ const mapPaymentSchedule = (paymentSchedule: {
     setPaymentFrequency(value);
 
     const frequencyMap: { [key: string]: IncomeFrequency } = {
-      "Weekly": IncomeFrequency.Weekly,
+      Weekly: IncomeFrequency.Weekly,
       "Every Two Weeks": IncomeFrequency.BiWeekly,
       "Twice per Month": IncomeFrequency.SemiMonthly,
-      "Monthly": IncomeFrequency.Monthly,
+      Monthly: IncomeFrequency.Monthly,
     };
 
     const selectedFrequency = frequencyMap[value] || IncomeFrequency.Unknown;
 
     if (paymentSchedule) {
       paymentSchedule.paymentFrequency = selectedFrequency;
-      updatePaymentSchedulePaymentAmount(paymentSchedule, Number(amountDueMonthly));
+      updatePaymentSchedulePaymentAmount(
+        paymentSchedule,
+        Number(amountDueMonthly)
+      );
     }
 
     setShowFrequencyPicker(false);
@@ -803,11 +859,18 @@ const mapPaymentSchedule = (paymentSchedule: {
                         ? "Debit Card"
                         : "Checking Account"}
                     </Text>
-                    <Text>
-                      {paymentMethod.startsWith("Debit Card -")
-                        ? "Here you can provide information or steps to help the user find their card information."
-                        : "Here you can provide information or steps to help the user find their account information."}
-                    </Text>
+
+                    {paymentMethod.startsWith("Debit Card -") ? (
+                      <Image
+                        source={require("../assets/images/debit-image.jpg")}
+                        style={styles.modalImage}
+                      />
+                    ) : (
+                      <Image
+                        source={require("../assets/images/bank-account.jpg")}
+                        style={styles.modalImage}
+                      />
+                    )}
                     <TouchableOpacity
                       style={styles.closeButton}
                       onPress={() => setModalVisible(!modalVisible)}
@@ -873,7 +936,7 @@ const mapPaymentSchedule = (paymentSchedule: {
                 </View>
               )}
 
-           {paymentFrequency === "Weekly" && (
+              {paymentFrequency === "Weekly" && (
                 <>
                   <Text style={styles.helpText}>Day of Week</Text>
                   {Platform.OS === "ios" ? (
