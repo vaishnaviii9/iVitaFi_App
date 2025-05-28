@@ -43,7 +43,6 @@ enum PaymentSubFrequency {
   Unknown = 0,
   SpecificDay = 1,
   SpecificWeekAndDay = 2,
-  BusinessDaysAfterDay = 3,
 }
 
 // Arrays for date options
@@ -156,8 +155,11 @@ const incomeFrequencies = [
 ];
 const whichDaysOptions = [{ name: "Two specific days", value: 1 }];
 const monthlyPaymentOptions = [
-  { name: "Specific Day", value: 1 },
-  { name: "Specific Week And Day", value: 2 },
+  { name: "Specific Day", value: PaymentSubFrequency.SpecificDay },
+  {
+    name: "Specific Week And Day",
+    value: PaymentSubFrequency.SpecificWeekAndDay,
+  },
 ];
 const paymentWeekOptions = [
   { name: "1st Week", value: 1 },
@@ -364,7 +366,6 @@ const ConfigureAutopay = () => {
               }
             }
 
-            // Inside your useEffect or wherever you set these states
             const paymentSchedule =
               creditSummaries[0]?.detail?.creditAccount?.paymentSchedule;
             if (paymentSchedule) {
@@ -381,14 +382,12 @@ const ConfigureAutopay = () => {
 
               console.log(paymentSchedule);
 
-              // Set and log state variables
               setPaymentDayOne(paymentSchedule.paymentDayOne);
               console.log("Payment Day One:", paymentSchedule.paymentDayOne);
 
               setPaymentDayTwo(paymentSchedule.paymentDayTwo);
               console.log("Payment Day Two:", paymentSchedule.paymentDayTwo);
 
-              // Set initial values for the pickers using mapped names
               setSelectedPayDayOne(
                 paymentSchedule.paymentDayOne
                   ? date2Map[paymentSchedule.paymentDayOne]
@@ -429,6 +428,41 @@ const ConfigureAutopay = () => {
                 "Next Payment Amount:",
                 paymentSchedule.nextPaymentAmount
               );
+
+              // Set payment frequency and day of week
+              if (paymentSchedule.paymentFrequency === IncomeFrequency.Weekly) {
+                setPaymentFrequency(IncomeFrequency.Weekly);
+                const dayOfWeekValue = paymentSchedule.paymentDayOne;
+                setDayOfWeek(
+                  daysOfTheWeek.find((day) => day.value === dayOfWeekValue)
+                    ?.name || ""
+                );
+              } else if (
+                paymentSchedule.paymentFrequency === IncomeFrequency.BiWeekly
+              ) {
+                setPaymentFrequency(IncomeFrequency.BiWeekly);
+              } else if (
+                paymentSchedule.paymentFrequency === IncomeFrequency.SemiMonthly
+              ) {
+                setPaymentFrequency(IncomeFrequency.SemiMonthly);
+              } else if (
+                paymentSchedule.paymentFrequency === IncomeFrequency.Monthly
+              ) {
+                setPaymentFrequency(IncomeFrequency.Monthly);
+                if (
+                  paymentSchedule.paymentSubFrequency ===
+                  PaymentSubFrequency.SpecificDay
+                ) {
+                  setPaymentSubFrequency(PaymentSubFrequency.SpecificDay);
+                } else if (
+                  paymentSchedule.paymentSubFrequency ===
+                  PaymentSubFrequency.SpecificWeekAndDay
+                ) {
+                  setPaymentSubFrequency(
+                    PaymentSubFrequency.SpecificWeekAndDay
+                  );
+                }
+              }
             }
           }
         }
