@@ -10,6 +10,7 @@ import {
   Pressable,
   KeyboardAvoidingView,
   Image,
+  LogBox,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import DateTimePicker from "@react-native-community/datetimepicker";
@@ -20,9 +21,11 @@ import { fetchSavedPaymentMethods } from "./services/savedPaymentMethodService";
 import { useSelector } from "react-redux";
 import { fetchCustomerData } from "./services/customerService";
 import { fetchCreditSummariesWithId } from "./services/creditAccountService";
+import { ErrorCode } from "../utils/ErrorCodeUtil";
 
 // Define an interface for the payment method to ensure type safety
 interface PaymentMethod {
+  id: string;
   expirationDate: string | number | Date;
   cardNumber: string | null;
   accountNumber: string | null;
@@ -96,10 +99,6 @@ const date2 = [
   { name: "12th", value: 12 },
   { name: "13th", value: 13 },
   { name: "14th", value: 14 },
-  { name: "15th", value: 15 },
-  { name: "16th", value: 16 },
-  { name: "17th", value: 17 },
-  { name: "18th", value: 18 },
 ];
 
 const date3 = [
@@ -153,7 +152,9 @@ const incomeFrequencies = [
   { name: "Twice per Month", value: IncomeFrequency.SemiMonthly },
   { name: "Monthly", value: IncomeFrequency.Monthly },
 ];
+
 const whichDaysOptions = [{ name: "Two specific days", value: 1 }];
+
 const monthlyPaymentOptions = [
   { name: "Specific Day", value: PaymentSubFrequency.SpecificDay },
   {
@@ -161,6 +162,7 @@ const monthlyPaymentOptions = [
     value: PaymentSubFrequency.SpecificWeekAndDay,
   },
 ];
+
 const paymentWeekOptions = [
   { name: "1st Week", value: 1 },
   { name: "2nd Week", value: 2 },
@@ -177,6 +179,169 @@ const handleBackPress = () => {
 const getLabelForValue = (value: IncomeFrequency) => {
   const frequency = incomeFrequencies.find((freq) => freq.value === value);
   return frequency ? frequency.name : "Select";
+};
+
+const updateDefaultPaymentMethod = async (
+  creditAccountId: string | null,
+  selectedPaymentMethodId: string | null,
+  accountNumber: string | null,
+  routingNumber: string | null,
+  cardNumber: string | null,
+  token: string,
+  expirationMonth: string,
+  expirationYear: string
+) => {
+  if (!creditAccountId || !selectedPaymentMethodId) {
+    console.error("creditAccountId or selectedPaymentMethodId is missing");
+    return {
+      type: "error",
+      error: { errorCode: ErrorCode.InvalidPaymentMethod },
+    };
+  }
+
+  const url = `https://dev.ivitafi.com/api/creditaccount/${creditAccountId}/${selectedPaymentMethodId}/true/update-default-payment-method-customer`;
+
+  let payload;
+
+  if (accountNumber) {
+    payload = {
+      zipCode: "",
+      accountNumber,
+      routingNumber,
+      cardNumber: null,
+      expirationDate: null,
+      paymentMethodType: 2,
+      securityCode: "",
+      truncatedAccountNumber: `****${accountNumber.slice(-4)}`,
+      truncatedCardNumber: null,
+      truncatedRoutingNumber: `****${routingNumber?.slice(-4)}`,
+    };
+  } else if (cardNumber) {
+    payload = {
+      zipCode: "",
+      accountNumber: null,
+      routingNumber: null,
+      cardNumber,
+      expirationDate: `${expirationMonth}/${expirationYear}`,
+      paymentMethodType: 3,
+      securityCode: "",
+      truncatedAccountNumber: null,
+      truncatedCardNumber: `****${cardNumber.slice(-4)}`,
+      truncatedRoutingNumber: null,
+    };
+  } else {
+    console.error("No payment method selected");
+    return {
+      type: "error",
+      error: { errorCode: ErrorCode.InvalidPaymentMethod },
+    };
+  }
+
+  console.log("Payload for updateDefaultPaymentMethod:", payload);
+
+  try {
+    const response = await fetch(url, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(payload),
+    });
+
+    console.log("Response for updateDefaultPaymentMethod:", response);
+
+    const contentType = response.headers.get("content-type");
+
+    if (!response.ok) {
+      const errorData = contentType?.includes("application/json")
+        ? await response.json()
+        : { errorMessage: await response.text() };
+
+      console.error("Error updating payment method:", errorData);
+      return { type: "error", response: errorData };
+    }
+
+    const data = contentType?.includes("application/json")
+      ? await response.json()
+      : await response.text();
+
+    console.log("API call successful:", data);
+    return { type: "data", data };
+  } catch (error) {
+    console.error(
+      "Error updating debit card information: payment method:",
+      error
+    );
+    return { type: "error", error: { errorCode: ErrorCode.Unknown } };
+  }
+};
+
+// Function to update the payment schedule
+const updatePaymentSchedule = async (
+  creditAccountId: string | null,
+  token: string,
+  payload: {
+    paymentFrequency?: IncomeFrequency;
+    paymentSubFrequency?: PaymentSubFrequency;
+    paymentDayOne?: number;
+    paymentDayTwo?: number;
+    paymentWeekOne?: number;
+    paymentWeekTwo?: number;
+    paymentAmount?: any;
+    initialPaymentDate?: Date;
+    startDate?: Date;
+    autoPayEnabled: boolean;
+    paymentType?: number;
+    nextPaymentDate?: Date;
+    nextPaymentAmount?: number;
+  }
+) => {
+  if (!creditAccountId) {
+    console.error("creditAccountId is missing");
+    return {
+      type: "error",
+      error: { errorCode: ErrorCode.InvalidPaymentMethod },
+    };
+  }
+
+  const url = `https://dev.ivitafi.com/api/CreditAccount/${creditAccountId}/payment-schedule-new`;
+
+  console.log("Payload for updatePaymentSchedule:", payload);
+
+  try {
+    const response = await fetch(url, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(payload),
+    });
+
+    console.log("Response for updatePaymentSchedule:", response);
+
+    const contentType = response.headers.get("content-type");
+
+    if (!response.ok) {
+      const errorData = contentType?.includes("application/json")
+        ? await response.json()
+        : { errorMessage: await response.text() };
+
+      console.error("Error updating payment schedule:", errorData);
+      return { type: "error", response: errorData };
+    }
+
+    const data = contentType?.includes("application/json")
+      ? await response.json()
+      : await response.text();
+
+    console.log("Payment schedule updated successfully:", data);
+    return { type: "data", data };
+  } catch (error) {
+    console.error("Error updating payment schedule:", error);
+    return { type: "error", error: { errorCode: ErrorCode.Unknown } };
+  }
 };
 
 const ConfigureAutopay = () => {
@@ -211,11 +376,21 @@ const ConfigureAutopay = () => {
   const [amountDueMonthly, setAmountDueMonthly] = useState("");
   const [paymentSubFrequency, setPaymentSubFrequency] =
     useState<PaymentSubFrequency>(PaymentSubFrequency.Unknown);
-  const [whichDays, setWhichDays] = useState("");
+  const [selectedWhichDaysValue, setSelectedWhichDaysValue] = useState(1);
+  const [whichDaysDisplayName, setWhichDaysDisplayName] =
+    useState("Two specific days");
   const [showWhichDaysPicker, setShowWhichDaysPicker] = useState(false);
   const [selectedMonthlyPaymentOption, setSelectedMonthlyPaymentOption] =
     useState("");
+  const [
+    selectedMonthlyPaymentOptionValue,
+    setSelectedMonthlyPaymentOptionValue,
+  ] = useState<PaymentSubFrequency | undefined>(undefined);
+
   const [selectedDay, setSelectedDay] = useState("");
+  const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState<
+    string | null
+  >(null);
 
   // New state variables
   const [paymentDayOne, setPaymentDayOne] = useState<number | undefined>(
@@ -246,10 +421,10 @@ const ConfigureAutopay = () => {
   const [selectedPayDayTwo, setSelectedPayDayTwo] = useState("");
   const [showPayDayOnePicker, setShowPayDayOnePicker] = useState(false);
   const [showPayDayTwoPicker, setShowPayDayTwoPicker] = useState(false);
-  // States to control iOS picker visibility
   const [showPaymentMethodPicker, setShowPaymentMethodPicker] = useState(false);
   const [showFrequencyPicker, setShowFrequencyPicker] = useState(false);
   const [showDayPicker, setShowDayPicker] = useState(false);
+  const [creditAccountId, setCreditAccountId] = useState<string | null>(null);
 
   // Retrieve token from Redux store to authenticate API requests
   const token = useSelector((state: any) => state.auth.token);
@@ -267,7 +442,7 @@ const ConfigureAutopay = () => {
 
   const isPayDayTwoValid = () => {
     if (paymentDayOne === undefined || paymentDayTwo === undefined) {
-      return true; // No warning if either day is not set
+      return true;
     }
     return paymentDayTwo >= paymentDayOne + 7;
   };
@@ -281,12 +456,16 @@ const ConfigureAutopay = () => {
             customerResponse,
             token
           );
+
           if (creditSummaries && creditSummaries.length > 0) {
             const customerId =
               creditSummaries[0]?.detail?.creditAccount?.customerId;
             const amountDue =
               creditSummaries[0]?.detail?.creditAccount?.amountDueMonthly;
+            const creditAccountId = creditSummaries[0]?.detail?.creditAccountId;
 
+            console.log("creditAccountId:", creditAccountId);
+            setCreditAccountId(creditAccountId);
             const paymentFrequency =
               creditSummaries[0]?.detail?.creditAccount?.paymentSchedule
                 ?.paymentFrequency;
@@ -380,13 +559,19 @@ const ConfigureAutopay = () => {
               );
               setLastPayDate(initialPaymentDate);
 
-              console.log(paymentSchedule);
-
-              setPaymentDayOne(paymentSchedule.paymentDayOne);
-              console.log("Payment Day One:", paymentSchedule.paymentDayOne);
-
-              setPaymentDayTwo(paymentSchedule.paymentDayTwo);
-              console.log("Payment Day Two:", paymentSchedule.paymentDayTwo);
+              if (
+                paymentSchedule.paymentFrequency === IncomeFrequency.Weekly ||
+                paymentSchedule.paymentFrequency === IncomeFrequency.BiWeekly ||
+                paymentSchedule.paymentFrequency === IncomeFrequency.Monthly
+              ) {
+                setPaymentDayOne(paymentSchedule.paymentDayOne);
+                setPaymentDayTwo(undefined);
+              } else if (
+                paymentSchedule.paymentFrequency === IncomeFrequency.SemiMonthly
+              ) {
+                setPaymentDayOne(paymentSchedule.paymentDayOne);
+                setPaymentDayTwo(paymentSchedule.paymentDayTwo);
+              }
 
               setSelectedPayDayOne(
                 paymentSchedule.paymentDayOne
@@ -400,36 +585,17 @@ const ConfigureAutopay = () => {
               );
 
               setPaymentWeekOne(paymentSchedule.paymentWeekOne);
-              console.log("Payment Week One:", paymentSchedule.paymentWeekOne);
-
               setPaymentWeekTwo(paymentSchedule.paymentWeekTwo);
-              console.log("Payment Week Two:", paymentSchedule.paymentWeekTwo);
 
               setInitialPaymentDate(initialPaymentDate);
-              console.log("Initial Payment Date:", initialPaymentDate);
-
               setStartDate(new Date(paymentSchedule.startDate));
-              console.log("Start Date:", new Date(paymentSchedule.startDate));
 
               setAutoPayEnabled(paymentSchedule.autoPayEnabled);
-              console.log("Auto Pay Enabled:", paymentSchedule.autoPayEnabled);
-
               setPaymentType(paymentSchedule.paymentType);
-              console.log("Payment Type:", paymentSchedule.paymentType);
 
               setNextPaymentDate(new Date(paymentSchedule.nextPaymentDate));
-              console.log(
-                "Next Payment Date:",
-                new Date(paymentSchedule.nextPaymentDate)
-              );
-
               setNextPaymentAmount(paymentSchedule.nextPaymentAmount);
-              console.log(
-                "Next Payment Amount:",
-                paymentSchedule.nextPaymentAmount
-              );
 
-              // Set payment frequency and day of week
               if (paymentSchedule.paymentFrequency === IncomeFrequency.Weekly) {
                 setPaymentFrequency(IncomeFrequency.Weekly);
                 const dayOfWeekValue = paymentSchedule.paymentDayOne;
@@ -472,11 +638,13 @@ const ConfigureAutopay = () => {
     };
 
     if (token) {
+      console.log("Token:", token);
       fetchData();
+    } else {
+      console.error("Token is missing");
     }
   }, [token]);
 
-  // Add a useEffect to update payment amount when paymentFrequency or amountDueMonthly changes
   useEffect(() => {
     if (paymentSchedule && amountDueMonthly) {
       const updatedPaymentSchedule = {
@@ -490,12 +658,10 @@ const ConfigureAutopay = () => {
     }
   }, [paymentFrequency, amountDueMonthly]);
 
-  // Function to format payment amount
   const formatPaymentAmount = (amount: number) => {
     return `$${amount.toFixed(2)}`;
   };
 
-  // Function to update payment amount based on payment schedule and amount due monthly
   const updatePaymentSchedulePaymentAmount = (
     paymentSchedule: {
       paymentFrequency: IncomeFrequency;
@@ -531,18 +697,52 @@ const ConfigureAutopay = () => {
     }
 
     setPaymentAmount(formatPaymentAmount(amount));
-    console.log("paymentAmount", paymentAmount);
+  };
+
+  const getPaymentSummaryMessage = () => {
+    if (!paymentSchedule || !paymentAmount) return "";
+
+    const paymentMethodText = paymentMethod.startsWith("Debit Card -")
+      ? "from your debit card"
+      : "from your checking account";
+
+    if (paymentFrequency === IncomeFrequency.Monthly) {
+      if (paymentSubFrequency === PaymentSubFrequency.SpecificDay) {
+        return `You have selected to pay ${paymentAmount} on the ${paymentDate} of each month, ${paymentMethodText}.`;
+      } else if (
+        paymentSubFrequency === PaymentSubFrequency.SpecificWeekAndDay
+      ) {
+        return `You have selected to pay ${paymentAmount} on the ${paymentWeek} ${dayOfWeek} of each month, ${paymentMethodText}.`;
+      }
+      return `You have selected to pay ${paymentAmount} monthly, ${paymentMethodText}.`;
+    }
+
+    switch (paymentFrequency) {
+      case IncomeFrequency.Weekly:
+        return `You have selected to pay ${paymentAmount} every week on ${dayOfWeek}, ${paymentMethodText}.`;
+      case IncomeFrequency.BiWeekly:
+        return `You have selected to pay ${paymentAmount} every other ${dayOfWeek}, ${paymentMethodText}. In months with more than 2 pay periods, you will only make 2 payments.`;
+      case IncomeFrequency.SemiMonthly:
+        return `You have selected to pay ${paymentAmount} on the ${selectedPayDayOne} and ${selectedPayDayTwo} of each month, ${paymentMethodText}.`;
+      default:
+        return "";
+    }
   };
 
   const handlePaymentMethodChange = (value: string) => {
+    console.log("Payment Method Value:", value);
+
     setPaymentMethod(value);
 
     if (value.startsWith("Debit Card -")) {
       const cardNumberFromValue = value.split(" - ")[1];
+      console.log("Card Number From Value:", cardNumberFromValue);
+
       const selectedMethod = savedMethods.find(
         (method) =>
           method.cardNumber && method.cardNumber.endsWith(cardNumberFromValue)
       );
+      console.log("Selected Method:", selectedMethod);
 
       if (selectedMethod && selectedMethod.cardNumber) {
         const formattedCardNumber =
@@ -575,20 +775,33 @@ const ConfigureAutopay = () => {
         setExpirationMonth(formattedExpirationMonth);
         setExpirationYear(expirationYear.toString());
       }
-    }
-
-    if (value.startsWith("Checking Account -")) {
+    } else if (value.startsWith("Checking Account -")) {
       const accountNumberFromValue = value.split(" - ")[1];
+      console.log("Account Number From Value:", accountNumberFromValue);
+
       const selectedMethod = savedMethods.find(
         (method) =>
           method.accountNumber &&
           method.accountNumber.endsWith(accountNumberFromValue)
       );
+      console.log("Selected Method:", selectedMethod);
 
       if (selectedMethod) {
         setAccountNumber(selectedMethod.accountNumber || "");
         setRoutingNumber(selectedMethod.routingNumber || "");
       }
+    }
+
+    if (value !== "Add Debit Card" && value !== "Add Checking Account") {
+      const selectedMethodId = savedMethods.find(
+        (method) =>
+          (method.cardNumber && value.endsWith(method.cardNumber.slice(-4))) ||
+          (method.accountNumber &&
+            value.endsWith(method.accountNumber.slice(-4)))
+      )?.id;
+
+      console.log("Selected Payment Method ID:", selectedMethodId);
+      setSelectedPaymentMethodId(selectedMethodId ?? null);
     }
 
     if (value === "Add Debit Card") {
@@ -597,6 +810,12 @@ const ConfigureAutopay = () => {
 
     setShowPaymentMethodPicker(false);
   };
+
+  useEffect(() => {
+    if (selectedPaymentMethodId) {
+      console.log("Selected Payment Method ID:", selectedPaymentMethodId);
+    }
+  }, [selectedPaymentMethodId]);
 
   const openPaymentMethodPicker = () => {
     if (Platform.OS === "ios") {
@@ -614,6 +833,7 @@ const ConfigureAutopay = () => {
   const openWhichDaysPicker = () => {
     setShowWhichDaysPicker(!showWhichDaysPicker);
   };
+
   const openPayDayOnePicker = () => {
     setShowPayDayOnePicker(!showPayDayOnePicker);
   };
@@ -622,20 +842,39 @@ const ConfigureAutopay = () => {
     setShowPayDayTwoPicker(!showPayDayTwoPicker);
   };
 
-  // Handle selection for Pay Day One
   const handlePayDayOneChange = (itemValue: string) => {
     const selectedValue = Number(itemValue);
     setSelectedPayDayOne(date2Map[selectedValue]);
-    setPaymentDayOne(selectedValue); // Update the state for paymentDayOne
+    setPaymentDayOne(selectedValue);
+    console.log("Payday One Value:", selectedValue);
     setShowPayDayOnePicker(false);
   };
 
-  // Handle selection for Pay Day Two
   const handlePayDayTwoChange = (itemValue: string) => {
     const selectedValue = Number(itemValue);
     setSelectedPayDayTwo(date3Map[selectedValue]);
-    setPaymentDayTwo(selectedValue); // Update the state for paymentDayTwo
+    setPaymentDayTwo(selectedValue);
+    console.log("Payday Two Value:", selectedValue);
     setShowPayDayTwoPicker(false);
+  };
+
+  const handlePaymentSubFrequencyChange = (itemValue: string) => {
+    const selectedValue = Number(itemValue);
+    const selectedOption = whichDaysOptions.find(
+      (option) => option.value === selectedValue
+    );
+
+    if (selectedOption) {
+      setSelectedWhichDaysValue(selectedOption.value);
+      setWhichDaysDisplayName(selectedOption.name);
+      console.log("Selected Option Value:", selectedOption.value);
+
+      if (selectedOption.value === 1) {
+        setPaymentSubFrequency(PaymentSubFrequency.SpecificDay);
+      } else if (selectedOption.value === 2) {
+        setPaymentSubFrequency(PaymentSubFrequency.SpecificWeekAndDay);
+      }
+    }
   };
 
   const getIncomeFrequencyFromString = (value: string): IncomeFrequency => {
@@ -672,11 +911,131 @@ const ConfigureAutopay = () => {
   };
 
   const formatDate = (date: Date) => {
-    const month = String(date.getMonth() + 1).padStart(2, "0"); // Months are zero-based
+    const month = String(date.getMonth() + 1).padStart(2, "0");
     const day = String(date.getDate()).padStart(2, "0");
     const year = date.getFullYear();
 
     return `${month}/${day}/${year}`;
+  };
+
+  const handleSubmit = async () => {
+    console.log("Submitting form...");
+
+    if (creditAccountId && selectedPaymentMethodId && token) {
+      console.log("creditAccountId:", creditAccountId);
+      console.log("selectedPaymentMethodId:", selectedPaymentMethodId);
+      console.log("token:", token);
+
+      const result = await updateDefaultPaymentMethod(
+        creditAccountId,
+        selectedPaymentMethodId,
+        accountNumber,
+        routingNumber,
+        cardNumber,
+        token,
+        expirationMonth,
+        expirationYear
+      );
+
+      console.log("Result from updateDefaultPaymentMethod:", result);
+
+      if (result) {
+        if (result.type === "data") {
+          console.log("Payment method updated successfully");
+          const safeNextPaymentDate =
+            nextPaymentDate && !isNaN(nextPaymentDate.getTime())
+              ? nextPaymentDate
+              : new Date();
+
+          const safeNextPaymentAmount =
+            nextPaymentAmount ?? Number(paymentAmount.replace("$", ""));
+
+          let safePaymentSubFrequency = paymentSubFrequency;
+          let safePaymentDayOne = paymentDayOne;
+          let safePaymentDayTwo = paymentDayTwo;
+
+          if (
+            paymentFrequency === IncomeFrequency.Weekly ||
+            paymentFrequency === IncomeFrequency.BiWeekly
+          ) {
+            safePaymentSubFrequency = 0;
+            safePaymentDayOne =
+              daysOfTheWeek.find((day) => day.name === dayOfWeek)?.value || 0;
+            safePaymentDayTwo = 0;
+          }
+
+          if (paymentFrequency === IncomeFrequency.Monthly) {
+            safePaymentSubFrequency = paymentSubFrequency;
+          }
+
+          if (paymentFrequency === IncomeFrequency.SemiMonthly) {
+            safePaymentSubFrequency = 1;
+          }
+
+          console.log("Building payload with:", {
+            paymentFrequency,
+            safePaymentSubFrequency,
+            safePaymentDayOne,
+            safePaymentDayTwo,
+            paymentWeekOne,
+            paymentWeekTwo,
+            paymentAmount,
+            initialPaymentDate,
+            startDate,
+            autoPayEnabled,
+            paymentType,
+            safeNextPaymentDate,
+            safeNextPaymentAmount,
+          });
+
+          const payload = {
+            paymentFrequency,
+            paymentSubFrequency: safePaymentSubFrequency,
+            paymentDayOne: safePaymentDayOne,
+            paymentDayTwo: safePaymentDayTwo,
+            paymentWeekOne,
+            paymentWeekTwo,
+            paymentAmount: paymentAmount.replace("$", ""),
+            initialPaymentDate: initialPaymentDate
+              ? new Date(initialPaymentDate)
+              : undefined,
+            startDate: startDate ? new Date(startDate) : undefined,
+            autoPayEnabled: true,
+            paymentType: paymentType ?? 0,
+            nextPaymentDate: safeNextPaymentDate,
+            nextPaymentAmount: safeNextPaymentAmount,
+          };
+
+          console.log("Payload for payment schedule:", payload);
+
+          const scheduleResult = await updatePaymentSchedule(
+            creditAccountId,
+            token,
+            payload
+          );
+
+          console.log("Schedule result:", scheduleResult);
+
+          if (scheduleResult) {
+            if (scheduleResult.type === "data") {
+              console.log("Payment schedule updated successfully");
+            } else {
+              console.error("Failed to update payment schedule");
+            }
+          } else {
+            console.error("No result returned from updatePaymentSchedule");
+          }
+        } else {
+          console.error("Failed to update payment method");
+        }
+      } else {
+        console.error("No result returned from updateDefaultPaymentMethod");
+      }
+    } else {
+      console.error(
+        "creditAccountId, selectedPaymentMethodId, or token is missing"
+      );
+    }
   };
 
   return (
@@ -896,7 +1255,6 @@ const ConfigureAutopay = () => {
                   </View>
                 </View>
               </Modal>
-              {/* Payment Schedule */}
               <Text style={styles.helpText}>Payment will be</Text>
               {Platform.OS === "ios" ? (
                 <>
@@ -921,20 +1279,23 @@ const ConfigureAutopay = () => {
                         onValueChange={(itemValue) => {
                           const frequency =
                             getIncomeFrequencyFromString(itemValue);
-                          console.log("Selected Frequency:", frequency); // Log the selected frequency
+                          console.log("Selected Frequency:", frequency);
                           setPaymentFrequency(frequency);
                           setShowFrequencyPicker(false);
                         }}
                         style={styles.iosPicker}
                         itemStyle={{ color: "black" }}
                       >
-                        {incomeFrequencies.map((frequency, index) => (
-                          <Picker.Item
-                            key={index}
-                            label={frequency.name}
-                            value={frequency.name}
-                          />
-                        ))}
+                        {incomeFrequencies.map((frequency, index) => {
+                          console.log(frequency.name);
+                          return (
+                            <Picker.Item
+                              key={index}
+                              label={frequency.name}
+                              value={frequency.name}
+                            />
+                          );
+                        })}
                       </Picker>
                     </View>
                   )}
@@ -945,7 +1306,7 @@ const ConfigureAutopay = () => {
                     selectedValue={getLabelForValue(paymentFrequency)}
                     onValueChange={(itemValue) => {
                       const frequency = getIncomeFrequencyFromString(itemValue);
-                      console.log("Selected Frequency:", frequency); // Log the selected frequency
+                      console.log("Selected Frequency:", frequency);
                       setPaymentFrequency(frequency);
                     }}
                     style={styles.androidPicker}
@@ -961,7 +1322,6 @@ const ConfigureAutopay = () => {
                   </Picker>
                 </View>
               )}
-              {/* Conditionally render the "Day of Week" dropdown if payment frequency is "Weekly" */}
               {(paymentFrequency === IncomeFrequency.Weekly ||
                 paymentFrequency === IncomeFrequency.BiWeekly) && (
                 <>
@@ -989,7 +1349,18 @@ const ConfigureAutopay = () => {
                           <Picker
                             selectedValue={dayOfWeek}
                             onValueChange={(itemValue) => {
-                              setDayOfWeek(itemValue);
+                              console.log("Selected Item Value:", itemValue);
+                              const selectedDay = daysOfTheWeek.find(
+                                (day) =>
+                                  day.value == (itemValue as unknown as number)
+                              );
+                              if (selectedDay) {
+                                setDayOfWeek(selectedDay.name);
+                                console.log(
+                                  "Selected Day Name:",
+                                  selectedDay.name
+                                );
+                              }
                               setShowDayPicker(false);
                             }}
                             style={styles.iosPicker}
@@ -999,7 +1370,7 @@ const ConfigureAutopay = () => {
                               <Picker.Item
                                 key={index}
                                 label={day.name}
-                                value={day.name}
+                                value={day.value}
                               />
                             ))}
                           </Picker>
@@ -1010,15 +1381,24 @@ const ConfigureAutopay = () => {
                     <View style={styles.pickerWrapper}>
                       <Picker
                         selectedValue={dayOfWeek}
-                        onValueChange={(itemValue) => setDayOfWeek(itemValue)}
-                        style={styles.androidPicker}
-                        dropdownIconColor="#000000"
+                        onValueChange={(itemValue) => {
+                          console.log("Selected Item Value:", itemValue);
+                          const selectedDay = daysOfTheWeek.find(
+                            (day) => day.value === Number(itemValue)
+                          );
+                          if (selectedDay) {
+                            setDayOfWeek(selectedDay.name);
+                            console.log("Selected Day Name:", selectedDay.name);
+                          }
+                        }}
+                        style={styles.iosPicker}
+                        itemStyle={{ color: "black" }}
                       >
                         {daysOfTheWeek.map((day, index) => (
                           <Picker.Item
                             key={index}
                             label={day.name}
-                            value={day.name}
+                            value={String(day.value)}
                           />
                         ))}
                       </Picker>
@@ -1026,7 +1406,6 @@ const ConfigureAutopay = () => {
                   )}
                 </>
               )}
-
               {paymentFrequency === IncomeFrequency.Monthly && (
                 <>
                   <Text style={styles.helpText}>Which days</Text>
@@ -1057,6 +1436,15 @@ const ConfigureAutopay = () => {
                             selectedValue={selectedMonthlyPaymentOption}
                             onValueChange={(itemValue) => {
                               setSelectedMonthlyPaymentOption(itemValue);
+                              if (itemValue === "Specific Week And Day") {
+                                setPaymentSubFrequency(
+                                  PaymentSubFrequency.SpecificWeekAndDay
+                                );
+                              } else if (itemValue === "Specific Day") {
+                                setPaymentSubFrequency(
+                                  PaymentSubFrequency.SpecificDay
+                                );
+                              }
                               setShowWhichDaysPicker(false);
                             }}
                             style={styles.iosPicker}
@@ -1077,9 +1465,18 @@ const ConfigureAutopay = () => {
                     <View style={styles.pickerWrapper}>
                       <Picker
                         selectedValue={selectedMonthlyPaymentOption}
-                        onValueChange={(itemValue) =>
-                          setSelectedMonthlyPaymentOption(itemValue)
-                        }
+                        onValueChange={(itemValue) => {
+                          setSelectedMonthlyPaymentOption(itemValue);
+                          if (itemValue === "Specific Week And Day") {
+                            setPaymentSubFrequency(
+                              PaymentSubFrequency.SpecificWeekAndDay
+                            );
+                          } else if (itemValue === "Specific Day") {
+                            setPaymentSubFrequency(
+                              PaymentSubFrequency.SpecificDay
+                            );
+                          }
+                        }}
                         style={styles.androidPicker}
                         dropdownIconColor="#000000"
                       >
@@ -1132,7 +1529,7 @@ const ConfigureAutopay = () => {
                                   <Picker.Item
                                     key={index}
                                     label={week.name}
-                                    value={week.name}
+                                    value={week.value}
                                   />
                                 ))}
                               </Picker>
@@ -1153,7 +1550,7 @@ const ConfigureAutopay = () => {
                               <Picker.Item
                                 key={index}
                                 label={week.name}
-                                value={week.name}
+                                value={week.value}
                               />
                             ))}
                           </Picker>
@@ -1196,7 +1593,7 @@ const ConfigureAutopay = () => {
                                   <Picker.Item
                                     key={index}
                                     label={day.name}
-                                    value={day.name}
+                                    value={day.value}
                                   />
                                 ))}
                               </Picker>
@@ -1217,7 +1614,7 @@ const ConfigureAutopay = () => {
                               <Picker.Item
                                 key={index}
                                 label={day.name}
-                                value={day.name}
+                                value={day.value}
                               />
                             ))}
                           </Picker>
@@ -1266,7 +1663,7 @@ const ConfigureAutopay = () => {
                                   <Picker.Item
                                     key={index}
                                     label={day.name}
-                                    value={day.name}
+                                    value={day.value}
                                   />
                                 ))}
                               </Picker>
@@ -1287,7 +1684,7 @@ const ConfigureAutopay = () => {
                               <Picker.Item
                                 key={index}
                                 label={day.name}
-                                value={day.name}
+                                value={day.value}
                               />
                             ))}
                           </Picker>
@@ -1297,8 +1694,6 @@ const ConfigureAutopay = () => {
                   )}
                 </>
               )}
-
-              {/* Conditionally render the "Last Pay Date" section if payment frequency is "BiWeekly" */}
               {paymentFrequency === IncomeFrequency.BiWeekly && (
                 <>
                   <Text style={styles.helpText}>Last Pay Date</Text>
@@ -1333,7 +1728,6 @@ const ConfigureAutopay = () => {
                   )}
                 </>
               )}
-
               {paymentFrequency === IncomeFrequency.SemiMonthly && (
                 <>
                   <Text style={styles.helpText}>Which days</Text>
@@ -1343,7 +1737,7 @@ const ConfigureAutopay = () => {
                         <View style={styles.pickerWrapper}>
                           <View style={styles.pickerDisplayContainer}>
                             <Text style={styles.pickerDisplayText}>
-                              {whichDays || "Select an option"}
+                              {whichDaysDisplayName || "Select an option"}
                             </Text>
                             <FontAwesome
                               name="chevron-down"
@@ -1356,11 +1750,8 @@ const ConfigureAutopay = () => {
                       {showWhichDaysPicker && (
                         <View style={{ zIndex: 1000, position: "relative" }}>
                           <Picker
-                            selectedValue={whichDays}
-                            onValueChange={(itemValue) => {
-                              setWhichDays(itemValue);
-                              setShowWhichDaysPicker(false);
-                            }}
+                            selectedValue={selectedWhichDaysValue.toString()}
+                            onValueChange={handlePaymentSubFrequencyChange}
                             style={styles.iosPicker}
                             itemStyle={{ color: "black" }}
                           >
@@ -1378,8 +1769,8 @@ const ConfigureAutopay = () => {
                   ) : (
                     <View style={styles.pickerWrapper}>
                       <Picker
-                        selectedValue={whichDays}
-                        onValueChange={(itemValue) => setWhichDays(itemValue)}
+                        selectedValue={selectedWhichDaysValue.toString()}
+                        onValueChange={handlePaymentSubFrequencyChange}
                         style={styles.androidPicker}
                         dropdownIconColor="#000000"
                       >
@@ -1394,7 +1785,7 @@ const ConfigureAutopay = () => {
                     </View>
                   )}
 
-                  <Text style={styles.helpText}>Pay Day One</Text>
+                  <Text style={styles.helpText}>Payday One</Text>
                   {Platform.OS === "ios" ? (
                     <>
                       <Pressable onPress={openPayDayOnePicker}>
@@ -1423,7 +1814,7 @@ const ConfigureAutopay = () => {
                               <Picker.Item
                                 key={index}
                                 label={day.name}
-                                value={day.value.toString()}
+                                value={day.value}
                               />
                             ))}
                           </Picker>
@@ -1442,14 +1833,14 @@ const ConfigureAutopay = () => {
                           <Picker.Item
                             key={index}
                             label={day.name}
-                            value={day.value.toString()}
+                            value={day.value}
                           />
                         ))}
                       </Picker>
                     </View>
                   )}
 
-                  <Text style={styles.helpText}>Pay Day Two</Text>
+                  <Text style={styles.helpText}>Payday Two</Text>
                   {Platform.OS === "ios" ? (
                     <>
                       <Pressable onPress={openPayDayTwoPicker}>
@@ -1478,7 +1869,7 @@ const ConfigureAutopay = () => {
                               <Picker.Item
                                 key={index}
                                 label={day.name}
-                                value={day.value.toString()}
+                                value={day.value}
                               />
                             ))}
                           </Picker>
@@ -1497,12 +1888,13 @@ const ConfigureAutopay = () => {
                           <Picker.Item
                             key={index}
                             label={day.name}
-                            value={day.value.toString()}
+                            value={day.value}
                           />
                         ))}
                       </Picker>
                     </View>
                   )}
+
                   {!isPayDayTwoValid() && (
                     <Text style={{ color: "red", marginTop: 10 }}>
                       Day Two must be at least 7 days after Day One.
@@ -1510,8 +1902,6 @@ const ConfigureAutopay = () => {
                   )}
                 </>
               )}
-
-              {/* Always render the "Payment Amount" input field */}
               <Text style={styles.helpText}>Payment Amount</Text>
               <TextInput
                 style={styles.specificInput}
@@ -1539,7 +1929,13 @@ const ConfigureAutopay = () => {
                   textColor="black"
                 />
               )}
-              <TouchableOpacity style={styles.submitButton}>
+              <Text style={styles.summaryText}>
+                {getPaymentSummaryMessage()}
+              </Text>
+              <TouchableOpacity
+                style={styles.submitButton}
+                onPress={handleSubmit}
+              >
                 <Text style={styles.submitButtonText}>SUBMIT</Text>
               </TouchableOpacity>
             </View>
