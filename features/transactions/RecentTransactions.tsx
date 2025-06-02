@@ -1,44 +1,21 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { View, Text, Image, ScrollView, Dimensions, Pressable } from "react-native";
-import { useSelector } from "react-redux";
-import AntDesign from "@expo/vector-icons/AntDesign";
 import { useNavigation, NavigationProp } from "@react-navigation/native";
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from "react-native-responsive-screen";
-import { fetchPendingTransactions } from "../../app/services/pendingTransactionsService";
-import { CreditAccountTransactionTypeUtil } from "../../utils/CreditAccountTransactionTypeUtil";
-import SkeletonLoader from "../../components/SkeletonLoader"; // Adjust the import path as necessary
+import AntDesign from "@expo/vector-icons/AntDesign";
+import SkeletonLoader from "../../components/SkeletonLoader";
 import styles from "../../components/styles/RecentTransactionsStyles";
+import { CreditAccountTransactionTypeUtil } from "../../utils/CreditAccountTransactionTypeUtil";
+
+interface RecentTransactionsProps {
+  loading: boolean;
+  transactions: any[];
+}
 
 const { height: screenHeight } = Dimensions.get("window");
 
-const RecentTransactions: React.FC = () => {
-  const token = useSelector((state: any) => state.auth.token);
-  const creditAccountId = useSelector((state: any) => state.creditAccount.creditAccountId);
+const RecentTransactions: React.FC<RecentTransactionsProps> = ({ loading, transactions }) => {
   const navigation = useNavigation<NavigationProp<{ Transactions: undefined }>>();
-
-  const [transactions, setTransactions] = useState<any[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-
-  useEffect(() => {
-    const fetchTransactions = async () => {
-      if (!creditAccountId) {
-        console.warn("No Credit Account ID available in Redux.");
-        setLoading(false);
-        return;
-      }
-
-      try {
-        const response = await fetchPendingTransactions(token, creditAccountId);
-        setTransactions(response || []);
-      } catch (error) {
-        console.error("Error fetching transactions:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchTransactions();
-  }, [token, creditAccountId]);
 
   const renderTransactionIcon = (transactionType: number) => {
     if (transactionType !== 404 && transactionType !== 481) {
@@ -56,18 +33,16 @@ const RecentTransactions: React.FC = () => {
   const isMediumScreen = screenHeight >= 700 && screenHeight <= 800;
   const isLargeScreen = screenHeight > 800;
 
-// Inside the loading return statement of RecentTransactions
-if (loading) {
-  return (
-    <SkeletonLoader style={styles.recentTransactions} type="container">
-      <SkeletonLoader style={styles.skeletonTitle} type="text" />
-      <SkeletonLoader style={styles.skeletonTransaction} type="text" />
-      <SkeletonLoader style={styles.skeletonTransaction} type="text" />
-      <SkeletonLoader style={styles.skeletonTransaction} type="text" />
-    </SkeletonLoader>
-  );
-}
-
+  if (loading) {
+    return (
+      <SkeletonLoader style={styles.recentTransactions} type="container">
+        <SkeletonLoader style={styles.skeletonTitle} type="text" />
+        <SkeletonLoader style={styles.skeletonTransaction} type="text" />
+        <SkeletonLoader style={styles.skeletonTransaction} type="text" />
+        <SkeletonLoader style={styles.skeletonTransaction} type="text" />
+      </SkeletonLoader>
+    );
+  }
 
   return (
     <View style={[styles.recentTransactions, { height: isSmallScreen ? hp(30) : isMediumScreen ? hp(32) : hp(45) }]}>

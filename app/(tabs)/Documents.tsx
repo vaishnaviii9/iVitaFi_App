@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   SafeAreaView,
   View,
@@ -12,12 +12,12 @@ import {
 } from "react-native";
 import RenderHTML from 'react-native-render-html';
 import { Ionicons, FontAwesome } from "@expo/vector-icons";
-import { useNavigation } from "expo-router";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { useSelector, useDispatch } from "react-redux";
 import { fetchCreditSummariesWithId } from "../services/creditAccountService";
 import { setCreditSummaries } from "../../features/creditAccount/creditAccountSlice";
 import { fetchDocuments } from "../services/documentService";
-import SkeletonLoader from '../../components/SkeletonLoader'; // Adjust the path as necessary
+import SkeletonLoader from '../../components/SkeletonLoader';
 import styles from "../../components/styles/DocumentStyles";
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
@@ -42,33 +42,37 @@ const Documents: React.FC = () => {
   const token = useSelector((state: any) => state.auth.token);
   const creditAccountId = useSelector((state: any) => state.creditAccount.creditAccountId);
 
-  useEffect(() => {
-    const fetchDocumentsData = async () => {
-      try {
-        if (!creditAccountId || !token) return;
+  const fetchDocumentsData = useCallback(async () => {
+    try {
+      if (!creditAccountId || !token) return;
 
-        const { creditSummaries } = await fetchCreditSummariesWithId(creditAccountId, token);
-        dispatch(setCreditSummaries(creditSummaries));
+      setIsLoading(true);
 
-        const data = await fetchDocuments(creditAccountId, token);
+      const { creditSummaries } = await fetchCreditSummariesWithId(creditAccountId, token);
+      dispatch(setCreditSummaries(creditSummaries));
 
-        if (data?.accountSummary?.isBankrupt) {
-          setBankruptcyMessage("ACCOUNT IN BANKRUPTCY");
-        } else {
-          setBankruptcyMessage(null);
-        }
+      const data = await fetchDocuments(creditAccountId, token);
 
-        const validDocuments = (data || []).filter((doc: { documentContent: any; }) => doc.documentContent);
-        setDocuments(validDocuments);
-      } catch (error) {
-        console.error("Error fetching documents:", error);
-      } finally {
-        setIsLoading(false);
+      if (data?.accountSummary?.isBankrupt) {
+        setBankruptcyMessage("ACCOUNT IN BANKRUPTCY");
+      } else {
+        setBankruptcyMessage(null);
       }
-    };
 
-    fetchDocumentsData();
+      const validDocuments = (data || []).filter((doc: { documentContent: any; }) => doc.documentContent);
+      setDocuments(validDocuments);
+    } catch (error) {
+      console.log("Error fetching documents:", error);
+    } finally {
+      setIsLoading(false);
+    }
   }, [creditAccountId, token, dispatch]);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchDocumentsData();
+    }, [fetchDocumentsData])
+  );
 
   const openDocumentPopup = (doc: Document) => {
     setSelectedDocument(doc);
@@ -90,7 +94,7 @@ const Documents: React.FC = () => {
 
       await Sharing.shareAsync(uri);
     } catch (error) {
-      console.error("Error while generating PDF:", error);
+      console.log("Error while generating PDF:", error);
     }
   };
 
@@ -100,7 +104,7 @@ const Documents: React.FC = () => {
         <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={28} color="#37474F" />
         </Pressable>
-         <Text style={styles.title}>Documents</Text>
+        <Text style={styles.title}>Documents</Text>
       </View>
 
       {bankruptcyMessage && (

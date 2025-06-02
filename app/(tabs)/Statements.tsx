@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from "react";
-import { View, Text, FlatList, Pressable, Alert, StyleSheet, Share } from "react-native";
+import React, { useEffect, useState, useCallback } from "react";
+import { View, Text, FlatList, Pressable, Share } from "react-native";
 import { Ionicons, FontAwesome } from "@expo/vector-icons";
-import { useNavigation } from "expo-router";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import styles from "../../components/styles/StatementsStyles";
 import { fetchStatements } from "../services/statementService";
 import { useSelector } from "react-redux";
@@ -9,7 +9,7 @@ import { format } from "date-fns";
 import * as FileSystem from 'expo-file-system';
 import { WebView } from 'react-native-webview';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
-import SkeletonLoader from '../../components/SkeletonLoader'; // Import the SkeletonLoader component
+import SkeletonLoader from '../../components/SkeletonLoader';
 
 const Statements: React.FC = () => {
   const token = useSelector((state: any) => state.auth.token);
@@ -21,26 +21,29 @@ const Statements: React.FC = () => {
 
   const navigation = useNavigation();
 
-  useEffect(() => {
-    const loadStatements = async () => {
-      if (!creditAccountId) {
-        console.warn("No Credit Account ID available.");
-        setLoading(false);
-        return;
-      }
+  const loadStatements = useCallback(async () => {
+    if (!creditAccountId) {
+      console.log("No Credit Account ID available.");
+      setLoading(false);
+      return;
+    }
 
-      try {
-        const response = await fetchStatements(token, creditAccountId);
-        setStatements(response || []);
-      } catch (error) {
-        console.error("Error fetching statements:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadStatements();
+    try {
+      setLoading(true);
+      const response = await fetchStatements(token, creditAccountId);
+      setStatements(response || []);
+    } catch (error) {
+      console.log("Error fetching statements:", error);
+    } finally {
+      setLoading(false);
+    }
   }, [token, creditAccountId]);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadStatements();
+    }, [loadStatements])
+  );
 
   const formatDateRange = (startDate: string, endDate: string) => {
     const start = format(new Date(startDate), "MMM dd yyyy");
@@ -72,7 +75,7 @@ const Statements: React.FC = () => {
 
       return downloadDest;
     } catch (error) {
-      console.error("Error downloading file:", error);
+      console.log("Error downloading file:", error);
       throw error;
     }
   };
@@ -82,7 +85,7 @@ const Statements: React.FC = () => {
       const fileUri = await downloadPDF(item.fileName);
       setPdfUri(fileUri);
     } catch (error) {
-      Alert.alert("Error", "Failed to download the PDF.");
+      console.log("Error", "Failed to download the PDF.");
     }
   };
 
@@ -94,7 +97,7 @@ const Statements: React.FC = () => {
         url: fileUri,
       });
     } catch (error) {
-      Alert.alert("Error", "Failed to download the PDF.");
+      console.log("Error", "Failed to download the PDF.");
     }
   };
 
@@ -117,10 +120,10 @@ const Statements: React.FC = () => {
 
       <View style={styles.recordsContainer}>
         <View style={styles.header}>
-            <>
-              <Text style={styles.headerText}>Date</Text>
-              <Text style={styles.headerText}>Actions</Text>
-            </>
+          <>
+            <Text style={styles.headerText}>Date</Text>
+            <Text style={styles.headerText}>Actions</Text>
+          </>
         </View>
 
         {loading ? (

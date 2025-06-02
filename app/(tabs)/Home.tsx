@@ -1,15 +1,16 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useState } from "react";
 import { View, Text, TouchableOpacity, Image, Pressable } from "react-native";
 import { useSelector, useDispatch } from "react-redux";
-import SkeletonLoader from "../../components/SkeletonLoader"; // Adjust the import path as necessary
+import SkeletonLoader from "../../components/SkeletonLoader";
 import styles from "../../components/styles/HomeStyles";
 import RecentTransactions from "../../features/transactions/RecentTransactions";
 import { fetchCustomerData } from "../services/customerService";
 import { fetchUserData } from "../services/userService";
 import { fetchCreditSummariesWithId } from "../services/creditAccountService";
 import { setCreditAccountId } from "../../features/creditAccount/creditAccountSlice";
-import { useNavigation } from "expo-router";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { DrawerActions } from "@react-navigation/native";
+import { fetchPendingTransactions } from "../../app/services/pendingTransactionsService";
 
 interface CreditApplication {
   accountNumber: string;
@@ -28,80 +29,83 @@ const HomeScreen: React.FC = () => {
   const [currentAmountDue, setCurrentAmountDue] = useState<number | null>(null);
   const [balance, setBalance] = useState<number | null>(null);
   const [availableCredit, setAvailableCredit] = useState<number | null>(null);
-  const [accountNumber, setAccountNumber] = useState<string | null>(null);
   const [nextPaymentDate, setNextPaymentDate] = useState<string | null>(null);
   const [creditSummaries, setCreditSummaries] = useState<any[]>([]);
   const [autoPay, setAutopay] = useState<boolean | null>(null);
   const [last4Digits, setLast4Digits] = useState<string | null>(null);
   const [isCardNumber, setIsCardNumber] = useState<boolean>(false);
+  const [transactions, setTransactions] = useState<any[]>([]);
 
-  useEffect(() => {
-    const fetchAllData = async () => {
-      try {
-        const [userResponse, customerResponse] = await Promise.all([
-          fetchUserData(token, setUserData),
-          fetchCustomerData(token, setCustomerData),
-        ]);
+  const fetchAllData = useCallback(async () => {
+    try {
+      setLoading(true);
+      const [userResponse, customerResponse] = await Promise.all([
+        fetchUserData(token, setUserData),
+        fetchCustomerData(token, setCustomerData),
+      ]);
 
-        if (customerResponse?.creditAccounts) {
-          const accountNumbers = customerResponse.creditAccounts.map(
-            (application: CreditApplication) => application.accountNumber
-          );
-          setAccountNumbers(accountNumbers);
+      if (customerResponse?.creditAccounts) {
+        const accountNumbers = customerResponse.creditAccounts.map(
+          (application: CreditApplication) => application.accountNumber
+        );
+        setAccountNumbers(accountNumbers);
 
-          const { creditSummaries, creditAccountId } = await fetchCreditSummariesWithId(customerResponse, token);
+        const { creditSummaries, creditAccountId } = await fetchCreditSummariesWithId(customerResponse, token);
 
-          if (creditAccountId) {
-            dispatch(setCreditAccountId(creditAccountId));
-          }
-
-          setCreditSummaries(creditSummaries);
-  // Extract and set relevant details from credit summaries
-          const validSummary = creditSummaries.find(
-            (summary) => summary !== null
-          );
-          if (validSummary) {
-            setCurrentAmountDue(
-              validSummary?.totalAmountDue
-            );
-
-            const accountNum = validSummary.paymentMethod?.accountNumber;
-            const cardNum = validSummary.paymentMethod?.cardNumber;
-
-            if (accountNum) {
-              setLast4Digits(accountNum.slice(-4));
-              setIsCardNumber(false);
-            } else if (cardNum) {
-              setLast4Digits(cardNum.slice(-4));
-              setIsCardNumber(true);
-            } else {
-              setLast4Digits(null);
-              setIsCardNumber(false);
-            }
-
-            setBalance(validSummary.currentBalance);
-            setAvailableCredit(validSummary.displayAvailableCredit);
-
-            const date = new Date(validSummary.nextPaymentDate);
-            const formattedDate = `${String(date.getMonth() + 1).padStart(2, "0")}/${String(date.getDate()).padStart(2, "0")}`;
-            setNextPaymentDate(formattedDate);
-
-            const isAutopayEnabled = validSummary.detail?.creditAccount?.paymentSchedule?.autoPayEnabled;
-            setAutopay(isAutopayEnabled);
-            dispatch(isAutopayEnabled);
-          }
-        } else {
-          console.log("Failed to fetch user or customer data.");
+        if (creditAccountId) {
+          dispatch(setCreditAccountId(creditAccountId));
         }
-      } catch (error) {
-        console.log("Error fetching data:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
 
-    fetchAllData();
+        setCreditSummaries(creditSummaries);
+        const validSummary = creditSummaries.find(
+          (summary) => summary !== null
+        );
+        if (validSummary) {
+          setCurrentAmountDue(validSummary?.totalAmountDue);
+
+          const accountNum = validSummary.paymentMethod?.accountNumber;
+          const cardNum = validSummary.paymentMethod?.cardNumber;
+
+          if (accountNum) {
+            setLast4Digits(accountNum.slice(-4));
+            setIsCardNumber(false);
+          } else if (cardNum) {
+            setLast4Digits(cardNum.slice(-4));
+            setIsCardNumber(true);
+          } else {
+            setLast4Digits(null);
+            setIsCardNumber(false);
+          }
+
+          setBalance(validSummary.currentBalance);
+          setAvailableCredit(validSummary.displayAvailableCredit);
+
+          const date = new Date(validSummary.nextPaymentDate);
+          const formattedDate = `${String(date.getMonth() + 1).padStart(2, "0")}/${String(date.getDate()).padStart(2, "0")}`;
+          setNextPaymentDate(formattedDate);
+
+          const isAutopayEnabled = validSummary.detail?.creditAccount?.paymentSchedule?.autoPayEnabled;
+          setAutopay(isAutopayEnabled);
+          dispatch(isAutopayEnabled);
+        }
+      }
+
+      if (creditAccountId) {
+        const transactionsResponse = await fetchPendingTransactions(token, creditAccountId);
+        setTransactions(transactionsResponse || []);
+      }
+    } catch (error) {
+      console.log("Error fetching data:", error);
+    } finally {
+      setLoading(false);
+    }
   }, [token, dispatch]);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchAllData();
+    }, [fetchAllData])
+  );
 
   const handleHamburgerPress = () => {
     navigation.dispatch(DrawerActions.openDrawer());
@@ -111,61 +115,59 @@ const HomeScreen: React.FC = () => {
     navigation.navigate("Profile");
   };
 
- // Inside the loading return statement of HomeScreen
-if (loading) {
-  return (
-    <View style={styles.container}>
-      <View style={styles.headerContainer}>
-        <SkeletonLoader style={styles.hamburgerIcon} />
-        <View style={styles.iconAndTextContainer}>
-          <View style={styles.infoContainer}>
-            <SkeletonLoader style={styles.userNameSkeleton} type="text" />
-            <SkeletonLoader style={styles.welcomeTextSkeleton} type="text" />
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.headerContainer}>
+          <SkeletonLoader style={styles.hamburgerIcon} />
+          <View style={styles.iconAndTextContainer}>
+            <View style={styles.infoContainer}>
+              <SkeletonLoader style={styles.userNameSkeleton} type="text" />
+              <SkeletonLoader style={styles.welcomeTextSkeleton} type="text" />
+            </View>
+            <SkeletonLoader style={styles.avatarIcon} />
           </View>
-          <SkeletonLoader style={styles.avatarIcon} />
         </View>
+
+        <SkeletonLoader style={styles.boxContainerSkeleton} type="container">
+          <SkeletonLoader style={styles.accountNumberSkeleton} type="text" />
+          <View style={styles.paymentContainer}>
+            <View>
+              <SkeletonLoader style={styles.paymentLabelSkeleton} type="text" />
+              <SkeletonLoader style={styles.paymentAmountSkeleton} type="text" />
+            </View>
+            <View>
+              <SkeletonLoader style={styles.paymentLabelSkeleton} type="text" />
+              <SkeletonLoader style={styles.paymentDateSkeleton} type="text" />
+            </View>
+            <View>
+              <SkeletonLoader style={styles.paymentLabelSkeleton} type="text" />
+              <SkeletonLoader style={styles.paymentDateSkeleton} type="text" />
+            </View>
+          </View>
+        </SkeletonLoader>
+
+        <SkeletonLoader style={styles.balanceContainerSkeleton} type="container">
+          <View style={styles.balanceRow}>
+            <SkeletonLoader style={styles.balanceLabelSkeleton} type="text" />
+            <SkeletonLoader style={styles.balanceValueSkeleton} type="text" />
+          </View>
+          <View style={styles.balanceRow}>
+            <SkeletonLoader style={styles.balanceLabelSkeleton} type="text" />
+            <SkeletonLoader style={styles.balanceValueSkeleton} type="text" />
+          </View>
+        </SkeletonLoader>
+
+        <View style={styles.buttonContainer}>
+          <SkeletonLoader style={styles.buttonSkeleton} type="container" />
+        </View>
+
+        <SkeletonLoader style={styles.RecentTransactionsContainerSkeleton} type="container">
+          <SkeletonLoader style={styles.recentTransactionsSkeleton} type="text" />
+        </SkeletonLoader>
       </View>
-
-      <SkeletonLoader style={styles.boxContainerSkeleton} type="container">
-        <SkeletonLoader style={styles.accountNumberSkeleton} type="text" />
-        <View style={styles.paymentContainer}>
-          <View>
-            <SkeletonLoader style={styles.paymentLabelSkeleton} type="text" />
-            <SkeletonLoader style={styles.paymentAmountSkeleton} type="text" />
-          </View>
-          <View>
-            <SkeletonLoader style={styles.paymentLabelSkeleton} type="text" />
-            <SkeletonLoader style={styles.paymentDateSkeleton} type="text" />
-          </View>
-          <View>
-            <SkeletonLoader style={styles.paymentLabelSkeleton} type="text" />
-            <SkeletonLoader style={styles.paymentDateSkeleton} type="text" />
-          </View>
-        </View>
-      </SkeletonLoader>
-
-      <SkeletonLoader style={styles.balanceContainerSkeleton} type="container">
-        <View style={styles.balanceRow}>
-          <SkeletonLoader style={styles.balanceLabelSkeleton} type="text" />
-          <SkeletonLoader style={styles.balanceValueSkeleton} type="text" />
-        </View>
-        <View style={styles.balanceRow}>
-          <SkeletonLoader style={styles.balanceLabelSkeleton} type="text" />
-          <SkeletonLoader style={styles.balanceValueSkeleton} type="text" />
-        </View>
-      </SkeletonLoader>
-
-      <View style={styles.buttonContainer}>
-        <SkeletonLoader style={styles.buttonSkeleton} type="container" />
-      </View>
-
-      <SkeletonLoader style={styles.RecentTransactionsContainerSkeleton} type="container">
-        <SkeletonLoader style={styles.recentTransactionsSkeleton} type="text" />
-      </SkeletonLoader>
-    </View>
-  );
-}
-
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -213,7 +215,7 @@ if (loading) {
                 <View>
                   <View>
                     <Text style={styles.paymentLabel}>{isCardNumber ? "Debit Card" : "Account"}</Text>
-                    <Text style={styles.paymentDate}>---{last4Digits || " "}</Text>
+                    <Text style={styles.paymentDate}>*{last4Digits || " "}</Text>
                   </View>
                 </View>
               </View>
@@ -242,7 +244,7 @@ if (loading) {
       </View>
 
       <View style={styles.RecentTransactionsContainer}>
-        {creditAccountId ? <RecentTransactions /> : <Text style={styles.noAccountText}>No transactions available</Text>}
+        {creditAccountId ? <RecentTransactions loading={loading} transactions={transactions} /> : <Text style={styles.noAccountText}>No transactions available</Text>}
       </View>
     </View>
   );
