@@ -25,6 +25,11 @@ const styles = StyleSheet.create({
     color: "black",
     textAlign: "center",
   },
+  titleSkeleton: {
+    width: wp('30%'),
+    height: wp('8%'),
+    marginLeft: wp('25%'),
+  },
   recordsContainer: {
     backgroundColor: "#E0E0E0",
     borderRadius: wp('5%'),
@@ -61,6 +66,12 @@ const styles = StyleSheet.create({
   folderIcon: {
     marginRight: wp('5%'),
   },
+  folderIconSkeleton: {
+    width: wp('10%'),
+    height: wp('10%'),
+    borderRadius: wp('5%'),
+    marginRight: wp('2%'),
+  },
   folderText: {
     color: "#FFFFFF",
     fontSize: wp('4.5%'),
@@ -68,8 +79,12 @@ const styles = StyleSheet.create({
     flex: 1,
     textAlign: 'left',
   },
+  folderTextSkeleton: {
+    width: wp('50%'),
+    height: wp('5%'),
+  },
   documentList: {
-    marginTop: hp('7%'),
+    marginTop: hp('5%'),
   },
   noDocumentsText: {
     fontSize: wp('4%'),
