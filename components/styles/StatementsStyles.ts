@@ -11,9 +11,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    // backgroundColor: "#003566",
-    // padding: wp('1%'),
-    // borderRadius: 10,
     marginBottom: hp('1%'),
     marginTop: hp('5%'),
   },
@@ -27,6 +24,11 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "black",
     textAlign: "center",
+  },
+  titleSkeleton: {
+    width: wp('30%'),
+    height: hp('4%'),
+    marginLeft: wp('35%'),
   },
   recordsContainer: {
     backgroundColor: "#E0E0E0",
@@ -52,6 +54,10 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#333333",
   },
+  headerTextSkeleton: {
+    width: wp('20%'),
+    height: hp('3%'),
+  },
   list: {
     paddingBottom: hp('3%'),
   },
@@ -73,6 +79,10 @@ const styles = StyleSheet.create({
     fontSize: wp('4.4%'),
     color: "#333333",
   },
+  dateTextSkeleton: {
+    width: wp('40%'),
+    height: hp('2%'),
+  },
   actions: {
     flexDirection: "row",
   },
@@ -83,6 +93,12 @@ const styles = StyleSheet.create({
     borderRadius: 9,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  actionButtonSkeleton: {
+    width: wp('10%'),
+    margin: wp('1%'),
+    height: wp('10%'),
+    borderRadius: 9,
   },
   noAccountText: {
     fontSize: wp('5%'),

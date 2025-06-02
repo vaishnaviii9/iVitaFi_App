@@ -9,13 +9,12 @@ import { format } from "date-fns";
 import * as FileSystem from 'expo-file-system';
 import { WebView } from 'react-native-webview';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
+import SkeletonLoader from '../../components/SkeletonLoader'; // Import the SkeletonLoader component
 
 const Statements: React.FC = () => {
-  // Retrieve token and credit account ID from Redux store
   const token = useSelector((state: any) => state.auth.token);
   const creditAccountId = useSelector((state: any) => state.creditAccount.creditAccountId);
 
-  // State variables for statements, loading status, and PDF URI
   const [statements, setStatements] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [pdfUri, setPdfUri] = useState<string | null>(null);
@@ -24,7 +23,6 @@ const Statements: React.FC = () => {
 
   useEffect(() => {
     const loadStatements = async () => {
-      // Check if credit account ID is available
       if (!creditAccountId) {
         console.warn("No Credit Account ID available.");
         setLoading(false);
@@ -32,10 +30,8 @@ const Statements: React.FC = () => {
       }
 
       try {
-        // Fetch statements using the provided token and credit account ID
         const response = await fetchStatements(token, creditAccountId);
         setStatements(response || []);
-        // console.log("Fetched Statements:", response);
       } catch (error) {
         console.error("Error fetching statements:", error);
       } finally {
@@ -46,17 +42,14 @@ const Statements: React.FC = () => {
     loadStatements();
   }, [token, creditAccountId]);
 
-  // Format date range for display
   const formatDateRange = (startDate: string, endDate: string) => {
     const start = format(new Date(startDate), "MMM dd yyyy");
     const end = format(new Date(endDate), "MMM dd yyyy");
     return `${start} - ${end}`;
   };
 
-  // Download PDF file from the server
   const downloadPDF = async (fileName: string) => {
     try {
-      // Fetch pre-signed URL for the PDF file
       const response = await fetch(
         `https://dev.ivitafi.com/api/creditaccount/${creditAccountId}/statements/${fileName}`,
         {
@@ -72,22 +65,18 @@ const Statements: React.FC = () => {
       }
 
       let preSignedUrl = await response.text();
-      // Remove unwanted quotes from the URL
       preSignedUrl = preSignedUrl.replace(/^"|"$/g, '');
 
       const downloadDest = `${FileSystem.documentDirectory}${fileName}`;
-
-      // Download the file to the local file system
       const downloadResult = await FileSystem.downloadAsync(preSignedUrl, downloadDest);
 
       return downloadDest;
     } catch (error) {
-      console.error("❌ Error downloading file:", error);
+      console.error("Error downloading file:", error);
       throw error;
     }
   };
 
-  // Handle "View" button press to display the PDF
   const handleViewPress = async (item: any) => {
     try {
       const fileUri = await downloadPDF(item.fileName);
@@ -97,7 +86,6 @@ const Statements: React.FC = () => {
     }
   };
 
-  // Handle "Download" button press to share the PDF
   const handleDownloadPress = async (item: any) => {
     try {
       const fileUri = await downloadPDF(item.fileName);
@@ -110,7 +98,6 @@ const Statements: React.FC = () => {
     }
   };
 
-  // Render a message if no credit account ID is available
   if (!creditAccountId) {
     return (
       <View style={styles.container}>
@@ -121,7 +108,6 @@ const Statements: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      {/* Header section with back button and title */}
       <View style={styles.headerContainer}>
         <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={28} color="#37474F" />
@@ -129,14 +115,25 @@ const Statements: React.FC = () => {
         <Text style={styles.title}>Statements</Text>
       </View>
 
-      {/* Records section displaying the list of statements */}
       <View style={styles.recordsContainer}>
         <View style={styles.header}>
-          <Text style={styles.headerText}>Date</Text>
-          <Text style={styles.headerText}>Actions</Text>
+            <>
+              <Text style={styles.headerText}>Date</Text>
+              <Text style={styles.headerText}>Actions</Text>
+            </>
         </View>
 
-        {statements.length > 0 ? (
+        {loading ? (
+          Array.from({ length: 5 }).map((_, index) => (
+            <View style={styles.row} key={index}>
+              <SkeletonLoader style={styles.dateTextSkeleton} type="text" />
+              <View style={styles.actions}>
+                <SkeletonLoader style={styles.actionButtonSkeleton} type="container" />
+                <SkeletonLoader style={styles.actionButtonSkeleton} type="container" />
+              </View>
+            </View>
+          ))
+        ) : statements.length > 0 ? (
           <FlatList
             data={statements}
             keyExtractor={(item) => item.id.toString()}
@@ -144,12 +141,10 @@ const Statements: React.FC = () => {
             contentContainerStyle={styles.list}
             renderItem={({ item }) => (
               <View style={styles.row}>
-                {/* Display formatted date range */}
                 <Text style={styles.dateText}>
                   {formatDateRange(item.statementStartDate, item.statementDate)}
                 </Text>
                 <View style={styles.actions}>
-                  {/* View and Download buttons */}
                   <Pressable style={styles.actionButton} onPress={() => handleViewPress(item)}>
                     <Ionicons name="eye-outline" size={wp('6%')} color="#FFFFFF" />
                   </Pressable>
@@ -165,7 +160,6 @@ const Statements: React.FC = () => {
         )}
       </View>
 
-      {/* WebView to display the PDF if a URI is available */}
       {pdfUri && (
         <WebView
           source={{ uri: `https://docs.google.com/viewer?url=${encodeURIComponent(pdfUri)}` }}
