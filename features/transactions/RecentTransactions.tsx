@@ -1,31 +1,19 @@
 import React, { useEffect, useState } from "react";
-import {
-  View,
-  Text,
-  Image,
-  ScrollView,
-  Dimensions,
-  ActivityIndicator,
-  Pressable,
-} from "react-native";
+import { View, Text, Image, ScrollView, Dimensions, Pressable } from "react-native";
 import { useSelector } from "react-redux";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { useNavigation, NavigationProp } from "@react-navigation/native";
-import {
-  widthPercentageToDP as wp,
-  heightPercentageToDP as hp,
-} from "react-native-responsive-screen";
+import { widthPercentageToDP as wp, heightPercentageToDP as hp } from "react-native-responsive-screen";
 import { fetchPendingTransactions } from "../../app/services/pendingTransactionsService";
 import { CreditAccountTransactionTypeUtil } from "../../utils/CreditAccountTransactionTypeUtil";
+import SkeletonLoader from "../../components/SkeletonLoader"; // Adjust the import path as necessary
 import styles from "../../components/styles/RecentTransactionsStyles";
 
 const { height: screenHeight } = Dimensions.get("window");
 
 const RecentTransactions: React.FC = () => {
   const token = useSelector((state: any) => state.auth.token);
-  const creditAccountId = useSelector(
-    (state: any) => state.creditAccount.creditAccountId
-  );
+  const creditAccountId = useSelector((state: any) => state.creditAccount.creditAccountId);
   const navigation = useNavigation<NavigationProp<{ Transactions: undefined }>>();
 
   const [transactions, setTransactions] = useState<any[]>([]);
@@ -54,23 +42,12 @@ const RecentTransactions: React.FC = () => {
 
   const renderTransactionIcon = (transactionType: number) => {
     if (transactionType !== 404 && transactionType !== 481) {
-      return (
-        <Image
-          source={require("../../assets/images/Trash.png")}
-          style={styles.trashIcon}
-        />
-      );
+      return <Image source={require("../../assets/images/Trash.png")} style={styles.trashIcon} />;
     }
     return (
       <View style={{ flexDirection: "row" }}>
-        <Image
-          source={require("../../assets/images/Check01.png")}
-          style={styles.icon}
-        />
-        <Image
-          source={require("../../assets/images/X02.png")}
-          style={styles.icon}
-        />
+        <Image source={require("../../assets/images/Check01.png")} style={styles.icon} />
+        <Image source={require("../../assets/images/X02.png")} style={styles.icon} />
       </View>
     );
   };
@@ -79,32 +56,26 @@ const RecentTransactions: React.FC = () => {
   const isMediumScreen = screenHeight >= 700 && screenHeight <= 800;
   const isLargeScreen = screenHeight > 800;
 
-  if (loading) {
-    return (
-      <View style={styles.recentTransactions}>
-        <ActivityIndicator size="large" color="#0000ff" />
-        <Text>Loading transactions...</Text>
-      </View>
-    );
-  }
+// Inside the loading return statement of RecentTransactions
+if (loading) {
+  return (
+    <SkeletonLoader style={styles.recentTransactions} type="container">
+      <SkeletonLoader style={styles.skeletonTitle} type="text" />
+      <SkeletonLoader style={styles.skeletonTransaction} type="text" />
+      <SkeletonLoader style={styles.skeletonTransaction} type="text" />
+      <SkeletonLoader style={styles.skeletonTransaction} type="text" />
+    </SkeletonLoader>
+  );
+}
+
 
   return (
-    <View
-      style={[
-        styles.recentTransactions,
-        { height: isSmallScreen ? hp(30) : isMediumScreen ? hp(32) : hp(45) },
-      ]}
-    >
+    <View style={[styles.recentTransactions, { height: isSmallScreen ? hp(30) : isMediumScreen ? hp(32) : hp(45) }]}>
       <View style={styles.baseBlackParent}>
         <View style={[styles.baseBlack, styles.absoluteFill]} />
         <View style={styles.frameParent}>
-          <Pressable
-            onPress={() => navigation.navigate("Transactions")}
-            style={[styles.titleParent, styles.rowCenter]}
-          >
-            <Text style={[styles.title, styles.textBold]}>
-              Pending Transactions
-            </Text>
+          <Pressable onPress={() => navigation.navigate("Transactions")} style={[styles.titleParent, styles.rowCenter]}>
+            <Text style={[styles.title, styles.textBold]}>Pending Transactions</Text>
             <AntDesign name="rightcircleo" size={hp(2.5)} color="white" />
           </Pressable>
 
@@ -112,68 +83,47 @@ const RecentTransactions: React.FC = () => {
             <ScrollView
               style={[
                 styles.scrollView,
-                {
-                  maxHeight: isSmallScreen
-                    ? hp(22.9)
-                    : isMediumScreen
-                    ? hp(25)
-                    : hp(35),
-                },
+                { maxHeight: isSmallScreen ? hp(22.9) : isMediumScreen ? hp(25) : hp(35) },
               ]}
               nestedScrollEnabled={true}
               showsVerticalScrollIndicator={true}
             >
-              {transactions
-                .slice(-3)
-                .reverse()
-                .map((transaction, index) => (
-                  <View
-                    key={index}
-                    style={[
-                      styles.transactionRow,
-                      index % 2 === 0 ? styles.rowLight : styles.rowDark,
-                    ]}
-                  >
-                    <View style={styles.transactionDetailsContainer}>
-                      <Text
-                        style={[styles.transactionDetails, styles.textSmall]}
-                      >
-                        <Text style={styles.textBold}>{transaction.id}</Text>
-                        {"\n"}
-                        <Text style={styles.textSecondary}>
-                          {CreditAccountTransactionTypeUtil.toString(
-                            transaction.transactionType
-                          ) || "Unknown Type"}
-                        </Text>
-                        {"\n"}
-                        <Text style={styles.textSecondary}>
-                          {transaction.pendingTransactionDate
-                            ? new Date(
-                                transaction.pendingTransactionDate
-                              ).toLocaleDateString("en-US", {
-                                month: "2-digit",
-                                day: "2-digit",
-                                year: "numeric",
-                              })
-                            : "---"}
-                        </Text>
+              {transactions.slice(-3).reverse().map((transaction, index) => (
+                <View
+                  key={index}
+                  style={[
+                    styles.transactionRow,
+                    index % 2 === 0 ? styles.rowLight : styles.rowDark,
+                  ]}
+                >
+                  <View style={styles.transactionDetailsContainer}>
+                    <Text style={[styles.transactionDetails, styles.textSmall]}>
+                      <Text style={styles.textBold}>{transaction.id}</Text>
+                      {"\n"}
+                      <Text style={styles.textSecondary}>
+                        {CreditAccountTransactionTypeUtil.toString(transaction.transactionType) || "Unknown Type"}
                       </Text>
-                    </View>
-                    <View>
-                      <Text style={styles.amountText}>
-                        ${transaction.requestedAmount?.toFixed(2) || "0.00"}
+                      {"\n"}
+                      <Text style={styles.textSecondary}>
+                        {transaction.pendingTransactionDate
+                          ? new Date(transaction.pendingTransactionDate).toLocaleDateString("en-US", {
+                              month: "2-digit",
+                              day: "2-digit",
+                              year: "numeric",
+                            })
+                          : "---"}
                       </Text>
-                    </View>
-                    <View>
-                      {renderTransactionIcon(transaction.transactionType)}
-                    </View>
+                    </Text>
                   </View>
-                ))}
+                  <View>
+                    <Text style={styles.amountText}>${transaction.requestedAmount?.toFixed(2) || "0.00"}</Text>
+                  </View>
+                  <View>{renderTransactionIcon(transaction.transactionType)}</View>
+                </View>
+              ))}
             </ScrollView>
           ) : (
-            <Text style={styles.noTransactionsText}>
-              No recent transactions available.
-            </Text>
+            <Text style={styles.noTransactionsText}>No recent transactions available.</Text>
           )}
         </View>
       </View>

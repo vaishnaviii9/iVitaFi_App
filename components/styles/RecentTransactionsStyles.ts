@@ -104,6 +104,26 @@ const styles = StyleSheet.create({
     width: hp(3),
     marginLeft: wp(2),
   },
+
+//skeleton styles
+skeletonTitle: {
+  marginTop: hp('2%'),
+  width: wp('80%'),
+  height: hp('4%'),
+  marginBottom: hp('2%'),
+  borderRadius: 15,
+},
+skeletonTransaction: {
+  marginTop: hp('1%'),
+  width: wp('85%'),
+  height: hp('8%'),
+  marginBottom: hp('1%'),
+  borderRadius: 15,
+},
+
+
+
+
 });
 
 export default styles;

@@ -186,6 +186,96 @@ const styles = StyleSheet.create({
     flex: 1, // Prevent unintended stretching
     marginBottom: hp('1%'),
   },
+
+
+// skeleton loader styles
+headerSkeleton: {
+  width: wp('90%'),
+  height: hp('10%'),
+  marginBottom: hp('2%'),
+  borderRadius: wp('2%'),
+  marginTop: hp('2%'),
+},
+boxContainerSkeleton: {
+  width: wp('90%'),
+  height: hp('20%'),
+  marginTop: hp('2%'),
+  marginBottom: hp('2%'),
+  borderRadius: wp('2%'),  
+},
+balanceContainerSkeleton: {
+  width: wp('90%'),
+  height: hp('10%'),
+  marginBottom: hp('2%'),
+  borderRadius: wp('2%'),
+},
+buttonSkeleton: {
+  width: wp('60%'),
+  height: hp('6%'),
+  marginBottom: hp('2%'),
+  borderRadius: wp('2%'),
+},
+RecentTransactionsContainerSkeleton: {
+  width: wp('90%'),
+  height: hp('30%'),
+  marginBottom: hp('2%'),
+  borderRadius: wp('2%'),
+},
+
+userNameSkeleton: {
+  marginHorizontal: wp('1.5%'),
+  width: wp('30%'),
+  height: hp('2.5%'),
+  marginBottom: hp('1%'),
+},
+welcomeTextSkeleton: {
+  marginHorizontal: wp('1.5%'),
+  width: wp('40%'),
+  height: hp('2%'),
+},
+accountNumberSkeleton: {
+  marginHorizontal: wp('1.5%'),
+  width: wp('80%'),
+  height: hp('3%'),
+  marginTop: hp('2%'),
+  marginBottom: hp('2%'),
+},
+paymentLabelSkeleton: {
+  marginHorizontal: wp('1.5%'),
+  width: wp('25%'),
+  height: hp('2%'),
+  marginBottom: hp('1%'),
+},
+paymentAmountSkeleton: {
+  marginHorizontal: wp('1.5%'),
+  width: wp('20%'),
+  height: hp('2%'),
+},
+paymentDateSkeleton: {
+  marginHorizontal: wp('1.5%'),
+  width: wp('20%'),
+  height: hp('2%'),
+},
+balanceLabelSkeleton: {
+  marginTop: hp('1.5%'),
+  width: wp('35%'),
+  height: hp('2%'),
+  marginHorizontal: wp('1.5%'),
+
+},
+balanceValueSkeleton: {
+  marginTop: hp('1.5%'),
+  marginHorizontal: wp('1.5%'),
+  width: wp('25%'),
+  height: hp('2%'),
+},
+recentTransactionsSkeleton: {
+  width: wp('90%'),
+  height: hp('30%'),
+},
+
+
 });
+
 
 export default styles;
