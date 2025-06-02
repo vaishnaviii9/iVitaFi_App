@@ -35,7 +35,6 @@ export const styles = StyleSheet.create({
   },
   formContainer: {
     marginTop: 20,
-    
   },
   input: {
     height: 50,
@@ -47,7 +46,7 @@ export const styles = StyleSheet.create({
     backgroundColor: "#ffffff",
     fontSize: 15,
   },
-specificInput: {
+  specificInput: {
     height: 40,
     borderColor: "#ccc",
     borderWidth: 1,
@@ -172,12 +171,17 @@ specificInput: {
     borderRadius: 10,
     width: "80%",
   },
-  modalText: {
-    fontSize: 18,
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 10,
   },
-closeButton: {
-    position: 'absolute',
+  closeIcon: {
+    padding: 5,
+  },
+  closeButton: {
+    position: "absolute",
     right: 10,
     top: 10,
   },
@@ -195,23 +199,49 @@ closeButton: {
     textAlign: "center",
   },
   errorText: {
-  color: "#FF0000",
-  fontSize: 14,
-  marginTop: 5,
-  marginBottom: 5,
-  textAlign: "left",
-},
- modalImage: {
-    width: '100%', // Adjust the width as needed
+    color: "#FF0000",
+    fontSize: 14,
+    marginTop: 5,
+    marginBottom: 5,
+    textAlign: "left",
+  },
+  modalImage: {
+    width: "100%", // Adjust the width as needed
     height: 200, // Adjust the height as needed
-    resizeMode: 'contain', // Adjust the resizeMode as needed
+    resizeMode: "contain", // Adjust the resizeMode as needed
     marginVertical: 10,
   },
   confirmationText: {
     marginTop: 20,
     fontSize: 16,
-    color: 'black', // You can choose any color you prefer
-    textAlign: 'center',
-   
+    color: "black", // You can choose any color you prefer
+    textAlign: "center",
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    marginBottom: 10,
+    textAlign: "center",
+  },
+
+  modalButton: {
+    backgroundColor: "#27446F",
+    padding: 10,
+    borderRadius: 5,
+    alignItems: "center",
+  },
+  modalButtonText: {
+    color: "white",
+    fontSize: 16,
+  },
+  turnOffAutoPayText: {
+    color: "blue",
+    textAlign: "center",
+    marginTop: 20,
+  },
+  modalText: {
+    fontSize: 16,
+    marginBottom: 20,
+    textAlign: "center",
   },
 });
