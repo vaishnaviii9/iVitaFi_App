@@ -18,8 +18,12 @@ interface CreditApplication {
 
 const HomeScreen: React.FC = () => {
   const dispatch = useDispatch();
-  const { firstName, lastName, token } = useSelector((state: any) => state.auth);
-  const creditAccountId = useSelector((state: any) => state.creditAccount.creditAccountId);
+  const { firstName, lastName, token } = useSelector(
+    (state: any) => state.auth
+  );
+  const creditAccountId = useSelector(
+    (state: any) => state.creditAccount.creditAccountId
+  );
   const navigation = useNavigation();
 
   const [userData, setUserData] = useState<any>(null);
@@ -50,7 +54,8 @@ const HomeScreen: React.FC = () => {
         );
         setAccountNumbers(accountNumbers);
 
-        const { creditSummaries, creditAccountId } = await fetchCreditSummariesWithId(customerResponse, token);
+        const { creditSummaries, creditAccountId } =
+          await fetchCreditSummariesWithId(customerResponse, token);
 
         if (creditAccountId) {
           dispatch(setCreditAccountId(creditAccountId));
@@ -81,17 +86,24 @@ const HomeScreen: React.FC = () => {
           setAvailableCredit(validSummary.displayAvailableCredit);
 
           const date = new Date(validSummary.nextPaymentDate);
-          const formattedDate = `${String(date.getMonth() + 1).padStart(2, "0")}/${String(date.getDate()).padStart(2, "0")}`;
+          const formattedDate = `${String(date.getMonth() + 1).padStart(
+            2,
+            "0"
+          )}/${String(date.getDate()).padStart(2, "0")}`;
           setNextPaymentDate(formattedDate);
 
-          const isAutopayEnabled = validSummary.detail?.creditAccount?.paymentSchedule?.autoPayEnabled;
+          const isAutopayEnabled =
+            validSummary.detail?.creditAccount?.paymentSchedule?.autoPayEnabled;
           setAutopay(isAutopayEnabled);
           dispatch(isAutopayEnabled);
         }
       }
 
       if (creditAccountId) {
-        const transactionsResponse = await fetchPendingTransactions(token, creditAccountId);
+        const transactionsResponse = await fetchPendingTransactions(
+          token,
+          creditAccountId
+        );
         setTransactions(transactionsResponse || []);
       }
     } catch (error) {
@@ -134,7 +146,10 @@ const HomeScreen: React.FC = () => {
           <View style={styles.paymentContainer}>
             <View>
               <SkeletonLoader style={styles.paymentLabelSkeleton} type="text" />
-              <SkeletonLoader style={styles.paymentAmountSkeleton} type="text" />
+              <SkeletonLoader
+                style={styles.paymentAmountSkeleton}
+                type="text"
+              />
             </View>
             <View>
               <SkeletonLoader style={styles.paymentLabelSkeleton} type="text" />
@@ -147,7 +162,10 @@ const HomeScreen: React.FC = () => {
           </View>
         </SkeletonLoader>
 
-        <SkeletonLoader style={styles.balanceContainerSkeleton} type="container">
+        <SkeletonLoader
+          style={styles.balanceContainerSkeleton}
+          type="container"
+        >
           <View style={styles.balanceRow}>
             <SkeletonLoader style={styles.balanceLabelSkeleton} type="text" />
             <SkeletonLoader style={styles.balanceValueSkeleton} type="text" />
@@ -162,8 +180,14 @@ const HomeScreen: React.FC = () => {
           <SkeletonLoader style={styles.buttonSkeleton} type="container" />
         </View>
 
-        <SkeletonLoader style={styles.RecentTransactionsContainerSkeleton} type="container">
-          <SkeletonLoader style={styles.recentTransactionsSkeleton} type="text" />
+        <SkeletonLoader
+          style={styles.RecentTransactionsContainerSkeleton}
+          type="container"
+        >
+          <SkeletonLoader
+            style={styles.recentTransactionsSkeleton}
+            type="text"
+          />
         </SkeletonLoader>
       </View>
     );
@@ -173,15 +197,23 @@ const HomeScreen: React.FC = () => {
     <View style={styles.container}>
       <View style={styles.headerContainer}>
         <Pressable onPress={handleHamburgerPress}>
-          <Image source={require("../../assets/images/menus.png")} style={styles.hamburgerIcon} />
+          <Image
+            source={require("../../assets/images/menus.png")}
+            style={styles.hamburgerIcon}
+          />
         </Pressable>
         <View style={styles.iconAndTextContainer}>
           <View style={styles.infoContainer}>
-            <Text style={styles.userName}>{firstName} {lastName}</Text>
+            <Text style={styles.userName}>
+              {firstName} {lastName}
+            </Text>
             <Text style={styles.welcomeText}>Welcome to IvitaFi</Text>
           </View>
           <Pressable onPress={handleProfilePress}>
-            <Image source={require("../../assets/images/profile.png")} style={styles.avatarIcon} />
+            <Image
+              source={require("../../assets/images/profile.png")}
+              style={styles.avatarIcon}
+            />
           </Pressable>
         </View>
       </View>
@@ -191,14 +223,28 @@ const HomeScreen: React.FC = () => {
           accountNumbers.map((accountNum, index) => (
             <View key={index} style={styles.accountDetails}>
               <View style={styles.accountNumberContainer}>
-                <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-                  <Text style={styles.accountNumberText}>Account Number: {accountNum}</Text>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                  }}
+                >
+                  <Text style={styles.accountNumberText}>
+                    Account Number: {accountNum}
+                  </Text>
                 </View>
                 <View style={styles.autoPayParent}>
                   {autoPay ? (
-                    <Image source={require("../../assets/images/autopayOn.png")} style={styles.autopayIcon} />
+                    <Image
+                      source={require("../../assets/images/autopayOn.png")}
+                      style={styles.autopayIcon}
+                    />
                   ) : (
-                    <Image source={require("../../assets/images/autopayOff.png")} style={styles.autopayIcon} />
+                    <Image
+                      source={require("../../assets/images/autopayOff.png")}
+                      style={styles.autopayIcon}
+                    />
                   )}
                   <Text style={styles.autoPay}>Auto Pay</Text>
                 </View>
@@ -206,20 +252,28 @@ const HomeScreen: React.FC = () => {
               <View style={styles.paymentContainer}>
                 <View>
                   <Text style={styles.paymentLabel}>Next Payment</Text>
-                  <Text style={styles.paymentAmount}>${currentAmountDue?.toFixed(2) || " "}</Text>
+                  <Text style={styles.paymentAmount}>
+                    ${currentAmountDue?.toFixed(2) || " "}
+                  </Text>
                 </View>
                 <View>
                   <Text style={styles.paymentLabel}>Payment Date</Text>
-                  <Text style={styles.paymentDate}>{nextPaymentDate || " "}</Text>
+                  <Text style={styles.paymentDate}>
+                    {nextPaymentDate || " "}
+                  </Text>
                 </View>
                 <View>
                   <View>
-                    <Text style={styles.paymentLabel}>{isCardNumber ? "Debit Card" : "Account"}</Text>
-                    <Text style={styles.paymentDate}>*{last4Digits || " "}</Text>
+                    <Text style={styles.paymentLabel}>
+                      {isCardNumber ? "Debit Card" : "Account"}
+                    </Text>
+                    <Text style={styles.paymentDate}>
+                      {last4Digits ? `*${last4Digits}` : "   --  "}
+                    </Text>
                   </View>
                 </View>
               </View>
-            </View>
+            </View> 
           ))
         ) : (
           <Text style={styles.noAccountText}>No accounts available</Text>
@@ -233,18 +287,26 @@ const HomeScreen: React.FC = () => {
         </View>
         <View style={styles.balanceRow}>
           <Text style={styles.availableCredit}>Available Credit</Text>
-          <Text style={styles.text1}>${availableCredit?.toFixed(2) || " "}</Text>
+          <Text style={styles.text1}>
+            ${availableCredit?.toFixed(2) || " "}
+          </Text>
         </View>
       </View>
 
       <View style={styles.buttonContainer}>
         <TouchableOpacity style={styles.button}>
-          <Text style={styles.additionalPaymentText}>Make Additional Payment</Text>
+          <Text style={styles.additionalPaymentText}>
+            Make Additional Payment
+          </Text>
         </TouchableOpacity>
       </View>
 
       <View style={styles.RecentTransactionsContainer}>
-        {creditAccountId ? <RecentTransactions loading={loading} transactions={transactions} /> : <Text style={styles.noAccountText}>No transactions available</Text>}
+        {creditAccountId ? (
+          <RecentTransactions loading={loading} transactions={transactions} />
+        ) : (
+          <Text style={styles.noAccountText}>No transactions available</Text>
+        )}
       </View>
     </View>
   );
