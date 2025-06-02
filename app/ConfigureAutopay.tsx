@@ -22,7 +22,7 @@ import { useSelector } from "react-redux";
 import { fetchCustomerData } from "./services/customerService";
 import { fetchCreditSummariesWithId } from "./services/creditAccountService";
 import { ErrorCode } from "../utils/ErrorCodeUtil";
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect } from "@react-navigation/native";
 // Define an interface for the payment method to ensure type safety
 interface PaymentMethod {
   id: string;
@@ -237,7 +237,7 @@ const updateDefaultPaymentMethod = async (
     };
   }
 
-  console.log("Payload for updateDefaultPaymentMethod:", payload);
+  
 
   try {
     const response = await fetch(url, {
@@ -249,7 +249,7 @@ const updateDefaultPaymentMethod = async (
       body: JSON.stringify(payload),
     });
 
-    console.log("Response for updateDefaultPaymentMethod:", response);
+   
 
     const contentType = response.headers.get("content-type");
 
@@ -266,7 +266,7 @@ const updateDefaultPaymentMethod = async (
       ? await response.json()
       : await response.text();
 
-    console.log("API call successful:", data);
+ 
     return { type: "data", data };
   } catch (error) {
     console.error(
@@ -307,7 +307,7 @@ const updatePaymentSchedule = async (
 
   const url = `https://dev.ivitafi.com/api/CreditAccount/${creditAccountId}/payment-schedule-new`;
 
-  console.log("Payload for updatePaymentSchedule:", payload);
+  
 
   try {
     const response = await fetch(url, {
@@ -319,7 +319,7 @@ const updatePaymentSchedule = async (
       body: JSON.stringify(payload),
     });
 
-    console.log("Response for updatePaymentSchedule:", response);
+   
 
     const contentType = response.headers.get("content-type");
 
@@ -336,7 +336,7 @@ const updatePaymentSchedule = async (
       ? await response.json()
       : await response.text();
 
-    console.log("Payment schedule updated successfully:", data);
+    
     return { type: "data", data };
   } catch (error) {
     console.error("Error updating payment schedule:", error);
@@ -425,7 +425,7 @@ const ConfigureAutopay = () => {
   const [showFrequencyPicker, setShowFrequencyPicker] = useState(false);
   const [showDayPicker, setShowDayPicker] = useState(false);
   const [creditAccountId, setCreditAccountId] = useState<string | null>(null);
-
+  const [isModalVisible, setIsModalVisible] = useState(false);
   // Retrieve token from Redux store to authenticate API requests
   const token = useSelector((state: any) => state.auth.token);
 
@@ -447,148 +447,222 @@ const ConfigureAutopay = () => {
     return paymentDayTwo >= paymentDayOne + 7;
   };
 
+  // Replace your useEffect with useFocusEffect
+  useFocusEffect(
+    React.useCallback(() => {
+      const fetchData = async () => {
+        try {
+          const customerResponse = await fetchCustomerData(token, () => {});
+          if (customerResponse) {
+            const { creditSummaries } = await fetchCreditSummariesWithId(
+              customerResponse,
+              token
+            );
 
-// Replace your useEffect with useFocusEffect
-useFocusEffect(
-  React.useCallback(() => {
-    const fetchData = async () => {
-      try {
-        const customerResponse = await fetchCustomerData(token, () => {});
-        if (customerResponse) {
-          const { creditSummaries } = await fetchCreditSummariesWithId(
-            customerResponse,
-            token
-          );
+            if (creditSummaries && creditSummaries.length > 0) {
+              const customerId =
+                creditSummaries[0]?.detail?.creditAccount?.customerId;
+              const amountDue =
+                creditSummaries[0]?.detail?.creditAccount?.amountDueMonthly;
+              const creditAccountId =
+                creditSummaries[0]?.detail?.creditAccountId;
 
-          if (creditSummaries && creditSummaries.length > 0) {
-            const customerId = creditSummaries[0]?.detail?.creditAccount?.customerId;
-            const amountDue = creditSummaries[0]?.detail?.creditAccount?.amountDueMonthly;
-            const creditAccountId = creditSummaries[0]?.detail?.creditAccountId;
+             
+              setCreditAccountId(creditAccountId);
+              const paymentFrequency =
+                creditSummaries[0]?.detail?.creditAccount?.paymentSchedule
+                  ?.paymentFrequency;
 
-            console.log("creditAccountId:", creditAccountId);
-            setCreditAccountId(creditAccountId);
-            const paymentFrequency = creditSummaries[0]?.detail?.creditAccount?.paymentSchedule?.paymentFrequency;
+              setAmountDueMonthly(amountDue);
 
-            setAmountDueMonthly(amountDue);
+              const frequencyMap: Record<IncomeFrequency, string> = {
+                [IncomeFrequency.Unknown]: "Select",
+                [IncomeFrequency.Weekly]: "Weekly",
+                [IncomeFrequency.BiWeekly]: "Every Two Weeks",
+                [IncomeFrequency.SemiMonthly]: "Twice per Month",
+                [IncomeFrequency.Monthly]: "Monthly",
+              };
 
-            const frequencyMap: Record<IncomeFrequency, string> = {
-              [IncomeFrequency.Unknown]: "Select",
-              [IncomeFrequency.Weekly]: "Weekly",
-              [IncomeFrequency.BiWeekly]: "Every Two Weeks",
-              [IncomeFrequency.SemiMonthly]: "Twice per Month",
-              [IncomeFrequency.Monthly]: "Monthly",
-            };
+              const paymentFrequencyString =
+                frequencyMap[paymentFrequency as IncomeFrequency] || "Select";
+              setPaymentFrequency(paymentFrequency as IncomeFrequency);
 
-            const paymentFrequencyString = frequencyMap[paymentFrequency as IncomeFrequency] || "Select";
-            setPaymentFrequency(paymentFrequency as IncomeFrequency);
-
-            if (customerId) {
-              const methods = await fetchSavedPaymentMethods(token, customerId);
-              if (methods && methods.length > 0) {
-                const validMethods = methods.filter(
-                  (method: PaymentMethod) =>
-                    method.cardNumber !== null || method.accountNumber !== null
+              if (customerId) {
+                const methods = await fetchSavedPaymentMethods(
+                  token,
+                  customerId
                 );
-                setSavedMethods(validMethods);
+                if (methods && methods.length > 0) {
+                  const validMethods = methods.filter(
+                    (method: PaymentMethod) =>
+                      method.cardNumber !== null ||
+                      method.accountNumber !== null
+                  );
+                  setSavedMethods(validMethods);
 
-                const defaultPaymentMethod = creditSummaries[0]?.paymentMethod;
-                if (defaultPaymentMethod) {
-                  if (defaultPaymentMethod.cardNumber) {
-                    const formattedCardNumber = "x".repeat(defaultPaymentMethod.cardNumber.length - 4) + defaultPaymentMethod.cardNumber.slice(-4);
-                    setCardNumber(formattedCardNumber);
-                    setPaymentMethod(`Debit Card - ${defaultPaymentMethod.cardNumber.slice(-4)}`);
+                  const defaultPaymentMethod =
+                    creditSummaries[0]?.paymentMethod;
+                  if (defaultPaymentMethod) {
+                    if (defaultPaymentMethod.cardNumber) {
+                      const formattedCardNumber =
+                        "x".repeat(defaultPaymentMethod.cardNumber.length - 4) +
+                        defaultPaymentMethod.cardNumber.slice(-4);
+                      setCardNumber(formattedCardNumber);
+                      setPaymentMethod(
+                        `Debit Card - ${defaultPaymentMethod.cardNumber.slice(
+                          -4
+                        )}`
+                      );
 
-                    const expirationDate = new Date(defaultPaymentMethod.expirationDate);
-                    const expirationMonth = expirationDate.getMonth() + 1;
-                    const expirationYear = expirationDate.getFullYear();
+                      const expirationDate = new Date(
+                        defaultPaymentMethod.expirationDate
+                      );
+                      const expirationMonth = expirationDate.getMonth() + 1;
+                      const expirationYear = expirationDate.getFullYear();
 
-                    const monthNames = [
-                      "January", "February", "March", "April", "May", "June",
-                      "July", "August", "September", "October", "November", "December"
-                    ];
-                    const formattedExpirationMonth = `${expirationMonth.toString().padStart(2, "0")} - ${monthNames[expirationMonth - 1]}`;
+                      const monthNames = [
+                        "January",
+                        "February",
+                        "March",
+                        "April",
+                        "May",
+                        "June",
+                        "July",
+                        "August",
+                        "September",
+                        "October",
+                        "November",
+                        "December",
+                      ];
+                      const formattedExpirationMonth = `${expirationMonth
+                        .toString()
+                        .padStart(2, "0")} - ${
+                        monthNames[expirationMonth - 1]
+                      }`;
 
-                    setExpirationMonth(formattedExpirationMonth);
-                    setExpirationYear(expirationYear.toString());
-                  } else if (defaultPaymentMethod.accountNumber) {
-                    setAccountNumber(defaultPaymentMethod.accountNumber);
-                    setRoutingNumber(defaultPaymentMethod.routingNumber || "");
-                    setPaymentMethod(`Checking Account - ${defaultPaymentMethod.accountNumber.slice(-4)}`);
+                      setExpirationMonth(formattedExpirationMonth);
+                      setExpirationYear(expirationYear.toString());
+                    } else if (defaultPaymentMethod.accountNumber) {
+                      setAccountNumber(defaultPaymentMethod.accountNumber);
+                      setRoutingNumber(
+                        defaultPaymentMethod.routingNumber || ""
+                      );
+                      setPaymentMethod(
+                        `Checking Account - ${defaultPaymentMethod.accountNumber.slice(
+                          -4
+                        )}`
+                      );
+                    }
+                  }
+                }
+              }
+
+              const paymentSchedule =
+                creditSummaries[0]?.detail?.creditAccount?.paymentSchedule;
+            
+
+              if (paymentSchedule) {
+                setPaymentSchedule(paymentSchedule);
+                setPaymentAmount(
+                  formatPaymentAmount(paymentSchedule.paymentAmount)
+                );
+
+                const initialPaymentDate = new Date(
+                  paymentSchedule.initialPaymentDate
+                );
+                setLastPayDate(initialPaymentDate);
+
+                if (
+                  paymentSchedule.paymentFrequency === IncomeFrequency.Weekly ||
+                  paymentSchedule.paymentFrequency ===
+                    IncomeFrequency.BiWeekly ||
+                  paymentSchedule.paymentFrequency === IncomeFrequency.Monthly
+                ) {
+                  setPaymentDayOne(paymentSchedule.paymentDayOne);
+                  setPaymentDayTwo(undefined);
+                } else if (
+                  paymentSchedule.paymentFrequency ===
+                  IncomeFrequency.SemiMonthly
+                ) {
+                  setPaymentDayOne(paymentSchedule.paymentDayOne);
+                  setPaymentDayTwo(paymentSchedule.paymentDayTwo);
+                }
+
+                setSelectedPayDayOne(
+                  paymentSchedule.paymentDayOne
+                    ? date2Map[paymentSchedule.paymentDayOne]
+                    : ""
+                );
+                setSelectedPayDayTwo(
+                  paymentSchedule.paymentDayTwo
+                    ? date3Map[paymentSchedule.paymentDayTwo]
+                    : ""
+                );
+
+                setPaymentWeekOne(paymentSchedule.paymentWeekOne);
+                setPaymentWeekTwo(paymentSchedule.paymentWeekTwo);
+
+                setInitialPaymentDate(initialPaymentDate);
+                setStartDate(new Date(paymentSchedule.startDate));
+
+                setAutoPayEnabled(paymentSchedule.autoPayEnabled);
+                setPaymentType(paymentSchedule.paymentType);
+
+                setNextPaymentDate(new Date(paymentSchedule.nextPaymentDate));
+                setNextPaymentAmount(paymentSchedule.nextPaymentAmount);
+
+                if (
+                  paymentSchedule.paymentFrequency === IncomeFrequency.Weekly
+                ) {
+                  setPaymentFrequency(IncomeFrequency.Weekly);
+                  const dayOfWeekValue = paymentSchedule.paymentDayOne;
+                  setDayOfWeek(
+                    daysOfTheWeek.find((day) => day.value === dayOfWeekValue)
+                      ?.name || ""
+                  );
+                } else if (
+                  paymentSchedule.paymentFrequency === IncomeFrequency.BiWeekly
+                ) {
+                  setPaymentFrequency(IncomeFrequency.BiWeekly);
+                } else if (
+                  paymentSchedule.paymentFrequency ===
+                  IncomeFrequency.SemiMonthly
+                ) {
+                  setPaymentFrequency(IncomeFrequency.SemiMonthly);
+                } else if (
+                  paymentSchedule.paymentFrequency === IncomeFrequency.Monthly
+                ) {
+                  setPaymentFrequency(IncomeFrequency.Monthly);
+                  if (
+                    paymentSchedule.paymentSubFrequency ===
+                    PaymentSubFrequency.SpecificDay
+                  ) {
+                    setPaymentSubFrequency(PaymentSubFrequency.SpecificDay);
+                  } else if (
+                    paymentSchedule.paymentSubFrequency ===
+                    PaymentSubFrequency.SpecificWeekAndDay
+                  ) {
+                    setPaymentSubFrequency(
+                      PaymentSubFrequency.SpecificWeekAndDay
+                    );
                   }
                 }
               }
             }
-
-            const paymentSchedule = creditSummaries[0]?.detail?.creditAccount?.paymentSchedule;
-            console.log(paymentSchedule);
-
-            if (paymentSchedule) {
-              setPaymentSchedule(paymentSchedule);
-              setPaymentAmount(formatPaymentAmount(paymentSchedule.paymentAmount));
-
-              const initialPaymentDate = new Date(paymentSchedule.initialPaymentDate);
-              setLastPayDate(initialPaymentDate);
-
-              if (
-                paymentSchedule.paymentFrequency === IncomeFrequency.Weekly ||
-                paymentSchedule.paymentFrequency === IncomeFrequency.BiWeekly ||
-                paymentSchedule.paymentFrequency === IncomeFrequency.Monthly
-              ) {
-                setPaymentDayOne(paymentSchedule.paymentDayOne);
-                setPaymentDayTwo(undefined);
-              } else if (paymentSchedule.paymentFrequency === IncomeFrequency.SemiMonthly) {
-                setPaymentDayOne(paymentSchedule.paymentDayOne);
-                setPaymentDayTwo(paymentSchedule.paymentDayTwo);
-              }
-
-              setSelectedPayDayOne(paymentSchedule.paymentDayOne ? date2Map[paymentSchedule.paymentDayOne] : "");
-              setSelectedPayDayTwo(paymentSchedule.paymentDayTwo ? date3Map[paymentSchedule.paymentDayTwo] : "");
-
-              setPaymentWeekOne(paymentSchedule.paymentWeekOne);
-              setPaymentWeekTwo(paymentSchedule.paymentWeekTwo);
-
-              setInitialPaymentDate(initialPaymentDate);
-              setStartDate(new Date(paymentSchedule.startDate));
-
-              setAutoPayEnabled(paymentSchedule.autoPayEnabled);
-              setPaymentType(paymentSchedule.paymentType);
-
-              setNextPaymentDate(new Date(paymentSchedule.nextPaymentDate));
-              setNextPaymentAmount(paymentSchedule.nextPaymentAmount);
-
-              if (paymentSchedule.paymentFrequency === IncomeFrequency.Weekly) {
-                setPaymentFrequency(IncomeFrequency.Weekly);
-                const dayOfWeekValue = paymentSchedule.paymentDayOne;
-                setDayOfWeek(daysOfTheWeek.find((day) => day.value === dayOfWeekValue)?.name || "");
-              } else if (paymentSchedule.paymentFrequency === IncomeFrequency.BiWeekly) {
-                setPaymentFrequency(IncomeFrequency.BiWeekly);
-              } else if (paymentSchedule.paymentFrequency === IncomeFrequency.SemiMonthly) {
-                setPaymentFrequency(IncomeFrequency.SemiMonthly);
-              } else if (paymentSchedule.paymentFrequency === IncomeFrequency.Monthly) {
-                setPaymentFrequency(IncomeFrequency.Monthly);
-                if (paymentSchedule.paymentSubFrequency === PaymentSubFrequency.SpecificDay) {
-                  setPaymentSubFrequency(PaymentSubFrequency.SpecificDay);
-                } else if (paymentSchedule.paymentSubFrequency === PaymentSubFrequency.SpecificWeekAndDay) {
-                  setPaymentSubFrequency(PaymentSubFrequency.SpecificWeekAndDay);
-                }
-              }
-            }
           }
+        } catch (error) {
+          console.error("Error fetching customer data:", error);
         }
-      } catch (error) {
-        console.error("Error fetching customer data:", error);
+      };
+
+      if (token) {
+       
+        fetchData();
+      } else {
+        console.error("Token is missing");
       }
-    };
-
-    if (token) {
-      console.log("Token:", token);
-      fetchData();
-    } else {
-      console.error("Token is missing");
-    }
-  }, [token])
-);
-
+    }, [token])
+  );
 
   useEffect(() => {
     if (paymentSchedule && amountDueMonthly) {
@@ -642,10 +716,7 @@ useFocusEffect(
     }
 
     const formattedAmount = formatPaymentAmount(amount);
-    console.log(
-      "Payment Amount in updatePaymentSchedulePaymentAmount:",
-      formattedAmount
-    );
+   
     setPaymentAmount(formattedAmount);
   };
 
@@ -682,19 +753,18 @@ useFocusEffect(
   };
 
   const handlePaymentMethodChange = (value: string) => {
-    console.log("Payment Method Value:", value);
+ 
 
     setPaymentMethod(value);
 
     if (value.startsWith("Debit Card -")) {
       const cardNumberFromValue = value.split(" - ")[1];
-      console.log("Card Number From Value:", cardNumberFromValue);
-
+     
       const selectedMethod = savedMethods.find(
         (method) =>
           method.cardNumber && method.cardNumber.endsWith(cardNumberFromValue)
       );
-      console.log("Selected Method:", selectedMethod);
+    
 
       if (selectedMethod && selectedMethod.cardNumber) {
         const formattedCardNumber =
@@ -729,14 +799,14 @@ useFocusEffect(
       }
     } else if (value.startsWith("Checking Account -")) {
       const accountNumberFromValue = value.split(" - ")[1];
-      console.log("Account Number From Value:", accountNumberFromValue);
+
 
       const selectedMethod = savedMethods.find(
         (method) =>
           method.accountNumber &&
           method.accountNumber.endsWith(accountNumberFromValue)
       );
-      console.log("Selected Method:", selectedMethod);
+     
 
       if (selectedMethod) {
         setAccountNumber(selectedMethod.accountNumber || "");
@@ -752,7 +822,7 @@ useFocusEffect(
             value.endsWith(method.accountNumber.slice(-4)))
       )?.id;
 
-      console.log("Selected Payment Method ID:", selectedMethodId);
+      
       setSelectedPaymentMethodId(selectedMethodId ?? null);
     }
 
@@ -765,7 +835,7 @@ useFocusEffect(
 
   useEffect(() => {
     if (selectedPaymentMethodId) {
-      console.log("Selected Payment Method ID:", selectedPaymentMethodId);
+     
     }
   }, [selectedPaymentMethodId]);
 
@@ -798,7 +868,7 @@ useFocusEffect(
     const selectedValue = Number(itemValue);
     setSelectedPayDayOne(date2Map[selectedValue]);
     setPaymentDayOne(selectedValue);
-    console.log("Payday One Value:", selectedValue);
+    
     setShowPayDayOnePicker(false);
   };
 
@@ -806,7 +876,7 @@ useFocusEffect(
     const selectedValue = Number(itemValue);
     setSelectedPayDayTwo(date3Map[selectedValue]);
     setPaymentDayTwo(selectedValue);
-    console.log("Payday Two Value:", selectedValue);
+  
     setShowPayDayTwoPicker(false);
   };
 
@@ -819,8 +889,7 @@ useFocusEffect(
     if (selectedOption) {
       setSelectedWhichDaysValue(selectedOption.value);
       setWhichDaysDisplayName(selectedOption.name);
-      console.log("Selected Option Value:", selectedOption.value);
-
+     
       if (selectedOption.value === 1) {
         setPaymentSubFrequency(PaymentSubFrequency.SpecificDay);
       } else if (selectedOption.value === 2) {
@@ -870,8 +939,7 @@ useFocusEffect(
     return `${month}/${day}/${year}`;
   };
   const handleSubmit = async () => {
-    console.log("Submitting form...");
-
+   
     if (creditAccountId && selectedPaymentMethodId && token) {
       const result = await updateDefaultPaymentMethod(
         creditAccountId,
@@ -889,7 +957,7 @@ useFocusEffect(
           const safeNextPaymentAmount = parseFloat(
             paymentAmount.replace(/[^0-9.-]/g, "")
           );
-          console.log("Payment Amount before API call:", safeNextPaymentAmount);
+     
 
           if (isNaN(safeNextPaymentAmount)) {
             console.error("Invalid payment amount");
@@ -945,7 +1013,7 @@ useFocusEffect(
             nextPaymentAmount: safeNextPaymentAmount,
           };
 
-          console.log("Payment Amount in payload:", safeNextPaymentAmount);
+        
 
           const scheduleResult = await updatePaymentSchedule(
             creditAccountId,
@@ -955,7 +1023,7 @@ useFocusEffect(
 
           if (scheduleResult) {
             if (scheduleResult.type === "data") {
-              console.log("Payment schedule updated successfully");
+             
 
               // Refresh the page by refetching the data
               const customerResponse = await fetchCustomerData(token, () => {});
@@ -993,6 +1061,47 @@ useFocusEffect(
       );
     }
   };
+  // Function to handle the press event of the "Turn off AutoPay" text
+  const handleTurnOffAutoPayPress = () => {
+    setIsModalVisible(true);
+  };
+
+  // Function to handle the OK button press in the modal
+  const handleOKPress = () => {
+    setIsModalVisible(false);
+  }; // Modal structure
+  const renderModal = () => (
+    <Modal
+      animationType="slide"
+      transparent={true}
+      visible={isModalVisible}
+      onRequestClose={() => {
+        setIsModalVisible(false);
+      }}
+    >
+      <View style={styles.modalContainer}>
+        <View style={styles.modalContent}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>Information</Text>
+            <TouchableOpacity
+              style={styles.closeIcon}
+              onPress={() => setIsModalVisible(false)}
+            >
+              <Ionicons name="close" size={24} color="black" />
+            </TouchableOpacity>
+          </View>
+          <Text style={styles.modalText}>
+            For assistance, please contact Customer Care at (800) 341-2316.
+            Support is available Monday through Friday, from 9:00 AM to 7:00 PM
+            Eastern Time.
+          </Text>
+          <TouchableOpacity style={styles.modalButton} onPress={handleOKPress}>
+            <Text style={styles.modalButtonText}>OK</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </Modal>
+  );
 
   return (
     <KeyboardAvoidingView
@@ -1235,7 +1344,8 @@ useFocusEffect(
                         onValueChange={(itemValue) => {
                           const frequency =
                             getIncomeFrequencyFromString(itemValue);
-                          console.log("Selected Frequency:", frequency);
+                          
+                        
                           setPaymentFrequency(frequency);
                           setShowFrequencyPicker(false);
                         }}
@@ -1243,7 +1353,7 @@ useFocusEffect(
                         itemStyle={{ color: "black" }}
                       >
                         {incomeFrequencies.map((frequency, index) => {
-                          console.log(frequency.name);
+                        
                           return (
                             <Picker.Item
                               key={index}
@@ -1888,6 +1998,15 @@ useFocusEffect(
               <Text style={styles.summaryText}>
                 {getPaymentSummaryMessage()}
               </Text>
+              <View style={styles.container}>
+                {renderModal()}
+
+                <TouchableOpacity onPress={handleTurnOffAutoPayPress}>
+                  <Text style={styles.turnOffAutoPayText}>
+                    Turn off AutoPay
+                  </Text>
+                </TouchableOpacity>
+              </View>
               <TouchableOpacity
                 style={styles.submitButton}
                 onPress={handleSubmit}
