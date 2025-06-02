@@ -23,6 +23,7 @@ import { fetchCustomerData } from "./services/customerService";
 import { fetchCreditSummariesWithId } from "./services/creditAccountService";
 import { ErrorCode } from "../utils/ErrorCodeUtil";
 import { useFocusEffect } from "@react-navigation/native";
+import Toast from 'react-native-toast-message';
 // Define an interface for the payment method to ensure type safety
 interface PaymentMethod {
   id: string;
@@ -237,8 +238,6 @@ const updateDefaultPaymentMethod = async (
     };
   }
 
-  
-
   try {
     const response = await fetch(url, {
       method: "PUT",
@@ -248,8 +247,6 @@ const updateDefaultPaymentMethod = async (
       },
       body: JSON.stringify(payload),
     });
-
-   
 
     const contentType = response.headers.get("content-type");
 
@@ -266,7 +263,6 @@ const updateDefaultPaymentMethod = async (
       ? await response.json()
       : await response.text();
 
- 
     return { type: "data", data };
   } catch (error) {
     console.error(
@@ -307,8 +303,6 @@ const updatePaymentSchedule = async (
 
   const url = `https://dev.ivitafi.com/api/CreditAccount/${creditAccountId}/payment-schedule-new`;
 
-  
-
   try {
     const response = await fetch(url, {
       method: "PUT",
@@ -319,8 +313,6 @@ const updatePaymentSchedule = async (
       body: JSON.stringify(payload),
     });
 
-   
-
     const contentType = response.headers.get("content-type");
 
     if (!response.ok) {
@@ -328,7 +320,7 @@ const updatePaymentSchedule = async (
         ? await response.json()
         : { errorMessage: await response.text() };
 
-      console.error("Error updating payment schedule:", errorData);
+      console.log("Error updating payment schedule:", errorData);
       return { type: "error", response: errorData };
     }
 
@@ -336,10 +328,9 @@ const updatePaymentSchedule = async (
       ? await response.json()
       : await response.text();
 
-    
     return { type: "data", data };
   } catch (error) {
-    console.error("Error updating payment schedule:", error);
+    console.log("Error updating payment schedule:", error);
     return { type: "error", error: { errorCode: ErrorCode.Unknown } };
   }
 };
@@ -467,7 +458,6 @@ const ConfigureAutopay = () => {
               const creditAccountId =
                 creditSummaries[0]?.detail?.creditAccountId;
 
-             
               setCreditAccountId(creditAccountId);
               const paymentFrequency =
                 creditSummaries[0]?.detail?.creditAccount?.paymentSchedule
@@ -559,7 +549,6 @@ const ConfigureAutopay = () => {
 
               const paymentSchedule =
                 creditSummaries[0]?.detail?.creditAccount?.paymentSchedule;
-            
 
               if (paymentSchedule) {
                 setPaymentSchedule(paymentSchedule);
@@ -656,7 +645,6 @@ const ConfigureAutopay = () => {
       };
 
       if (token) {
-       
         fetchData();
       } else {
         console.error("Token is missing");
@@ -716,7 +704,7 @@ const ConfigureAutopay = () => {
     }
 
     const formattedAmount = formatPaymentAmount(amount);
-   
+
     setPaymentAmount(formattedAmount);
   };
 
@@ -753,18 +741,15 @@ const ConfigureAutopay = () => {
   };
 
   const handlePaymentMethodChange = (value: string) => {
- 
-
     setPaymentMethod(value);
 
     if (value.startsWith("Debit Card -")) {
       const cardNumberFromValue = value.split(" - ")[1];
-     
+
       const selectedMethod = savedMethods.find(
         (method) =>
           method.cardNumber && method.cardNumber.endsWith(cardNumberFromValue)
       );
-    
 
       if (selectedMethod && selectedMethod.cardNumber) {
         const formattedCardNumber =
@@ -800,13 +785,11 @@ const ConfigureAutopay = () => {
     } else if (value.startsWith("Checking Account -")) {
       const accountNumberFromValue = value.split(" - ")[1];
 
-
       const selectedMethod = savedMethods.find(
         (method) =>
           method.accountNumber &&
           method.accountNumber.endsWith(accountNumberFromValue)
       );
-     
 
       if (selectedMethod) {
         setAccountNumber(selectedMethod.accountNumber || "");
@@ -822,7 +805,6 @@ const ConfigureAutopay = () => {
             value.endsWith(method.accountNumber.slice(-4)))
       )?.id;
 
-      
       setSelectedPaymentMethodId(selectedMethodId ?? null);
     }
 
@@ -835,7 +817,6 @@ const ConfigureAutopay = () => {
 
   useEffect(() => {
     if (selectedPaymentMethodId) {
-     
     }
   }, [selectedPaymentMethodId]);
 
@@ -868,7 +849,7 @@ const ConfigureAutopay = () => {
     const selectedValue = Number(itemValue);
     setSelectedPayDayOne(date2Map[selectedValue]);
     setPaymentDayOne(selectedValue);
-    
+
     setShowPayDayOnePicker(false);
   };
 
@@ -876,7 +857,7 @@ const ConfigureAutopay = () => {
     const selectedValue = Number(itemValue);
     setSelectedPayDayTwo(date3Map[selectedValue]);
     setPaymentDayTwo(selectedValue);
-  
+
     setShowPayDayTwoPicker(false);
   };
 
@@ -889,7 +870,7 @@ const ConfigureAutopay = () => {
     if (selectedOption) {
       setSelectedWhichDaysValue(selectedOption.value);
       setWhichDaysDisplayName(selectedOption.name);
-     
+
       if (selectedOption.value === 1) {
         setPaymentSubFrequency(PaymentSubFrequency.SpecificDay);
       } else if (selectedOption.value === 2) {
@@ -939,7 +920,6 @@ const ConfigureAutopay = () => {
     return `${month}/${day}/${year}`;
   };
   const handleSubmit = async () => {
-   
     if (creditAccountId && selectedPaymentMethodId && token) {
       const result = await updateDefaultPaymentMethod(
         creditAccountId,
@@ -957,7 +937,6 @@ const ConfigureAutopay = () => {
           const safeNextPaymentAmount = parseFloat(
             paymentAmount.replace(/[^0-9.-]/g, "")
           );
-     
 
           if (isNaN(safeNextPaymentAmount)) {
             console.error("Invalid payment amount");
@@ -1013,8 +992,6 @@ const ConfigureAutopay = () => {
             nextPaymentAmount: safeNextPaymentAmount,
           };
 
-        
-
           const scheduleResult = await updatePaymentSchedule(
             creditAccountId,
             token,
@@ -1023,7 +1000,15 @@ const ConfigureAutopay = () => {
 
           if (scheduleResult) {
             if (scheduleResult.type === "data") {
-             
+              // Show a toast notification on successful update
+              Toast.show({
+                type: "success",
+                text1: "Payment Updated Successfully",
+                visibilityTime: 3000,
+                autoHide: true,
+                topOffset: 30,
+                bottomOffset: 40,
+              });
 
               // Refresh the page by refetching the data
               const customerResponse = await fetchCustomerData(token, () => {});
@@ -1044,23 +1029,18 @@ const ConfigureAutopay = () => {
                 }
               }
             } else {
-              console.error("Failed to update payment schedule");
+              console.log("Failed to update payment schedule");
             }
-          } else {
-            console.error("No result returned from updatePaymentSchedule");
           }
-        } else {
-          console.error("Failed to update payment method");
         }
-      } else {
-        console.error("No result returned from updateDefaultPaymentMethod");
       }
     } else {
-      console.error(
+      console.log(
         "creditAccountId, selectedPaymentMethodId, or token is missing"
       );
     }
   };
+
   // Function to handle the press event of the "Turn off AutoPay" text
   const handleTurnOffAutoPayPress = () => {
     setIsModalVisible(true);
@@ -1344,8 +1324,7 @@ const ConfigureAutopay = () => {
                         onValueChange={(itemValue) => {
                           const frequency =
                             getIncomeFrequencyFromString(itemValue);
-                          
-                        
+
                           setPaymentFrequency(frequency);
                           setShowFrequencyPicker(false);
                         }}
@@ -1353,7 +1332,6 @@ const ConfigureAutopay = () => {
                         itemStyle={{ color: "black" }}
                       >
                         {incomeFrequencies.map((frequency, index) => {
-                        
                           return (
                             <Picker.Item
                               key={index}
