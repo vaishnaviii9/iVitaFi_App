@@ -22,7 +22,7 @@ import { useSelector } from "react-redux";
 import { fetchCustomerData } from "./services/customerService";
 import { fetchCreditSummariesWithId } from "./services/creditAccountService";
 import { ErrorCode } from "../utils/ErrorCodeUtil";
-
+import { useFocusEffect } from '@react-navigation/native';
 // Define an interface for the payment method to ensure type safety
 interface PaymentMethod {
   id: string;
@@ -288,7 +288,7 @@ const updatePaymentSchedule = async (
     paymentDayTwo?: number;
     paymentWeekOne?: number;
     paymentWeekTwo?: number;
-    paymentAmount?: any;
+    paymentAmount?: number;
     initialPaymentDate?: Date;
     startDate?: Date;
     autoPayEnabled: boolean;
@@ -447,7 +447,10 @@ const ConfigureAutopay = () => {
     return paymentDayTwo >= paymentDayOne + 7;
   };
 
-  useEffect(() => {
+
+// Replace your useEffect with useFocusEffect
+useFocusEffect(
+  React.useCallback(() => {
     const fetchData = async () => {
       try {
         const customerResponse = await fetchCustomerData(token, () => {});
@@ -458,17 +461,13 @@ const ConfigureAutopay = () => {
           );
 
           if (creditSummaries && creditSummaries.length > 0) {
-            const customerId =
-              creditSummaries[0]?.detail?.creditAccount?.customerId;
-            const amountDue =
-              creditSummaries[0]?.detail?.creditAccount?.amountDueMonthly;
+            const customerId = creditSummaries[0]?.detail?.creditAccount?.customerId;
+            const amountDue = creditSummaries[0]?.detail?.creditAccount?.amountDueMonthly;
             const creditAccountId = creditSummaries[0]?.detail?.creditAccountId;
 
             console.log("creditAccountId:", creditAccountId);
             setCreditAccountId(creditAccountId);
-            const paymentFrequency =
-              creditSummaries[0]?.detail?.creditAccount?.paymentSchedule
-                ?.paymentFrequency;
+            const paymentFrequency = creditSummaries[0]?.detail?.creditAccount?.paymentSchedule?.paymentFrequency;
 
             setAmountDueMonthly(amountDue);
 
@@ -480,8 +479,7 @@ const ConfigureAutopay = () => {
               [IncomeFrequency.Monthly]: "Monthly",
             };
 
-            const paymentFrequencyString =
-              frequencyMap[paymentFrequency as IncomeFrequency] || "Select";
+            const paymentFrequencyString = frequencyMap[paymentFrequency as IncomeFrequency] || "Select";
             setPaymentFrequency(paymentFrequency as IncomeFrequency);
 
             if (customerId) {
@@ -496,67 +494,39 @@ const ConfigureAutopay = () => {
                 const defaultPaymentMethod = creditSummaries[0]?.paymentMethod;
                 if (defaultPaymentMethod) {
                   if (defaultPaymentMethod.cardNumber) {
-                    const formattedCardNumber =
-                      "x".repeat(defaultPaymentMethod.cardNumber.length - 4) +
-                      defaultPaymentMethod.cardNumber.slice(-4);
+                    const formattedCardNumber = "x".repeat(defaultPaymentMethod.cardNumber.length - 4) + defaultPaymentMethod.cardNumber.slice(-4);
                     setCardNumber(formattedCardNumber);
-                    setPaymentMethod(
-                      `Debit Card - ${defaultPaymentMethod.cardNumber.slice(
-                        -4
-                      )}`
-                    );
+                    setPaymentMethod(`Debit Card - ${defaultPaymentMethod.cardNumber.slice(-4)}`);
 
-                    const expirationDate = new Date(
-                      defaultPaymentMethod.expirationDate
-                    );
+                    const expirationDate = new Date(defaultPaymentMethod.expirationDate);
                     const expirationMonth = expirationDate.getMonth() + 1;
                     const expirationYear = expirationDate.getFullYear();
 
                     const monthNames = [
-                      "January",
-                      "February",
-                      "March",
-                      "April",
-                      "May",
-                      "June",
-                      "July",
-                      "August",
-                      "September",
-                      "October",
-                      "November",
-                      "December",
+                      "January", "February", "March", "April", "May", "June",
+                      "July", "August", "September", "October", "November", "December"
                     ];
-                    const formattedExpirationMonth = `${expirationMonth
-                      .toString()
-                      .padStart(2, "0")} - ${monthNames[expirationMonth - 1]}`;
+                    const formattedExpirationMonth = `${expirationMonth.toString().padStart(2, "0")} - ${monthNames[expirationMonth - 1]}`;
 
                     setExpirationMonth(formattedExpirationMonth);
                     setExpirationYear(expirationYear.toString());
                   } else if (defaultPaymentMethod.accountNumber) {
                     setAccountNumber(defaultPaymentMethod.accountNumber);
                     setRoutingNumber(defaultPaymentMethod.routingNumber || "");
-                    setPaymentMethod(
-                      `Checking Account - ${defaultPaymentMethod.accountNumber.slice(
-                        -4
-                      )}`
-                    );
+                    setPaymentMethod(`Checking Account - ${defaultPaymentMethod.accountNumber.slice(-4)}`);
                   }
                 }
               }
             }
 
-            const paymentSchedule =
-              creditSummaries[0]?.detail?.creditAccount?.paymentSchedule;
+            const paymentSchedule = creditSummaries[0]?.detail?.creditAccount?.paymentSchedule;
+            console.log(paymentSchedule);
+
             if (paymentSchedule) {
               setPaymentSchedule(paymentSchedule);
-              updatePaymentSchedulePaymentAmount(
-                paymentSchedule,
-                Number(amountDue)
-              );
+              setPaymentAmount(formatPaymentAmount(paymentSchedule.paymentAmount));
 
-              const initialPaymentDate = new Date(
-                paymentSchedule.initialPaymentDate
-              );
+              const initialPaymentDate = new Date(paymentSchedule.initialPaymentDate);
               setLastPayDate(initialPaymentDate);
 
               if (
@@ -566,23 +536,13 @@ const ConfigureAutopay = () => {
               ) {
                 setPaymentDayOne(paymentSchedule.paymentDayOne);
                 setPaymentDayTwo(undefined);
-              } else if (
-                paymentSchedule.paymentFrequency === IncomeFrequency.SemiMonthly
-              ) {
+              } else if (paymentSchedule.paymentFrequency === IncomeFrequency.SemiMonthly) {
                 setPaymentDayOne(paymentSchedule.paymentDayOne);
                 setPaymentDayTwo(paymentSchedule.paymentDayTwo);
               }
 
-              setSelectedPayDayOne(
-                paymentSchedule.paymentDayOne
-                  ? date2Map[paymentSchedule.paymentDayOne]
-                  : ""
-              );
-              setSelectedPayDayTwo(
-                paymentSchedule.paymentDayTwo
-                  ? date3Map[paymentSchedule.paymentDayTwo]
-                  : ""
-              );
+              setSelectedPayDayOne(paymentSchedule.paymentDayOne ? date2Map[paymentSchedule.paymentDayOne] : "");
+              setSelectedPayDayTwo(paymentSchedule.paymentDayTwo ? date3Map[paymentSchedule.paymentDayTwo] : "");
 
               setPaymentWeekOne(paymentSchedule.paymentWeekOne);
               setPaymentWeekTwo(paymentSchedule.paymentWeekTwo);
@@ -599,34 +559,17 @@ const ConfigureAutopay = () => {
               if (paymentSchedule.paymentFrequency === IncomeFrequency.Weekly) {
                 setPaymentFrequency(IncomeFrequency.Weekly);
                 const dayOfWeekValue = paymentSchedule.paymentDayOne;
-                setDayOfWeek(
-                  daysOfTheWeek.find((day) => day.value === dayOfWeekValue)
-                    ?.name || ""
-                );
-              } else if (
-                paymentSchedule.paymentFrequency === IncomeFrequency.BiWeekly
-              ) {
+                setDayOfWeek(daysOfTheWeek.find((day) => day.value === dayOfWeekValue)?.name || "");
+              } else if (paymentSchedule.paymentFrequency === IncomeFrequency.BiWeekly) {
                 setPaymentFrequency(IncomeFrequency.BiWeekly);
-              } else if (
-                paymentSchedule.paymentFrequency === IncomeFrequency.SemiMonthly
-              ) {
+              } else if (paymentSchedule.paymentFrequency === IncomeFrequency.SemiMonthly) {
                 setPaymentFrequency(IncomeFrequency.SemiMonthly);
-              } else if (
-                paymentSchedule.paymentFrequency === IncomeFrequency.Monthly
-              ) {
+              } else if (paymentSchedule.paymentFrequency === IncomeFrequency.Monthly) {
                 setPaymentFrequency(IncomeFrequency.Monthly);
-                if (
-                  paymentSchedule.paymentSubFrequency ===
-                  PaymentSubFrequency.SpecificDay
-                ) {
+                if (paymentSchedule.paymentSubFrequency === PaymentSubFrequency.SpecificDay) {
                   setPaymentSubFrequency(PaymentSubFrequency.SpecificDay);
-                } else if (
-                  paymentSchedule.paymentSubFrequency ===
-                  PaymentSubFrequency.SpecificWeekAndDay
-                ) {
-                  setPaymentSubFrequency(
-                    PaymentSubFrequency.SpecificWeekAndDay
-                  );
+                } else if (paymentSchedule.paymentSubFrequency === PaymentSubFrequency.SpecificWeekAndDay) {
+                  setPaymentSubFrequency(PaymentSubFrequency.SpecificWeekAndDay);
                 }
               }
             }
@@ -643,7 +586,9 @@ const ConfigureAutopay = () => {
     } else {
       console.error("Token is missing");
     }
-  }, [token]);
+  }, [token])
+);
+
 
   useEffect(() => {
     if (paymentSchedule && amountDueMonthly) {
@@ -661,7 +606,7 @@ const ConfigureAutopay = () => {
   const formatPaymentAmount = (amount: number) => {
     return `$${amount.toFixed(2)}`;
   };
-
+  // Function to update the payment schedule payment amount
   const updatePaymentSchedulePaymentAmount = (
     paymentSchedule: {
       paymentFrequency: IncomeFrequency;
@@ -696,8 +641,15 @@ const ConfigureAutopay = () => {
       setSpDay(false);
     }
 
-    setPaymentAmount(formatPaymentAmount(amount));
+    const formattedAmount = formatPaymentAmount(amount);
+    console.log(
+      "Payment Amount in updatePaymentSchedulePaymentAmount:",
+      formattedAmount
+    );
+    setPaymentAmount(formattedAmount);
   };
+
+  // Function to handle form submission
 
   const getPaymentSummaryMessage = () => {
     if (!paymentSchedule || !paymentAmount) return "";
@@ -917,15 +869,10 @@ const ConfigureAutopay = () => {
 
     return `${month}/${day}/${year}`;
   };
-
   const handleSubmit = async () => {
     console.log("Submitting form...");
 
     if (creditAccountId && selectedPaymentMethodId && token) {
-      console.log("creditAccountId:", creditAccountId);
-      console.log("selectedPaymentMethodId:", selectedPaymentMethodId);
-      console.log("token:", token);
-
       const result = await updateDefaultPaymentMethod(
         creditAccountId,
         selectedPaymentMethodId,
@@ -937,76 +884,68 @@ const ConfigureAutopay = () => {
         expirationYear
       );
 
-      console.log("Result from updateDefaultPaymentMethod:", result);
-
       if (result) {
         if (result.type === "data") {
-          console.log("Payment method updated successfully");
-          const safeNextPaymentDate =
-            nextPaymentDate && !isNaN(nextPaymentDate.getTime())
-              ? nextPaymentDate
-              : new Date();
+          const safeNextPaymentAmount = parseFloat(
+            paymentAmount.replace(/[^0-9.-]/g, "")
+          );
+          console.log("Payment Amount before API call:", safeNextPaymentAmount);
 
-          const safeNextPaymentAmount =
-            nextPaymentAmount ?? Number(paymentAmount.replace("$", ""));
+          if (isNaN(safeNextPaymentAmount)) {
+            console.error("Invalid payment amount");
+            return;
+          }
 
           let safePaymentSubFrequency = paymentSubFrequency;
           let safePaymentDayOne = paymentDayOne;
           let safePaymentDayTwo = paymentDayTwo;
+          let safePaymentWeekOne = paymentWeekOne;
 
-          if (
+          if (paymentFrequency === IncomeFrequency.Monthly) {
+            if (paymentSubFrequency === PaymentSubFrequency.SpecificDay) {
+              safePaymentDayOne = Number(paymentDate);
+            } else if (
+              paymentSubFrequency === PaymentSubFrequency.SpecificWeekAndDay
+            ) {
+              safePaymentDayOne = Number(paymentWeek);
+              safePaymentWeekOne = daysOfTheWeek.find(
+                (day) => day.name === dayOfWeek
+              )?.value;
+            }
+          } else if (
             paymentFrequency === IncomeFrequency.Weekly ||
             paymentFrequency === IncomeFrequency.BiWeekly
           ) {
             safePaymentSubFrequency = 0;
             safePaymentDayOne =
               daysOfTheWeek.find((day) => day.name === dayOfWeek)?.value || 0;
-            safePaymentDayTwo = 0;
+            safePaymentWeekOne = 0;
+          } else if (paymentFrequency === IncomeFrequency.SemiMonthly) {
+            safePaymentSubFrequency = PaymentSubFrequency.SpecificDay;
           }
-
-          if (paymentFrequency === IncomeFrequency.Monthly) {
-            safePaymentSubFrequency = paymentSubFrequency;
-          }
-
-          if (paymentFrequency === IncomeFrequency.SemiMonthly) {
-            safePaymentSubFrequency = 1;
-          }
-
-          console.log("Building payload with:", {
-            paymentFrequency,
-            safePaymentSubFrequency,
-            safePaymentDayOne,
-            safePaymentDayTwo,
-            paymentWeekOne,
-            paymentWeekTwo,
-            paymentAmount,
-            initialPaymentDate,
-            startDate,
-            autoPayEnabled,
-            paymentType,
-            safeNextPaymentDate,
-            safeNextPaymentAmount,
-          });
 
           const payload = {
+            autoPayEnabled: true,
             paymentFrequency,
             paymentSubFrequency: safePaymentSubFrequency,
             paymentDayOne: safePaymentDayOne,
             paymentDayTwo: safePaymentDayTwo,
-            paymentWeekOne,
-            paymentWeekTwo,
-            paymentAmount: paymentAmount.replace("$", ""),
+            paymentWeekOne: safePaymentWeekOne,
+            paymentWeekTwo: paymentWeekTwo,
+            paymentAmount: safeNextPaymentAmount,
             initialPaymentDate: initialPaymentDate
               ? new Date(initialPaymentDate)
-              : undefined,
-            startDate: startDate ? new Date(startDate) : undefined,
-            autoPayEnabled: true,
+              : new Date(),
+            startDate: date ? new Date(date) : new Date(),
             paymentType: paymentType ?? 0,
-            nextPaymentDate: safeNextPaymentDate,
+            nextPaymentDate:
+              nextPaymentDate && !isNaN(nextPaymentDate.getTime())
+                ? new Date(nextPaymentDate)
+                : new Date(),
             nextPaymentAmount: safeNextPaymentAmount,
           };
 
-          console.log("Payload for payment schedule:", payload);
+          console.log("Payment Amount in payload:", safeNextPaymentAmount);
 
           const scheduleResult = await updatePaymentSchedule(
             creditAccountId,
@@ -1014,11 +953,28 @@ const ConfigureAutopay = () => {
             payload
           );
 
-          console.log("Schedule result:", scheduleResult);
-
           if (scheduleResult) {
             if (scheduleResult.type === "data") {
               console.log("Payment schedule updated successfully");
+
+              // Refresh the page by refetching the data
+              const customerResponse = await fetchCustomerData(token, () => {});
+              if (customerResponse) {
+                const { creditSummaries } = await fetchCreditSummariesWithId(
+                  customerResponse,
+                  token
+                );
+
+                if (creditSummaries && creditSummaries.length > 0) {
+                  const paymentSchedule =
+                    creditSummaries[0]?.detail?.creditAccount?.paymentSchedule;
+                  if (paymentSchedule) {
+                    setPaymentAmount(
+                      formatPaymentAmount(paymentSchedule.paymentAmount)
+                    );
+                  }
+                }
+              }
             } else {
               console.error("Failed to update payment schedule");
             }
