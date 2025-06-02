@@ -213,7 +213,7 @@ if (loading) {
                 <View>
                   <View>
                     <Text style={styles.paymentLabel}>{isCardNumber ? "Debit Card" : "Account"}</Text>
-                    <Text style={styles.paymentDate}>*{last4Digits || " "}</Text>
+                    <Text style={styles.paymentDate}>---{last4Digits || " "}</Text>
                   </View>
                 </View>
               </View>
