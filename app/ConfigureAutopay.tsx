@@ -25,6 +25,7 @@ import { ErrorCode } from "../utils/ErrorCodeUtil";
 import { useFocusEffect } from "@react-navigation/native";
 import Toast from "react-native-toast-message";
 
+
 // Define an interface for the payment method to ensure type safety
 interface PaymentMethod {
   id: string;
@@ -889,7 +890,7 @@ const handlePaymentMethodChange = (value:string) => {
   };
 
   // Inside your handleSubmit function
- const handleSubmit = async () => {
+const handleSubmit = async () => {
   if (creditAccountId && selectedPaymentMethodId && token) {
     setIsSubmitting(true); // Set submitting to true when starting the submission process
 
@@ -983,6 +984,11 @@ const handlePaymentMethodChange = (value:string) => {
               bottomOffset: 100,
             });
 
+            // Add a delay before navigating to the home screen
+            setTimeout(() => {
+              router.push("/(tabs)/Home");
+            }, 3000); // Delay of 3000 milliseconds (3 seconds)
+
             // Refresh the page by refetching the data
             const customerResponse = await fetchCustomerData(token, () => {});
             if (customerResponse) {
@@ -1034,6 +1040,8 @@ const handlePaymentMethodChange = (value:string) => {
     setIsSubmitting(false); // Reset submitting state after the process is complete
   }
 };
+
+
   // Function to handle the press event of the "Turn off AutoPay" text
   const handleTurnOffAutoPayPress = () => {
     setIsModalVisible(true);
