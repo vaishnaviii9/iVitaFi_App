@@ -729,80 +729,59 @@ const ConfigureAutopay = () => {
     }
   };
 
-  const handlePaymentMethodChange = (value: string) => {
-    setPaymentMethod(value);
+const handlePaymentMethodChange = (value:string) => {
+  setPaymentMethod(value);
 
-    if (value.startsWith("Debit Card -")) {
-      const cardNumberFromValue = value.split(" - ")[1];
+  if (value.startsWith("Debit Card -")) {
+    const cardNumberFromValue = value.split(" - ")[1];
+    const selectedMethod = savedMethods.find(
+      (method) => method.cardNumber && method.cardNumber.endsWith(cardNumberFromValue)
+    );
 
-      const selectedMethod = savedMethods.find(
-        (method) =>
-          method.cardNumber && method.cardNumber.endsWith(cardNumberFromValue)
-      );
+    if (selectedMethod && selectedMethod.cardNumber) {
+      const formattedCardNumber = "x".repeat(selectedMethod.cardNumber.length - 4) + selectedMethod.cardNumber.slice(-4);
+      setCardNumber(formattedCardNumber);
 
-      if (selectedMethod && selectedMethod.cardNumber) {
-        const formattedCardNumber =
-          "x".repeat(selectedMethod.cardNumber.length - 4) +
-          selectedMethod.cardNumber.slice(-4);
-        setCardNumber(formattedCardNumber);
+      const expirationDate = new Date(selectedMethod.expirationDate);
+      const expirationMonth = expirationDate.getMonth() + 1;
+      const expirationYear = expirationDate.getFullYear();
 
-        const expirationDate = new Date(selectedMethod.expirationDate);
-        const expirationMonth = expirationDate.getMonth() + 1;
-        const expirationYear = expirationDate.getFullYear();
+      const monthNames = [
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"
+      ];
+      const formattedExpirationMonth = `${expirationMonth.toString().padStart(2, "0")} - ${monthNames[expirationMonth - 1]}`;
 
-        const monthNames = [
-          "January",
-          "February",
-          "March",
-          "April",
-          "May",
-          "June",
-          "July",
-          "August",
-          "September",
-          "October",
-          "November",
-          "December",
-        ];
-        const formattedExpirationMonth = `${expirationMonth
-          .toString()
-          .padStart(2, "0")} - ${monthNames[expirationMonth - 1]}`;
-
-        setExpirationMonth(formattedExpirationMonth);
-        setExpirationYear(expirationYear.toString());
-      }
-    } else if (value.startsWith("Checking Account -")) {
-      const accountNumberFromValue = value.split(" - ")[1];
-
-      const selectedMethod = savedMethods.find(
-        (method) =>
-          method.accountNumber &&
-          method.accountNumber.endsWith(accountNumberFromValue)
-      );
-
-      if (selectedMethod) {
-        setAccountNumber(selectedMethod.accountNumber || "");
-        setRoutingNumber(selectedMethod.routingNumber || "");
-      }
+      setExpirationMonth(formattedExpirationMonth);
+      setExpirationYear(expirationYear.toString());
     }
+  } else if (value.startsWith("Checking Account -")) {
+    const accountNumberFromValue = value.split(" - ")[1];
+    const selectedMethod = savedMethods.find(
+      (method) => method.accountNumber && method.accountNumber.endsWith(accountNumberFromValue)
+    );
 
-    if (value !== "Add Debit Card" && value !== "Add Checking Account") {
-      const selectedMethodId = savedMethods.find(
-        (method) =>
-          (method.cardNumber && value.endsWith(method.cardNumber.slice(-4))) ||
-          (method.accountNumber &&
-            value.endsWith(method.accountNumber.slice(-4)))
-      )?.id;
-
-      setSelectedPaymentMethodId(selectedMethodId ?? null);
+    if (selectedMethod) {
+      setAccountNumber(selectedMethod.accountNumber || "");
+      setRoutingNumber(selectedMethod.routingNumber || "");
     }
+  }
 
-    if (value === "Add Debit Card") {
-      router.push("/ManagePayments");
-    }
+  if (value !== "Add Debit Card" && value !== "Add Checking Account") {
+    const selectedMethodId = savedMethods.find(
+      (method) =>
+        (method.cardNumber && value.endsWith(method.cardNumber.slice(-4))) ||
+        (method.accountNumber && value.endsWith(method.accountNumber.slice(-4)))
+    )?.id;
 
-    setShowPaymentMethodPicker(false);
-  };
+    setSelectedPaymentMethodId(selectedMethodId ?? null);
+  }
+
+  if (value === "Add Debit Card") {
+    router.push("/ManagePayments");
+  }
+};
+
 
   useEffect(() => {
     if (selectedPaymentMethodId) {
@@ -1121,99 +1100,80 @@ const ConfigureAutopay = () => {
           <View style={styles.content}>
             <View style={styles.formContainer}>
               <Text style={styles.helpText}>Payment Method</Text>
-              {Platform.OS === "ios" ? (
-                <>
-                  <Pressable onPress={openPaymentMethodPicker}>
-                    <View style={styles.pickerWrapper}>
-                      <View style={styles.pickerDisplayContainer}>
-                        <Text style={styles.pickerDisplayText}>
-                          {paymentMethod || "Select a payment method"}
-                        </Text>
-                        <FontAwesome
-                          name="chevron-down"
-                          size={14}
-                          color="#27446F"
-                        />
-                      </View>
-                    </View>
-                  </Pressable>
-                  {showPaymentMethodPicker && (
-                    <View style={{ zIndex: 1000, position: "relative" }}>
-                      <Picker
-                        selectedValue={paymentMethod}
-                        onValueChange={handlePaymentMethodChange}
-                        style={styles.iosPicker}
-                        itemStyle={{ color: "black" }}
-                      >
-                        <Picker.Item
-                          label="Add Debit Card"
-                          value="Add Debit Card"
-                        />
-                        <Picker.Item
-                          label="Add Checking Account"
-                          value="Add Checking Account"
-                        />
-                        {savedMethods.map((method, index) => (
-                          <Picker.Item
-                            key={index}
-                            label={
-                              method.cardNumber
-                                ? `Debit Card - ${method.cardNumber.slice(-4)}`
-                                : `Checking Account - ${method.accountNumber?.slice(
-                                    -4
-                                  )}`
-                            }
-                            value={
-                              method.cardNumber
-                                ? `Debit Card - ${method.cardNumber.slice(-4)}`
-                                : `Checking Account - ${method.accountNumber?.slice(
-                                    -4
-                                  )}`
-                            }
-                          />
-                        ))}
-                      </Picker>
-                    </View>
-                  )}
-                </>
-              ) : (
-                <View style={styles.pickerWrapper}>
-                  <Picker
-                    selectedValue={paymentMethod}
-                    onValueChange={setPaymentMethod}
-                    style={styles.androidPicker}
-                    dropdownIconColor="#000000"
-                  >
-                    <Picker.Item
-                      label="Add Debit Card"
-                      value="Add Debit Card"
-                    />
-                    <Picker.Item
-                      label="Add Checking Account"
-                      value="Add Checking Account"
-                    />
-                    {savedMethods.map((method, index) => (
-                      <Picker.Item
-                        key={index}
-                        label={
-                          method.cardNumber
-                            ? `Debit Card - ${method.cardNumber.slice(-4)}`
-                            : `Checking Account - ${method.accountNumber?.slice(
-                                -4
-                              )}`
-                        }
-                        value={
-                          method.cardNumber
-                            ? `Debit Card - ${method.cardNumber.slice(-4)}`
-                            : `Checking Account - ${method.accountNumber?.slice(
-                                -4
-                              )}`
-                        }
-                      />
-                    ))}
-                  </Picker>
-                </View>
-              )}
+             {Platform.OS === "ios" ? (
+  <>
+    <Pressable onPress={openPaymentMethodPicker}>
+      <View style={styles.pickerWrapper}>
+        <View style={styles.pickerDisplayContainer}>
+          <Text style={styles.pickerDisplayText}>
+            {paymentMethod || "Select a payment method"}
+          </Text>
+          <FontAwesome
+            name="chevron-down"
+            size={14}
+            color="#27446F"
+          />
+        </View>
+      </View>
+    </Pressable>
+    {showPaymentMethodPicker && (
+      <View style={{ zIndex: 1000, position: "relative" }}>
+        <Picker
+          selectedValue={paymentMethod}
+          onValueChange={handlePaymentMethodChange}
+          style={styles.iosPicker}
+          itemStyle={{ color: "black" }}
+        >
+          <Picker.Item label="Add Debit Card" value="Add Debit Card" />
+          <Picker.Item label="Add Checking Account" value="Add Checking Account" />
+          {savedMethods.map((method, index) => (
+            <Picker.Item
+              key={index}
+              label={
+                method.cardNumber
+                  ? `Debit Card - ${method.cardNumber.slice(-4)}`
+                  : `Checking Account - ${method.accountNumber?.slice(-4)}`
+              }
+              value={
+                method.cardNumber
+                  ? `Debit Card - ${method.cardNumber.slice(-4)}`
+                  : `Checking Account - ${method.accountNumber?.slice(-4)}`
+              }
+            />
+          ))}
+        </Picker>
+      </View>
+    )}
+  </>
+) : (
+  <View style={styles.pickerWrapper}>
+    <Picker
+      selectedValue={paymentMethod}
+      onValueChange={handlePaymentMethodChange}
+      style={styles.androidPicker}
+      dropdownIconColor="#000000"
+    >
+      <Picker.Item label="Add Debit Card" value="Add Debit Card" />
+      <Picker.Item label="Add Checking Account" value="Add Checking Account" />
+      {savedMethods.map((method, index) => (
+        <Picker.Item
+          key={index}
+          label={
+            method.cardNumber
+              ? `Debit Card - ${method.cardNumber.slice(-4)}`
+              : `Checking Account - ${method.accountNumber?.slice(-4)}`
+          }
+          value={
+            method.cardNumber
+              ? `Debit Card - ${method.cardNumber.slice(-4)}`
+              : `Checking Account - ${method.accountNumber?.slice(-4)}`
+          }
+        />
+      ))}
+    </Picker>
+  </View>
+)}
+
               {paymentMethod.startsWith("Debit Card -") ? (
                 <>
                   <Text style={styles.helpText}>Card Number</Text>
