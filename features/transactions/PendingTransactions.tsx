@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, Image, ScrollView, Dimensions, ActivityIndicator } from "react-native";
+import { View, Text, Image, ScrollView, Dimensions } from "react-native";
 import { useSelector } from "react-redux";
 import { fetchPendingTransactions } from "../../app/services/pendingTransactionsService";
 import { CreditAccountTransactionTypeUtil } from "../../utils/CreditAccountTransactionTypeUtil";
 import styles from "../../components/styles/PendingTransactionsStyles";
+import SkeletonLoader from '../../components/SkeletonLoader';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 
 const { height: screenHeight } = Dimensions.get("window");
@@ -48,16 +49,28 @@ const Pending: React.FC = () => {
     );
   };
 
-  const isSmallScreen = screenHeight < 700;
-  const isMediumScreen = screenHeight >= 700 && screenHeight <= 800;
-  const isLargeScreen = screenHeight > 800;
-
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#0000ff" />
-        <Text style={styles.loadingText}>Loading transactions...</Text>
-      </View>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollViewContent}
+        nestedScrollEnabled={true}
+        showsVerticalScrollIndicator={true}
+      >
+        {Array.from({ length: 5 }).map((_, index) => (
+          <View key={index} style={[styles.transactionRow, styles.skeletonRow]}>
+            <View style={styles.transactionDetailsContainer}>
+              <SkeletonLoader style={styles.transactionDetailsSkeleton} type="text" />
+            </View>
+            <View>
+              <SkeletonLoader style={styles.amountTextSkeleton} type="text" />
+            </View>
+            <View>
+              <SkeletonLoader style={styles.iconSkeleton} type="icon" />
+            </View>
+          </View>
+        ))}
+      </ScrollView>
     );
   }
 

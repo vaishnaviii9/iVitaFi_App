@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, ScrollView, Dimensions, ActivityIndicator } from "react-native";
+import { View, Text, ScrollView, Dimensions } from "react-native";
 import { useSelector } from "react-redux";
 import { fetchPostedTransactions } from "../../app/services/postedTransactionsService";
 import { CreditAccountTransactionTypeUtil } from "../../utils/CreditAccountTransactionTypeUtil";
-import styles from "../../components/styles/PostedTransactionStyles";
+import postedStyles from "../../components/styles/PostedTransactionStyles";
+import SkeletonLoader from '../../components/SkeletonLoader';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 
 const { height: screenHeight } = Dimensions.get("window");
@@ -36,23 +37,32 @@ const Posted: React.FC = () => {
     fetchTransactions();
   }, [token, creditAccountId]);
 
-  const isSmallScreen = screenHeight < 700;
-  const isMediumScreen = screenHeight >= 700 && screenHeight <= 800;
-  const isLargeScreen = screenHeight > 800;
-
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#0000ff" />
-        <Text style={styles.loadingText}>Loading transactions...</Text>
-      </View>
+      <ScrollView
+        style={postedStyles.scrollView}
+        contentContainerStyle={postedStyles.scrollViewContent}
+        nestedScrollEnabled={true}
+        showsVerticalScrollIndicator={true}
+      >
+        {Array.from({ length: 5 }).map((_, index) => (
+          <View key={index} style={[postedStyles.transactionRow, postedStyles.skeletonRow]}>
+            <View style={postedStyles.transactionDetailsContainer}>
+              <SkeletonLoader style={postedStyles.transactionDetailsSkeleton} type="text" />
+            </View>
+            <View>
+              <SkeletonLoader style={postedStyles.amountTextSkeleton} type="text" />
+            </View>
+          </View>
+        ))}
+      </ScrollView>
     );
   }
 
   return (
     <ScrollView
-      style={styles.scrollView}
-      contentContainerStyle={styles.scrollViewContent}
+      style={postedStyles.scrollView}
+      contentContainerStyle={postedStyles.scrollViewContent}
       nestedScrollEnabled={true}
       showsVerticalScrollIndicator={true}
     >
@@ -61,19 +71,19 @@ const Posted: React.FC = () => {
           <View
             key={index}
             style={[
-              styles.transactionRow,
-              index % 2 === 0 ? styles.rowLight : styles.rowDark,
+              postedStyles.transactionRow,
+              index % 2 === 0 ? postedStyles.rowLight : postedStyles.rowDark,
             ]}
           >
-            <View style={styles.transactionDetailsContainer}>
-              <Text style={[styles.transactionDetails, styles.textSmall]}>
-                <Text style={styles.textBold}>{transaction.id}</Text>
+            <View style={postedStyles.transactionDetailsContainer}>
+              <Text style={[postedStyles.transactionDetails, postedStyles.textSmall]}>
+                <Text style={postedStyles.textBold}>{transaction.id}</Text>
                 {"\n"}
-                <Text style={styles.textSecondary}>
+                <Text style={postedStyles.textSecondary}>
                   {CreditAccountTransactionTypeUtil.toString(transaction.transactionType) || "Unknown Type"}
                 </Text>
                 {"\n"}
-                <Text style={styles.textSecondary}>
+                <Text style={postedStyles.textSecondary}>
                   {transaction.transactionDate
                     ? new Date(transaction.transactionDate).toLocaleDateString('en-US', {
                         month: '2-digit',
@@ -85,14 +95,14 @@ const Posted: React.FC = () => {
               </Text>
             </View>
             <View>
-              <Text style={styles.amountText}>
+              <Text style={postedStyles.amountText}>
                 ${transaction.amount?.toFixed(2) || "0.00"}
               </Text>
             </View>
           </View>
         ))
       ) : (
-        <Text style={styles.noTransactionsText}>No recent transactions available.</Text>
+        <Text style={postedStyles.noTransactionsText}>No recent transactions available.</Text>
       )}
     </ScrollView>
   );
