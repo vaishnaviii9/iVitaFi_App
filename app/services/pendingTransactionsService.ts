@@ -11,11 +11,14 @@ export const fetchPendingTransactions = async (
   }
 
   try {
+    console.log('Fetching pending transactions for credit account ID:', creditAccountId);
     const url = apiClient.PENDING_TRANSACTIONS(creditAccountId);
     const transactions = await fetchData(url, token, (data) => data, "Failed to fetch transactions.");
+    console.log('Fetched pending transactions:', transactions);
     return transactions || [];
   } catch (error) {
     console.error("Error fetching pending transactions:", error);
     return [];
   }
 };
+

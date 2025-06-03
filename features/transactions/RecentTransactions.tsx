@@ -16,8 +16,10 @@ const { height: screenHeight } = Dimensions.get("window");
 
 const RecentTransactions: React.FC<RecentTransactionsProps> = ({ loading, transactions }) => {
   const navigation = useNavigation<NavigationProp<{ Transactions: undefined }>>();
-
+console.log('RecentTransactions loading:', loading);
+  console.log('RecentTransactions transactions:', transactions);
   const renderTransactionIcon = (transactionType: number) => {
+    console.log('Rendering transaction icon for type:', transactionType);
     if (transactionType !== 404 && transactionType !== 481) {
       return <Image source={require("../../assets/images/Trash.png")} style={styles.trashIcon} />;
     }
