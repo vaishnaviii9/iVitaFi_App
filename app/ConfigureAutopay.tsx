@@ -24,7 +24,7 @@ import { fetchCreditSummariesWithId } from "./services/creditAccountService";
 import { ErrorCode } from "../utils/ErrorCodeUtil";
 import { useFocusEffect } from "@react-navigation/native";
 import Toast from "react-native-toast-message";
-
+import SkeletonLoader from "../components/SkeletonLoader"; // Import the SkeletonLoader component
 
 // Define an interface for the payment method to ensure type safety
 interface PaymentMethod {
@@ -410,6 +410,7 @@ const ConfigureAutopay = () => {
   const [creditAccountId, setCreditAccountId] = useState<string | null>(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true); // Add loading state
   // Retrieve token from Redux store to authenticate API requests
   const token = useSelector((state: any) => state.auth.token);
 
@@ -436,6 +437,7 @@ const ConfigureAutopay = () => {
     React.useCallback(() => {
       const fetchData = async () => {
         try {
+          setIsLoading(true); // Set loading to true when starting to fetch data
           const customerResponse = await fetchCustomerData(token, () => {});
           if (customerResponse) {
             const { creditSummaries } = await fetchCreditSummariesWithId(
@@ -632,7 +634,11 @@ const ConfigureAutopay = () => {
               }
             }
           }
-        } catch (error) {}
+        } catch (error) {
+          console.error("Error fetching data:", error);
+        } finally {
+          setIsLoading(false); // Set loading to false after data is fetched
+        }
       };
 
       if (token) {
@@ -730,59 +736,58 @@ const ConfigureAutopay = () => {
     }
   };
 
-const handlePaymentMethodChange = (value:string) => {
-  setPaymentMethod(value);
+  const handlePaymentMethodChange = (value: string) => {
+    setPaymentMethod(value);
 
-  if (value.startsWith("Debit Card -")) {
-    const cardNumberFromValue = value.split(" - ")[1];
-    const selectedMethod = savedMethods.find(
-      (method) => method.cardNumber && method.cardNumber.endsWith(cardNumberFromValue)
-    );
+    if (value.startsWith("Debit Card -")) {
+      const cardNumberFromValue = value.split(" - ")[1];
+      const selectedMethod = savedMethods.find(
+        (method) => method.cardNumber && method.cardNumber.endsWith(cardNumberFromValue)
+      );
 
-    if (selectedMethod && selectedMethod.cardNumber) {
-      const formattedCardNumber = "x".repeat(selectedMethod.cardNumber.length - 4) + selectedMethod.cardNumber.slice(-4);
-      setCardNumber(formattedCardNumber);
+      if (selectedMethod && selectedMethod.cardNumber) {
+        const formattedCardNumber = "x".repeat(selectedMethod.cardNumber.length - 4) + selectedMethod.cardNumber.slice(-4);
+        setCardNumber(formattedCardNumber);
 
-      const expirationDate = new Date(selectedMethod.expirationDate);
-      const expirationMonth = expirationDate.getMonth() + 1;
-      const expirationYear = expirationDate.getFullYear();
+        const expirationDate = new Date(selectedMethod.expirationDate);
+        const expirationMonth = expirationDate.getMonth() + 1;
+        const expirationYear = expirationDate.getFullYear();
 
-      const monthNames = [
-        "January", "February", "March", "April", "May", "June",
-        "July", "August", "September", "October", "November", "December"
-      ];
-      const formattedExpirationMonth = `${expirationMonth.toString().padStart(2, "0")} - ${monthNames[expirationMonth - 1]}`;
+        const monthNames = [
+          "January", "February", "March", "April", "May", "June",
+          "July", "August", "September", "October", "November", "December"
+        ];
+        const formattedExpirationMonth = `${expirationMonth.toString().padStart(2, "0")} - ${monthNames[expirationMonth - 1]}`;
 
-      setExpirationMonth(formattedExpirationMonth);
-      setExpirationYear(expirationYear.toString());
+        setExpirationMonth(formattedExpirationMonth);
+        setExpirationYear(expirationYear.toString());
+      }
+    } else if (value.startsWith("Checking Account -")) {
+      const accountNumberFromValue = value.split(" - ")[1];
+      const selectedMethod = savedMethods.find(
+        (method) => method.accountNumber && method.accountNumber.endsWith(accountNumberFromValue)
+      );
+
+      if (selectedMethod) {
+        setAccountNumber(selectedMethod.accountNumber || "");
+        setRoutingNumber(selectedMethod.routingNumber || "");
+      }
     }
-  } else if (value.startsWith("Checking Account -")) {
-    const accountNumberFromValue = value.split(" - ")[1];
-    const selectedMethod = savedMethods.find(
-      (method) => method.accountNumber && method.accountNumber.endsWith(accountNumberFromValue)
-    );
 
-    if (selectedMethod) {
-      setAccountNumber(selectedMethod.accountNumber || "");
-      setRoutingNumber(selectedMethod.routingNumber || "");
+    if (value !== "Add Debit Card" && value !== "Add Checking Account") {
+      const selectedMethodId = savedMethods.find(
+        (method) =>
+          (method.cardNumber && value.endsWith(method.cardNumber.slice(-4))) ||
+          (method.accountNumber && value.endsWith(method.accountNumber.slice(-4)))
+      )?.id;
+
+      setSelectedPaymentMethodId(selectedMethodId ?? null);
     }
-  }
 
-  if (value !== "Add Debit Card" && value !== "Add Checking Account") {
-    const selectedMethodId = savedMethods.find(
-      (method) =>
-        (method.cardNumber && value.endsWith(method.cardNumber.slice(-4))) ||
-        (method.accountNumber && value.endsWith(method.accountNumber.slice(-4)))
-    )?.id;
-
-    setSelectedPaymentMethodId(selectedMethodId ?? null);
-  }
-
-  if (value === "Add Debit Card") {
-    router.push("/ManagePayments");
-  }
-};
-
+    if (value === "Add Debit Card") {
+      router.push("/ManagePayments");
+    }
+  };
 
   useEffect(() => {
     if (selectedPaymentMethodId) {
@@ -890,157 +895,156 @@ const handlePaymentMethodChange = (value:string) => {
   };
 
   // Inside your handleSubmit function
-const handleSubmit = async () => {
-  if (creditAccountId && selectedPaymentMethodId && token) {
-    setIsSubmitting(true); // Set submitting to true when starting the submission process
+  const handleSubmit = async () => {
+    if (creditAccountId && selectedPaymentMethodId && token) {
+      setIsSubmitting(true); // Set submitting to true when starting the submission process
 
-    const result = await updateDefaultPaymentMethod(
-      creditAccountId,
-      selectedPaymentMethodId,
-      accountNumber,
-      routingNumber,
-      cardNumber,
-      token,
-      expirationMonth,
-      expirationYear
-    );
+      const result = await updateDefaultPaymentMethod(
+        creditAccountId,
+        selectedPaymentMethodId,
+        accountNumber,
+        routingNumber,
+        cardNumber,
+        token,
+        expirationMonth,
+        expirationYear
+      );
 
-    if (result) {
-      if (result.type === "data") {
-        const safeNextPaymentAmount = parseFloat(
-          paymentAmount.replace(/[^0-9.-]/g, "")
-        );
+      if (result) {
+        if (result.type === "data") {
+          const safeNextPaymentAmount = parseFloat(
+            paymentAmount.replace(/[^0-9.-]/g, "")
+          );
 
-        if (isNaN(safeNextPaymentAmount)) {
-          setIsSubmitting(false);
-          return;
-        }
-
-        let safePaymentSubFrequency = paymentSubFrequency;
-        let safePaymentDayOne = paymentDayOne;
-        let safePaymentDayTwo = paymentDayTwo;
-        let safePaymentWeekOne = paymentWeekOne;
-
-        if (paymentFrequency === IncomeFrequency.Monthly) {
-          if (paymentSubFrequency === PaymentSubFrequency.SpecificDay) {
-            safePaymentDayOne = Number(paymentDate);
-          } else if (
-            paymentSubFrequency === PaymentSubFrequency.SpecificWeekAndDay
-          ) {
-            safePaymentDayOne = Number(paymentWeek);
-            safePaymentWeekOne = daysOfTheWeek.find(
-              (day) => day.name === dayOfWeek
-            )?.value;
+          if (isNaN(safeNextPaymentAmount)) {
+            setIsSubmitting(false);
+            return;
           }
-        } else if (
-          paymentFrequency === IncomeFrequency.Weekly ||
-          paymentFrequency === IncomeFrequency.BiWeekly
-        ) {
-          safePaymentSubFrequency = 0;
-          safePaymentDayOne =
-            daysOfTheWeek.find((day) => day.name === dayOfWeek)?.value || 0;
-          safePaymentWeekOne = 0;
-        } else if (paymentFrequency === IncomeFrequency.SemiMonthly) {
-          safePaymentSubFrequency = PaymentSubFrequency.SpecificDay;
-        }
 
-        const payload = {
-          autoPayEnabled: true,
-          paymentFrequency,
-          paymentSubFrequency: safePaymentSubFrequency,
-          paymentDayOne: safePaymentDayOne,
-          paymentDayTwo: safePaymentDayTwo,
-          paymentWeekOne: safePaymentWeekOne,
-          paymentWeekTwo: paymentWeekTwo,
-          paymentAmount: safeNextPaymentAmount,
-          initialPaymentDate: initialPaymentDate
-            ? new Date(initialPaymentDate)
-            : new Date(),
-          startDate: date ? new Date(date) : new Date(),
-          paymentType: paymentType ?? 0,
-          nextPaymentDate:
-            nextPaymentDate && !isNaN(nextPaymentDate.getTime())
-              ? new Date(nextPaymentDate)
+          let safePaymentSubFrequency = paymentSubFrequency;
+          let safePaymentDayOne = paymentDayOne;
+          let safePaymentDayTwo = paymentDayTwo;
+          let safePaymentWeekOne = paymentWeekOne;
+
+          if (paymentFrequency === IncomeFrequency.Monthly) {
+            if (paymentSubFrequency === PaymentSubFrequency.SpecificDay) {
+              safePaymentDayOne = Number(paymentDate);
+            } else if (
+              paymentSubFrequency === PaymentSubFrequency.SpecificWeekAndDay
+            ) {
+              safePaymentDayOne = Number(paymentWeek);
+              safePaymentWeekOne = daysOfTheWeek.find(
+                (day) => day.name === dayOfWeek
+              )?.value;
+            }
+          } else if (
+            paymentFrequency === IncomeFrequency.Weekly ||
+            paymentFrequency === IncomeFrequency.BiWeekly
+          ) {
+            safePaymentSubFrequency = 0;
+            safePaymentDayOne =
+              daysOfTheWeek.find((day) => day.name === dayOfWeek)?.value || 0;
+            safePaymentWeekOne = 0;
+          } else if (paymentFrequency === IncomeFrequency.SemiMonthly) {
+            safePaymentSubFrequency = PaymentSubFrequency.SpecificDay;
+          }
+
+          const payload = {
+            autoPayEnabled: true,
+            paymentFrequency,
+            paymentSubFrequency: safePaymentSubFrequency,
+            paymentDayOne: safePaymentDayOne,
+            paymentDayTwo: safePaymentDayTwo,
+            paymentWeekOne: safePaymentWeekOne,
+            paymentWeekTwo: paymentWeekTwo,
+            paymentAmount: safeNextPaymentAmount,
+            initialPaymentDate: initialPaymentDate
+              ? new Date(initialPaymentDate)
               : new Date(),
-          nextPaymentAmount: safeNextPaymentAmount,
-        };
+            startDate: date ? new Date(date) : new Date(),
+            paymentType: paymentType ?? 0,
+            nextPaymentDate:
+              nextPaymentDate && !isNaN(nextPaymentDate.getTime())
+                ? new Date(nextPaymentDate)
+                : new Date(),
+            nextPaymentAmount: safeNextPaymentAmount,
+          };
 
-        const scheduleResult = await updatePaymentSchedule(
-          creditAccountId,
-          token,
-          payload
-        );
+          const scheduleResult = await updatePaymentSchedule(
+            creditAccountId,
+            token,
+            payload
+          );
 
-        if (scheduleResult) {
-          if (scheduleResult.type === "data") {
-            // Show a success toast notification
-            Toast.show({
-              type: "success",
-              text1: "Success",
-              text2: "The AutoPay has been configured successfully.",
-              visibilityTime: 3000,
-              autoHide: true,
-              topOffset: 60,
-              bottomOffset: 100,
-            });
+          if (scheduleResult) {
+            if (scheduleResult.type === "data") {
+              // Show a success toast notification
+              Toast.show({
+                type: "success",
+                text1: "Success",
+                text2: "The AutoPay has been configured successfully.",
+                visibilityTime: 3000,
+                autoHide: true,
+                topOffset: 60,
+                bottomOffset: 100,
+              });
 
-            // Add a delay before navigating to the home screen
-            setTimeout(() => {
-              router.push("/(tabs)/Home");
-            }, 3000); // Delay of 3000 milliseconds (3 seconds)
+              // Add a delay before navigating to the home screen
+              setTimeout(() => {
+                router.push("/(tabs)/Home");
+              }, 3000); // Delay of 3000 milliseconds (3 seconds)
 
-            // Refresh the page by refetching the data
-            const customerResponse = await fetchCustomerData(token, () => {});
-            if (customerResponse) {
-              const { creditSummaries } = await fetchCreditSummariesWithId(
-                customerResponse,
-                token
-              );
+              // Refresh the page by refetching the data
+              const customerResponse = await fetchCustomerData(token, () => {});
+              if (customerResponse) {
+                const { creditSummaries } = await fetchCreditSummariesWithId(
+                  customerResponse,
+                  token
+                );
 
-              if (creditSummaries && creditSummaries.length > 0) {
-                const paymentSchedule =
-                  creditSummaries[0]?.detail?.creditAccount?.paymentSchedule;
-                if (paymentSchedule) {
-                  setPaymentAmount(
-                    formatPaymentAmount(paymentSchedule.paymentAmount)
-                  );
+                if (creditSummaries && creditSummaries.length > 0) {
+                  const paymentSchedule =
+                    creditSummaries[0]?.detail?.creditAccount?.paymentSchedule;
+                  if (paymentSchedule) {
+                    setPaymentAmount(
+                      formatPaymentAmount(paymentSchedule.paymentAmount)
+                    );
+                  }
                 }
               }
-            }
-          } else if (scheduleResult.type === "error") {
-            // Check for specific error codes and display appropriate messages
-            if (
-              scheduleResult.error?.errorCode ===
-              ErrorCode.AdminPaymentAmountInvalid
-            ) {
-              Toast.show({
-                type: "error",
-                text1: "Error",
-                text2: "Please enter a valid payment amount.",
-                visibilityTime: 3000,
-                autoHide: true,
-                topOffset: 60,
-                bottomOffset: 100,
-              });
-            } else {
-              Toast.show({
-                type: "error",
-                text1: "Error",
-                text2: "Failed to update payment schedule.",
-                visibilityTime: 3000,
-                autoHide: true,
-                topOffset: 60,
-                bottomOffset: 100,
-              });
+            } else if (scheduleResult.type === "error") {
+              // Check for specific error codes and display appropriate messages
+              if (
+                scheduleResult.error?.errorCode ===
+                ErrorCode.AdminPaymentAmountInvalid
+              ) {
+                Toast.show({
+                  type: "error",
+                  text1: "Error",
+                  text2: "Please enter a valid payment amount.",
+                  visibilityTime: 3000,
+                  autoHide: true,
+                  topOffset: 60,
+                  bottomOffset: 100,
+                });
+              } else {
+                Toast.show({
+                  type: "error",
+                  text1: "Error",
+                  text2: "Failed to update payment schedule.",
+                  visibilityTime: 3000,
+                  autoHide: true,
+                  topOffset: 60,
+                  bottomOffset: 100,
+                });
+              }
             }
           }
         }
       }
+      setIsSubmitting(false); // Reset submitting state after the process is complete
     }
-    setIsSubmitting(false); // Reset submitting state after the process is complete
-  }
-};
-
+  };
 
   // Function to handle the press event of the "Turn off AutoPay" text
   const handleTurnOffAutoPayPress = () => {
@@ -1088,897 +1092,926 @@ const handleSubmit = async () => {
 
   return (
     <>
-    <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      style={{ flex: 1 }}
-    >
-      <View style={styles.container}>
-        <View style={styles.headerContainer}>
-          <TouchableOpacity onPress={handleBackPress} style={styles.backButton}>
-            <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
-          </TouchableOpacity>
-          <Text style={styles.headerText}>Configure AutoPay</Text>
-          <View style={{ width: 24 }} />
-        </View>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{ flex: 1 }}
+      >
+        <View style={styles.container}>
+          <View style={styles.headerContainer}>
+            <TouchableOpacity onPress={handleBackPress} style={styles.backButton}>
+              <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
+            </TouchableOpacity>
+            <Text style={styles.headerText}>Configure AutoPay</Text>
+            <View style={{ width: 24 }} />
+          </View>
 
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-        >
-          <View style={styles.content}>
-            <View style={styles.formContainer}>
-              <Text style={styles.helpText}>Payment Method</Text>
-             {Platform.OS === "ios" ? (
-  <>
-    <Pressable onPress={openPaymentMethodPicker}>
-      <View style={styles.pickerWrapper}>
-        <View style={styles.pickerDisplayContainer}>
-          <Text style={styles.pickerDisplayText}>
-            {paymentMethod || "Select a payment method"}
-          </Text>
-          <FontAwesome
-            name="chevron-down"
-            size={14}
-            color="#27446F"
-          />
-        </View>
-      </View>
-    </Pressable>
-    {showPaymentMethodPicker && (
-      <View style={{ zIndex: 1000, position: "relative" }}>
-        <Picker
-          selectedValue={paymentMethod}
-          onValueChange={handlePaymentMethodChange}
-          style={styles.iosPicker}
-          itemStyle={{ color: "black" }}
-        >
-          <Picker.Item label="Add Debit Card" value="Add Debit Card" />
-          <Picker.Item label="Add Checking Account" value="Add Checking Account" />
-          {savedMethods.map((method, index) => (
-            <Picker.Item
-              key={index}
-              label={
-                method.cardNumber
-                  ? `Debit Card - ${method.cardNumber.slice(-4)}`
-                  : `Checking Account - ${method.accountNumber?.slice(-4)}`
-              }
-              value={
-                method.cardNumber
-                  ? `Debit Card - ${method.cardNumber.slice(-4)}`
-                  : `Checking Account - ${method.accountNumber?.slice(-4)}`
-              }
-            />
-          ))}
-        </Picker>
-      </View>
-    )}
-  </>
-) : (
-  <View style={styles.pickerWrapper}>
-    <Picker
-      selectedValue={paymentMethod}
-      onValueChange={handlePaymentMethodChange}
-      style={styles.androidPicker}
-      dropdownIconColor="#000000"
-    >
-      <Picker.Item label="Add Debit Card" value="Add Debit Card" />
-      <Picker.Item label="Add Checking Account" value="Add Checking Account" />
-      {savedMethods.map((method, index) => (
-        <Picker.Item
-          key={index}
-          label={
-            method.cardNumber
-              ? `Debit Card - ${method.cardNumber.slice(-4)}`
-              : `Checking Account - ${method.accountNumber?.slice(-4)}`
-          }
-          value={
-            method.cardNumber
-              ? `Debit Card - ${method.cardNumber.slice(-4)}`
-              : `Checking Account - ${method.accountNumber?.slice(-4)}`
-          }
-        />
-      ))}
-    </Picker>
-  </View>
-)}
-
-              {paymentMethod.startsWith("Debit Card -") ? (
-                <>
-                  <Text style={styles.helpText}>Card Number</Text>
-                  <TextInput
-                    style={styles.specificInput}
-                    placeholder="Enter card number"
-                    placeholderTextColor="black"
-                    value={cardNumber}
-                    onChangeText={setCardNumber}
-                    keyboardType="numeric"
-                    editable={paymentMethod === "Add Debit Card"}
-                  />
-
-                  <Text style={styles.helpText}>Expiration Month</Text>
-                  <TextInput
-                    style={styles.specificInput}
-                    placeholder="Enter expiration month"
-                    placeholderTextColor="black"
-                    value={expirationMonth}
-                    onChangeText={setExpirationMonth}
-                    keyboardType="numeric"
-                    editable={paymentMethod === "Add Debit Card"}
-                  />
-
-                  <Text style={styles.helpText}>Expiration Year</Text>
-                  <TextInput
-                    style={styles.specificInput}
-                    placeholder="Enter expiration year"
-                    placeholderTextColor="black"
-                    value={expirationYear}
-                    onChangeText={setExpirationYear}
-                    keyboardType="numeric"
-                    editable={paymentMethod === "Add Debit Card"}
-                  />
-                </>
-              ) : (
-                <>
-                  <Text style={styles.helpText}>Routing Number</Text>
-                  <TextInput
-                    style={styles.specificInput}
-                    placeholder="Enter routing number"
-                    placeholderTextColor="black"
-                    value={routingNumber}
-                    onChangeText={setRoutingNumber}
-                    keyboardType="numeric"
-                    editable={paymentMethod === "Add Checking Account"}
-                  />
-
-                  <Text style={styles.helpText}>Account Number</Text>
-                  <TextInput
-                    style={styles.specificInput}
-                    placeholder="Enter account number"
-                    placeholderTextColor="black"
-                    value={accountNumber}
-                    onChangeText={setAccountNumber}
-                    keyboardType="numeric"
-                    editable={paymentMethod === "Add Checking Account"}
-                  />
-                </>
-              )}
-              <TouchableOpacity onPress={() => setModalVisible(true)}>
-                <Text style={styles.helpLink}>
-                  {paymentMethod.startsWith("Debit Card -")
-                    ? "Help me find my card information"
-                    : "Help me find my account information"}
-                </Text>
-              </TouchableOpacity>
-              <Modal
-                animationType="slide"
-                transparent={true}
-                visible={modalVisible}
-                onRequestClose={() => {
-                  setModalVisible(!modalVisible);
-                }}
-              >
-                <View style={styles.modalContainer}>
-                  <View style={styles.modalContent}>
-                    <Text style={styles.modalText}>
-                      {paymentMethod.startsWith("Debit Card -")
-                        ? "Debit Card"
-                        : "Checking Account"}
-                    </Text>
+          <ScrollView
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+          >
+            <View style={styles.content}>
+              <View style={styles.formContainer}>
+                {isLoading ? (
+                  <>
+                    
+                    {/* <SkeletonLoader style={styles.pickerWrapper} type="text" /> */}
+                    
+                    <SkeletonLoader style={styles.specificInput} type="text" />
+                    
+                    <SkeletonLoader style={styles.specificInput} type="text" />
+                    <SkeletonLoader style={styles.helpText} type="text" />
+                    <SkeletonLoader style={styles.specificInput} type="text" />
+                    <SkeletonLoader style={styles.helpText} type="text" />
+                    <SkeletonLoader style={styles.helpText} type="text" />
+                    {/* <SkeletonLoader style={styles.pickerWrapper} type="text" /> */}
+                    <SkeletonLoader style={styles.helpText} type="text" />
+                    {/* <SkeletonLoader style={styles.pickerWrapper} type="text" /> */}
+                    <SkeletonLoader style={styles.helpText} type="text" />
+                    {/* <SkeletonLoader style={styles.pickerWrapper} type="text" /> */}
+                    <SkeletonLoader style={styles.helpText} type="text" />
+                    {/* <SkeletonLoader style={styles.pickerWrapper} type="text" /> */}
+                    <SkeletonLoader style={styles.helpText} type="text" />
+                    <SkeletonLoader style={styles.specificInput} type="text" />
+                    <SkeletonLoader style={styles.helpText} type="text" />
+                    <SkeletonLoader style={styles.datePickerButton} type="text" />
+                    <SkeletonLoader style={styles.summaryText} type="text" />
+                    <SkeletonLoader style={styles.submitButton} type="text" />
+                  </>
+                ) : (
+                  <>
+                    <Text style={styles.helpText}>Payment Method</Text>
+                    {Platform.OS === "ios" ? (
+                      <>
+                        <Pressable onPress={openPaymentMethodPicker}>
+                          <View style={styles.pickerWrapper}>
+                            <View style={styles.pickerDisplayContainer}>
+                              <Text style={styles.pickerDisplayText}>
+                                {paymentMethod || "Select a payment method"}
+                              </Text>
+                              <FontAwesome
+                                name="chevron-down"
+                                size={14}
+                                color="#27446F"
+                              />
+                            </View>
+                          </View>
+                        </Pressable>
+                        {showPaymentMethodPicker && (
+                          <View style={{ zIndex: 1000, position: "relative" }}>
+                            <Picker
+                              selectedValue={paymentMethod}
+                              onValueChange={handlePaymentMethodChange}
+                              style={styles.iosPicker}
+                              itemStyle={{ color: "black" }}
+                            >
+                              <Picker.Item label="Add Debit Card" value="Add Debit Card" />
+                              <Picker.Item label="Add Checking Account" value="Add Checking Account" />
+                              {savedMethods.map((method, index) => (
+                                <Picker.Item
+                                  key={index}
+                                  label={
+                                    method.cardNumber
+                                      ? `Debit Card - ${method.cardNumber.slice(-4)}`
+                                      : `Checking Account - ${method.accountNumber?.slice(-4)}`
+                                  }
+                                  value={
+                                    method.cardNumber
+                                      ? `Debit Card - ${method.cardNumber.slice(-4)}`
+                                      : `Checking Account - ${method.accountNumber?.slice(-4)}`
+                                  }
+                                />
+                              ))}
+                            </Picker>
+                          </View>
+                        )}
+                      </>
+                    ) : (
+                      <View style={styles.pickerWrapper}>
+                        <Picker
+                          selectedValue={paymentMethod}
+                          onValueChange={handlePaymentMethodChange}
+                          style={styles.androidPicker}
+                          dropdownIconColor="#000000"
+                        >
+                          <Picker.Item label="Add Debit Card" value="Add Debit Card" />
+                          <Picker.Item label="Add Checking Account" value="Add Checking Account" />
+                          {savedMethods.map((method, index) => (
+                            <Picker.Item
+                              key={index}
+                              label={
+                                method.cardNumber
+                                  ? `Debit Card - ${method.cardNumber.slice(-4)}`
+                                  : `Checking Account - ${method.accountNumber?.slice(-4)}`
+                              }
+                              value={
+                                method.cardNumber
+                                  ? `Debit Card - ${method.cardNumber.slice(-4)}`
+                                  : `Checking Account - ${method.accountNumber?.slice(-4)}`
+                              }
+                            />
+                          ))}
+                        </Picker>
+                      </View>
+                    )}
 
                     {paymentMethod.startsWith("Debit Card -") ? (
-                      <Image
-                        source={require("../assets/images/debit-image.jpg")}
-                        style={styles.modalImage}
-                      />
-                    ) : (
-                      <Image
-                        source={require("../assets/images/bank-account.jpg")}
-                        style={styles.modalImage}
-                      />
-                    )}
-                    <TouchableOpacity
-                      style={styles.closeButton}
-                      onPress={() => setModalVisible(!modalVisible)}
-                    >
-                      <Ionicons name="close" size={24} color="black" />
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              </Modal>
-              <Text style={styles.helpText}>Payment will be</Text>
-              {Platform.OS === "ios" ? (
-                <>
-                  <Pressable onPress={openFrequencyPicker}>
-                    <View style={styles.pickerWrapper}>
-                      <View style={styles.pickerDisplayContainer}>
-                        <Text style={styles.pickerDisplayText}>
-                          {getLabelForValue(paymentFrequency)}
-                        </Text>
-                        <FontAwesome
-                          name="chevron-down"
-                          size={14}
-                          color="#27446F"
+                      <>
+                        <Text style={styles.helpText}>Card Number</Text>
+                        <TextInput
+                          style={styles.specificInput}
+                          placeholder="Enter card number"
+                          placeholderTextColor="black"
+                          value={cardNumber}
+                          onChangeText={setCardNumber}
+                          keyboardType="numeric"
+                          editable={paymentMethod === "Add Debit Card"}
                         />
-                      </View>
-                    </View>
-                  </Pressable>
-                  {showFrequencyPicker && (
-                    <View style={{ zIndex: 1000, position: "relative" }}>
-                      <Picker
-                        selectedValue={getLabelForValue(paymentFrequency)}
-                        onValueChange={(itemValue) => {
-                          const frequency =
-                            getIncomeFrequencyFromString(itemValue);
 
-                          setPaymentFrequency(frequency);
-                          setShowFrequencyPicker(false);
-                        }}
-                        style={styles.iosPicker}
-                        itemStyle={{ color: "black" }}
-                      >
-                        {incomeFrequencies.map((frequency, index) => {
-                          return (
+                        <Text style={styles.helpText}>Expiration Month</Text>
+                        <TextInput
+                          style={styles.specificInput}
+                          placeholder="Enter expiration month"
+                          placeholderTextColor="black"
+                          value={expirationMonth}
+                          onChangeText={setExpirationMonth}
+                          keyboardType="numeric"
+                          editable={paymentMethod === "Add Debit Card"}
+                        />
+
+                        <Text style={styles.helpText}>Expiration Year</Text>
+                        <TextInput
+                          style={styles.specificInput}
+                          placeholder="Enter expiration year"
+                          placeholderTextColor="black"
+                          value={expirationYear}
+                          onChangeText={setExpirationYear}
+                          keyboardType="numeric"
+                          editable={paymentMethod === "Add Debit Card"}
+                        />
+                      </>
+                    ) : (
+                      <>
+                        <Text style={styles.helpText}>Routing Number</Text>
+                        <TextInput
+                          style={styles.specificInput}
+                          placeholder="Enter routing number"
+                          placeholderTextColor="black"
+                          value={routingNumber}
+                          onChangeText={setRoutingNumber}
+                          keyboardType="numeric"
+                          editable={paymentMethod === "Add Checking Account"}
+                        />
+
+                        <Text style={styles.helpText}>Account Number</Text>
+                        <TextInput
+                          style={styles.specificInput}
+                          placeholder="Enter account number"
+                          placeholderTextColor="black"
+                          value={accountNumber}
+                          onChangeText={setAccountNumber}
+                          keyboardType="numeric"
+                          editable={paymentMethod === "Add Checking Account"}
+                        />
+                      </>
+                    )}
+                    <TouchableOpacity onPress={() => setModalVisible(true)}>
+                      <Text style={styles.helpLink}>
+                        {paymentMethod.startsWith("Debit Card -")
+                          ? "Help me find my card information"
+                          : "Help me find my account information"}
+                      </Text>
+                    </TouchableOpacity>
+                    <Modal
+                      animationType="slide"
+                      transparent={true}
+                      visible={modalVisible}
+                      onRequestClose={() => {
+                        setModalVisible(!modalVisible);
+                      }}
+                    >
+                      <View style={styles.modalContainer}>
+                        <View style={styles.modalContent}>
+                          <Text style={styles.modalText}>
+                            {paymentMethod.startsWith("Debit Card -")
+                              ? "Debit Card"
+                              : "Checking Account"}
+                          </Text>
+
+                          {paymentMethod.startsWith("Debit Card -") ? (
+                            <Image
+                              source={require("../assets/images/debit-image.jpg")}
+                              style={styles.modalImage}
+                            />
+                          ) : (
+                            <Image
+                              source={require("../assets/images/bank-account.jpg")}
+                              style={styles.modalImage}
+                            />
+                          )}
+                          <TouchableOpacity
+                            style={styles.closeButton}
+                            onPress={() => setModalVisible(!modalVisible)}
+                          >
+                            <Ionicons name="close" size={24} color="black" />
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+                    </Modal>
+                    <Text style={styles.helpText}>Payment will be</Text>
+                    {Platform.OS === "ios" ? (
+                      <>
+                        <Pressable onPress={openFrequencyPicker}>
+                          <View style={styles.pickerWrapper}>
+                            <View style={styles.pickerDisplayContainer}>
+                              <Text style={styles.pickerDisplayText}>
+                                {getLabelForValue(paymentFrequency)}
+                              </Text>
+                              <FontAwesome
+                                name="chevron-down"
+                                size={14}
+                                color="#27446F"
+                              />
+                            </View>
+                          </View>
+                        </Pressable>
+                        {showFrequencyPicker && (
+                          <View style={{ zIndex: 1000, position: "relative" }}>
+                            <Picker
+                              selectedValue={getLabelForValue(paymentFrequency)}
+                              onValueChange={(itemValue) => {
+                                const frequency =
+                                  getIncomeFrequencyFromString(itemValue);
+
+                                setPaymentFrequency(frequency);
+                                setShowFrequencyPicker(false);
+                              }}
+                              style={styles.iosPicker}
+                              itemStyle={{ color: "black" }}
+                            >
+                              {incomeFrequencies.map((frequency, index) => {
+                                return (
+                                  <Picker.Item
+                                    key={index}
+                                    label={frequency.name}
+                                    value={frequency.name}
+                                  />
+                                );
+                              })}
+                            </Picker>
+                          </View>
+                        )}
+                      </>
+                    ) : (
+                      <View style={styles.pickerWrapper}>
+                        <Picker
+                          selectedValue={getLabelForValue(paymentFrequency)}
+                          onValueChange={(itemValue) => {
+                            const frequency = getIncomeFrequencyFromString(itemValue);
+                            setPaymentFrequency(frequency);
+                          }}
+                          style={styles.androidPicker}
+                          dropdownIconColor="#000000"
+                        >
+                          {incomeFrequencies.map((frequency, index) => (
                             <Picker.Item
                               key={index}
                               label={frequency.name}
                               value={frequency.name}
                             />
-                          );
-                        })}
-                      </Picker>
-                    </View>
-                  )}
-                </>
-              ) : (
-                <View style={styles.pickerWrapper}>
-                  <Picker
-                    selectedValue={getLabelForValue(paymentFrequency)}
-                    onValueChange={(itemValue) => {
-                      const frequency = getIncomeFrequencyFromString(itemValue);
-                      setPaymentFrequency(frequency);
-                    }}
-                    style={styles.androidPicker}
-                    dropdownIconColor="#000000"
-                  >
-                    {incomeFrequencies.map((frequency, index) => (
-                      <Picker.Item
-                        key={index}
-                        label={frequency.name}
-                        value={frequency.name}
-                      />
-                    ))}
-                  </Picker>
-                </View>
-              )}
-              {(paymentFrequency === IncomeFrequency.Weekly ||
-                paymentFrequency === IncomeFrequency.BiWeekly) && (
-                <>
-                  <Text style={styles.helpText}>Day of Week</Text>
-                  {Platform.OS === "ios" ? (
-                    <>
-                      <Pressable
-                        onPress={() => setShowDayPicker(!showDayPicker)}
-                      >
-                        <View style={styles.pickerWrapper}>
-                          <View style={styles.pickerDisplayContainer}>
-                            <Text style={styles.pickerDisplayText}>
-                              {dayOfWeek || "Select a day"}
-                            </Text>
-                            <FontAwesome
-                              name="chevron-down"
-                              size={14}
-                              color="#27446F"
-                            />
-                          </View>
-                        </View>
-                      </Pressable>
-                      {showDayPicker && (
-                        <View style={{ zIndex: 1000, position: "relative" }}>
-                          <Picker
-                            selectedValue={dayOfWeek}
-                            onValueChange={(itemValue) => {
-                              const selectedDay = daysOfTheWeek.find(
-                                (day) =>
-                                  day.value == (itemValue as unknown as number)
-                              );
-                              if (selectedDay) {
-                                setDayOfWeek(selectedDay.name);
-                              }
-                              setShowDayPicker(false);
-                            }}
-                            style={styles.iosPicker}
-                            itemStyle={{ color: "black" }}
-                          >
-                            {daysOfTheWeek.map((day, index) => (
-                              <Picker.Item
-                                key={index}
-                                label={day.name}
-                                value={day.value}
-                              />
-                            ))}
-                          </Picker>
-                        </View>
-                      )}
-                    </>
-                  ) : (
-                    <View style={styles.pickerWrapper}>
-                      <Picker
-                        selectedValue={dayOfWeek}
-                        onValueChange={(itemValue) => {
-                          const selectedDay = daysOfTheWeek.find(
-                            (day) => day.value === Number(itemValue)
-                          );
-                          if (selectedDay) {
-                            setDayOfWeek(selectedDay.name);
-                          }
-                        }}
-                        style={styles.iosPicker}
-                        itemStyle={{ color: "black" }}
-                      >
-                        {daysOfTheWeek.map((day, index) => (
-                          <Picker.Item
-                            key={index}
-                            label={day.name}
-                            value={String(day.value)}
-                          />
-                        ))}
-                      </Picker>
-                    </View>
-                  )}
-                </>
-              )}
-              {paymentFrequency === IncomeFrequency.Monthly && (
-                <>
-                  <Text style={styles.helpText}>Which days</Text>
-                  {Platform.OS === "ios" ? (
-                    <>
-                      <Pressable
-                        onPress={() =>
-                          setShowWhichDaysPicker(!showWhichDaysPicker)
-                        }
-                      >
-                        <View style={styles.pickerWrapper}>
-                          <View style={styles.pickerDisplayContainer}>
-                            <Text style={styles.pickerDisplayText}>
-                              {selectedMonthlyPaymentOption ||
-                                "Select an option"}
-                            </Text>
-                            <FontAwesome
-                              name="chevron-down"
-                              size={14}
-                              color="#27446F"
-                            />
-                          </View>
-                        </View>
-                      </Pressable>
-                      {showWhichDaysPicker && (
-                        <View style={{ zIndex: 1000, position: "relative" }}>
-                          <Picker
-                            selectedValue={selectedMonthlyPaymentOption}
-                            onValueChange={(itemValue) => {
-                              setSelectedMonthlyPaymentOption(itemValue);
-                              if (itemValue === "Specific Week And Day") {
-                                setPaymentSubFrequency(
-                                  PaymentSubFrequency.SpecificWeekAndDay
+                          ))}
+                        </Picker>
+                      </View>
+                    )}
+                    {(paymentFrequency === IncomeFrequency.Weekly ||
+                      paymentFrequency === IncomeFrequency.BiWeekly) && (
+                      <>
+                        <Text style={styles.helpText}>Day of Week</Text>
+                        {Platform.OS === "ios" ? (
+                          <>
+                            <Pressable
+                              onPress={() => setShowDayPicker(!showDayPicker)}
+                            >
+                              <View style={styles.pickerWrapper}>
+                                <View style={styles.pickerDisplayContainer}>
+                                  <Text style={styles.pickerDisplayText}>
+                                    {dayOfWeek || "Select a day"}
+                                  </Text>
+                                  <FontAwesome
+                                    name="chevron-down"
+                                    size={14}
+                                    color="#27446F"
+                                  />
+                                </View>
+                              </View>
+                            </Pressable>
+                            {showDayPicker && (
+                              <View style={{ zIndex: 1000, position: "relative" }}>
+                                <Picker
+                                  selectedValue={dayOfWeek}
+                                  onValueChange={(itemValue) => {
+                                    const selectedDay = daysOfTheWeek.find(
+                                      (day) =>
+                                        day.value == (itemValue as unknown as number)
+                                    );
+                                    if (selectedDay) {
+                                      setDayOfWeek(selectedDay.name);
+                                    }
+                                    setShowDayPicker(false);
+                                  }}
+                                  style={styles.iosPicker}
+                                  itemStyle={{ color: "black" }}
+                                >
+                                  {daysOfTheWeek.map((day, index) => (
+                                    <Picker.Item
+                                      key={index}
+                                      label={day.name}
+                                      value={day.value}
+                                    />
+                                  ))}
+                                </Picker>
+                              </View>
+                            )}
+                          </>
+                        ) : (
+                          <View style={styles.pickerWrapper}>
+                            <Picker
+                              selectedValue={dayOfWeek}
+                              onValueChange={(itemValue) => {
+                                const selectedDay = daysOfTheWeek.find(
+                                  (day) => day.value === Number(itemValue)
                                 );
-                              } else if (itemValue === "Specific Day") {
-                                setPaymentSubFrequency(
-                                  PaymentSubFrequency.SpecificDay
-                                );
+                                if (selectedDay) {
+                                  setDayOfWeek(selectedDay.name);
+                                }
+                              }}
+                              style={styles.iosPicker}
+                              itemStyle={{ color: "black" }}
+                            >
+                              {daysOfTheWeek.map((day, index) => (
+                                <Picker.Item
+                                  key={index}
+                                  label={day.name}
+                                  value={String(day.value)}
+                                />
+                              ))}
+                            </Picker>
+                          </View>
+                        )}
+                      </>
+                    )}
+                    {paymentFrequency === IncomeFrequency.Monthly && (
+                      <>
+                        <Text style={styles.helpText}>Which days</Text>
+                        {Platform.OS === "ios" ? (
+                          <>
+                            <Pressable
+                              onPress={() =>
+                                setShowWhichDaysPicker(!showWhichDaysPicker)
                               }
-                              setShowWhichDaysPicker(false);
-                            }}
-                            style={styles.iosPicker}
-                            itemStyle={{ color: "black" }}
-                          >
-                            {monthlyPaymentOptions.map((option, index) => (
-                              <Picker.Item
-                                key={index}
-                                label={option.name}
-                                value={option.name}
-                              />
-                            ))}
-                          </Picker>
-                        </View>
-                      )}
-                    </>
-                  ) : (
-                    <View style={styles.pickerWrapper}>
-                      <Picker
-                        selectedValue={selectedMonthlyPaymentOption}
-                        onValueChange={(itemValue) => {
-                          setSelectedMonthlyPaymentOption(itemValue);
-                          if (itemValue === "Specific Week And Day") {
-                            setPaymentSubFrequency(
-                              PaymentSubFrequency.SpecificWeekAndDay
-                            );
-                          } else if (itemValue === "Specific Day") {
-                            setPaymentSubFrequency(
-                              PaymentSubFrequency.SpecificDay
-                            );
+                            >
+                              <View style={styles.pickerWrapper}>
+                                <View style={styles.pickerDisplayContainer}>
+                                  <Text style={styles.pickerDisplayText}>
+                                    {selectedMonthlyPaymentOption ||
+                                      "Select an option"}
+                                  </Text>
+                                  <FontAwesome
+                                    name="chevron-down"
+                                    size={14}
+                                    color="#27446F"
+                                  />
+                                </View>
+                              </View>
+                            </Pressable>
+                            {showWhichDaysPicker && (
+                              <View style={{ zIndex: 1000, position: "relative" }}>
+                                <Picker
+                                  selectedValue={selectedMonthlyPaymentOption}
+                                  onValueChange={(itemValue) => {
+                                    setSelectedMonthlyPaymentOption(itemValue);
+                                    if (itemValue === "Specific Week And Day") {
+                                      setPaymentSubFrequency(
+                                        PaymentSubFrequency.SpecificWeekAndDay
+                                      );
+                                    } else if (itemValue === "Specific Day") {
+                                      setPaymentSubFrequency(
+                                        PaymentSubFrequency.SpecificDay
+                                      );
+                                    }
+                                    setShowWhichDaysPicker(false);
+                                  }}
+                                  style={styles.iosPicker}
+                                  itemStyle={{ color: "black" }}
+                                >
+                                  {monthlyPaymentOptions.map((option, index) => (
+                                    <Picker.Item
+                                      key={index}
+                                      label={option.name}
+                                      value={option.name}
+                                    />
+                                  ))}
+                                </Picker>
+                              </View>
+                            )}
+                          </>
+                        ) : (
+                          <View style={styles.pickerWrapper}>
+                            <Picker
+                              selectedValue={selectedMonthlyPaymentOption}
+                              onValueChange={(itemValue) => {
+                                setSelectedMonthlyPaymentOption(itemValue);
+                                if (itemValue === "Specific Week And Day") {
+                                  setPaymentSubFrequency(
+                                    PaymentSubFrequency.SpecificWeekAndDay
+                                  );
+                                } else if (itemValue === "Specific Day") {
+                                  setPaymentSubFrequency(
+                                    PaymentSubFrequency.SpecificDay
+                                  );
+                                }
+                              }}
+                              style={styles.androidPicker}
+                              dropdownIconColor="#000000"
+                            >
+                              {monthlyPaymentOptions.map((option, index) => (
+                                <Picker.Item
+                                  key={index}
+                                  label={option.name}
+                                  value={option.name}
+                                />
+                              ))}
+                            </Picker>
+                          </View>
+                        )}
+
+                        {selectedMonthlyPaymentOption === "Specific Week And Day" && (
+                          <>
+                            <Text style={styles.helpText}>Payment Week</Text>
+                            {Platform.OS === "ios" ? (
+                              <>
+                                <Pressable
+                                  onPress={() => setShowWeekPicker(!showWeekPicker)}
+                                >
+                                  <View style={styles.pickerWrapper}>
+                                    <View style={styles.pickerDisplayContainer}>
+                                      <Text style={styles.pickerDisplayText}>
+                                        {paymentWeek || "Select a week"}
+                                      </Text>
+                                      <FontAwesome
+                                        name="chevron-down"
+                                        size={14}
+                                        color="#27446F"
+                                      />
+                                    </View>
+                                  </View>
+                                </Pressable>
+                                {showWeekPicker && (
+                                  <View
+                                    style={{ zIndex: 1000, position: "relative" }}
+                                  >
+                                    <Picker
+                                      selectedValue={paymentWeek}
+                                      onValueChange={(itemValue) => {
+                                        setPaymentWeek(itemValue);
+                                        setShowWeekPicker(false);
+                                      }}
+                                      style={styles.iosPicker}
+                                      itemStyle={{ color: "black" }}
+                                    >
+                                      {paymentWeekOptions.map((week, index) => (
+                                        <Picker.Item
+                                          key={index}
+                                          label={week.name}
+                                          value={week.value}
+                                        />
+                                      ))}
+                                    </Picker>
+                                  </View>
+                                )}
+                              </>
+                            ) : (
+                              <View style={styles.pickerWrapper}>
+                                <Picker
+                                  selectedValue={paymentWeek}
+                                  onValueChange={(itemValue) =>
+                                    setPaymentWeek(itemValue)
+                                  }
+                                  style={styles.androidPicker}
+                                  dropdownIconColor="#000000"
+                                >
+                                  {paymentWeekOptions.map((week, index) => (
+                                    <Picker.Item
+                                      key={index}
+                                      label={week.name}
+                                      value={week.value}
+                                    />
+                                  ))}
+                                </Picker>
+                              </View>
+                            )}
+
+                            <Text style={styles.helpText}>Day of Week</Text>
+                            {Platform.OS === "ios" ? (
+                              <>
+                                <Pressable
+                                  onPress={() => setShowDayPicker(!showDayPicker)}
+                                >
+                                  <View style={styles.pickerWrapper}>
+                                    <View style={styles.pickerDisplayContainer}>
+                                      <Text style={styles.pickerDisplayText}>
+                                        {dayOfWeek || "Select a day"}
+                                      </Text>
+                                      <FontAwesome
+                                        name="chevron-down"
+                                        size={14}
+                                        color="#27446F"
+                                      />
+                                    </View>
+                                  </View>
+                                </Pressable>
+                                {showDayPicker && (
+                                  <View
+                                    style={{ zIndex: 1000, position: "relative" }}
+                                  >
+                                    <Picker
+                                      selectedValue={dayOfWeek}
+                                      onValueChange={(itemValue) => {
+                                        setDayOfWeek(itemValue);
+                                        setShowDayPicker(false);
+                                      }}
+                                      style={styles.iosPicker}
+                                      itemStyle={{ color: "black" }}
+                                    >
+                                      {daysOfTheWeek.map((day, index) => (
+                                        <Picker.Item
+                                          key={index}
+                                          label={day.name}
+                                          value={day.value}
+                                        />
+                                      ))}
+                                    </Picker>
+                                  </View>
+                                )}
+                              </>
+                            ) : (
+                              <View style={styles.pickerWrapper}>
+                                <Picker
+                                  selectedValue={dayOfWeek}
+                                  onValueChange={(itemValue) =>
+                                    setDayOfWeek(itemValue)
+                                  }
+                                  style={styles.androidPicker}
+                                  dropdownIconColor="#000000"
+                                >
+                                  {daysOfTheWeek.map((day, index) => (
+                                    <Picker.Item
+                                      key={index}
+                                      label={day.name}
+                                      value={day.value}
+                                    />
+                                  ))}
+                                </Picker>
+                              </View>
+                            )}
+                          </>
+                        )}
+
+                        {selectedMonthlyPaymentOption === "Specific Day" && (
+                          <>
+                            <Text style={styles.helpText}>Payment Date</Text>
+                            {Platform.OS === "ios" ? (
+                              <>
+                                <Pressable
+                                  onPress={() =>
+                                    setShowPaymentDatePicker(!showPaymentDatePicker)
+                                  }
+                                >
+                                  <View style={styles.pickerWrapper}>
+                                    <View style={styles.pickerDisplayContainer}>
+                                      <Text style={styles.pickerDisplayText}>
+                                        {paymentDate || "Select a date"}
+                                      </Text>
+                                      <FontAwesome
+                                        name="chevron-down"
+                                        size={14}
+                                        color="#27446F"
+                                      />
+                                    </View>
+                                  </View>
+                                </Pressable>
+                                {showPaymentDatePicker && (
+                                  <View
+                                    style={{ zIndex: 1000, position: "relative" }}
+                                  >
+                                    <Picker
+                                      selectedValue={paymentDate}
+                                      onValueChange={(itemValue) => {
+                                        setPaymentDate(itemValue);
+                                        setShowPaymentDatePicker(false);
+                                      }}
+                                      style={styles.iosPicker}
+                                      itemStyle={{ color: "black" }}
+                                    >
+                                      {dateOptions.map((day, index) => (
+                                        <Picker.Item
+                                          key={index}
+                                          label={day.name}
+                                          value={day.value}
+                                        />
+                                      ))}
+                                    </Picker>
+                                  </View>
+                                )}
+                              </>
+                            ) : (
+                              <View style={styles.pickerWrapper}>
+                                <Picker
+                                  selectedValue={paymentDate}
+                                  onValueChange={(itemValue) =>
+                                    setPaymentDate(itemValue)
+                                  }
+                                  style={styles.androidPicker}
+                                  dropdownIconColor="#000000"
+                                >
+                                  {dateOptions.map((day, index) => (
+                                    <Picker.Item
+                                      key={index}
+                                      label={day.name}
+                                      value={day.value}
+                                    />
+                                  ))}
+                                </Picker>
+                              </View>
+                            )}
+                          </>
+                        )}
+                      </>
+                    )}
+                    {paymentFrequency === IncomeFrequency.BiWeekly && (
+                      <>
+                        <Text style={styles.helpText}>Last Pay Date</Text>
+                        <Pressable
+                          onPress={() =>
+                            setShowLastPayDatePicker(!showLastPayDatePicker)
                           }
-                        }}
-                        style={styles.androidPicker}
-                        dropdownIconColor="#000000"
-                      >
-                        {monthlyPaymentOptions.map((option, index) => (
-                          <Picker.Item
-                            key={index}
-                            label={option.name}
-                            value={option.name}
+                        >
+                          <View style={styles.datePickerButton}>
+                            <Text style={styles.dateText}>
+                              {lastPayDate ? formatDate(lastPayDate) : "MM/DD/YYYY"}
+                            </Text>
+                            <FontAwesome name="calendar" size={16} color="#27446F" />
+                          </View>
+                        </Pressable>
+
+                        {showLastPayDatePicker && (
+                          <DateTimePicker
+                            mode="date"
+                            display={Platform.OS === "ios" ? "spinner" : "default"}
+                            value={lastPayDate}
+                            onChange={(event, selectedDate) => {
+                              if (Platform.OS === "android") {
+                                setShowLastPayDatePicker(false);
+                              }
+                              if (selectedDate) {
+                                setLastPayDate(selectedDate);
+                              }
+                            }}
+                            textColor="black"
                           />
-                        ))}
-                      </Picker>
-                    </View>
-                  )}
-
-                  {selectedMonthlyPaymentOption === "Specific Week And Day" && (
-                    <>
-                      <Text style={styles.helpText}>Payment Week</Text>
-                      {Platform.OS === "ios" ? (
-                        <>
-                          <Pressable
-                            onPress={() => setShowWeekPicker(!showWeekPicker)}
-                          >
-                            <View style={styles.pickerWrapper}>
-                              <View style={styles.pickerDisplayContainer}>
-                                <Text style={styles.pickerDisplayText}>
-                                  {paymentWeek || "Select a week"}
-                                </Text>
-                                <FontAwesome
-                                  name="chevron-down"
-                                  size={14}
-                                  color="#27446F"
-                                />
-                              </View>
-                            </View>
-                          </Pressable>
-                          {showWeekPicker && (
-                            <View
-                              style={{ zIndex: 1000, position: "relative" }}
-                            >
-                              <Picker
-                                selectedValue={paymentWeek}
-                                onValueChange={(itemValue) => {
-                                  setPaymentWeek(itemValue);
-                                  setShowWeekPicker(false);
-                                }}
-                                style={styles.iosPicker}
-                                itemStyle={{ color: "black" }}
-                              >
-                                {paymentWeekOptions.map((week, index) => (
-                                  <Picker.Item
-                                    key={index}
-                                    label={week.name}
-                                    value={week.value}
+                        )}
+                      </>
+                    )}
+                    {paymentFrequency === IncomeFrequency.SemiMonthly && (
+                      <>
+                        <Text style={styles.helpText}>Which days</Text>
+                        {Platform.OS === "ios" ? (
+                          <>
+                            <Pressable onPress={openWhichDaysPicker}>
+                              <View style={styles.pickerWrapper}>
+                                <View style={styles.pickerDisplayContainer}>
+                                  <Text style={styles.pickerDisplayText}>
+                                    {whichDaysDisplayName || "Select an option"}
+                                  </Text>
+                                  <FontAwesome
+                                    name="chevron-down"
+                                    size={14}
+                                    color="#27446F"
                                   />
-                                ))}
-                              </Picker>
-                            </View>
-                          )}
-                        </>
-                      ) : (
-                        <View style={styles.pickerWrapper}>
-                          <Picker
-                            selectedValue={paymentWeek}
-                            onValueChange={(itemValue) =>
-                              setPaymentWeek(itemValue)
-                            }
-                            style={styles.androidPicker}
-                            dropdownIconColor="#000000"
-                          >
-                            {paymentWeekOptions.map((week, index) => (
-                              <Picker.Item
-                                key={index}
-                                label={week.name}
-                                value={week.value}
-                              />
-                            ))}
-                          </Picker>
-                        </View>
-                      )}
-
-                      <Text style={styles.helpText}>Day of Week</Text>
-                      {Platform.OS === "ios" ? (
-                        <>
-                          <Pressable
-                            onPress={() => setShowDayPicker(!showDayPicker)}
-                          >
-                            <View style={styles.pickerWrapper}>
-                              <View style={styles.pickerDisplayContainer}>
-                                <Text style={styles.pickerDisplayText}>
-                                  {dayOfWeek || "Select a day"}
-                                </Text>
-                                <FontAwesome
-                                  name="chevron-down"
-                                  size={14}
-                                  color="#27446F"
-                                />
+                                </View>
                               </View>
-                            </View>
-                          </Pressable>
-                          {showDayPicker && (
-                            <View
-                              style={{ zIndex: 1000, position: "relative" }}
-                            >
-                              <Picker
-                                selectedValue={dayOfWeek}
-                                onValueChange={(itemValue) => {
-                                  setDayOfWeek(itemValue);
-                                  setShowDayPicker(false);
-                                }}
-                                style={styles.iosPicker}
-                                itemStyle={{ color: "black" }}
-                              >
-                                {daysOfTheWeek.map((day, index) => (
-                                  <Picker.Item
-                                    key={index}
-                                    label={day.name}
-                                    value={day.value}
-                                  />
-                                ))}
-                              </Picker>
-                            </View>
-                          )}
-                        </>
-                      ) : (
-                        <View style={styles.pickerWrapper}>
-                          <Picker
-                            selectedValue={dayOfWeek}
-                            onValueChange={(itemValue) =>
-                              setDayOfWeek(itemValue)
-                            }
-                            style={styles.androidPicker}
-                            dropdownIconColor="#000000"
-                          >
-                            {daysOfTheWeek.map((day, index) => (
-                              <Picker.Item
-                                key={index}
-                                label={day.name}
-                                value={day.value}
-                              />
-                            ))}
-                          </Picker>
-                        </View>
-                      )}
-                    </>
-                  )}
-
-                  {selectedMonthlyPaymentOption === "Specific Day" && (
-                    <>
-                      <Text style={styles.helpText}>Payment Date</Text>
-                      {Platform.OS === "ios" ? (
-                        <>
-                          <Pressable
-                            onPress={() =>
-                              setShowPaymentDatePicker(!showPaymentDatePicker)
-                            }
-                          >
-                            <View style={styles.pickerWrapper}>
-                              <View style={styles.pickerDisplayContainer}>
-                                <Text style={styles.pickerDisplayText}>
-                                  {paymentDate || "Select a date"}
-                                </Text>
-                                <FontAwesome
-                                  name="chevron-down"
-                                  size={14}
-                                  color="#27446F"
-                                />
+                            </Pressable>
+                            {showWhichDaysPicker && (
+                              <View style={{ zIndex: 1000, position: "relative" }}>
+                                <Picker
+                                  selectedValue={selectedWhichDaysValue.toString()}
+                                  onValueChange={handlePaymentSubFrequencyChange}
+                                  style={styles.iosPicker}
+                                  itemStyle={{ color: "black" }}
+                                >
+                                  {whichDaysOptions.map((option, index) => (
+                                    <Picker.Item
+                                      key={index}
+                                      label={option.name}
+                                      value={option.value}
+                                    />
+                                  ))}
+                                </Picker>
                               </View>
-                            </View>
-                          </Pressable>
-                          {showPaymentDatePicker && (
-                            <View
-                              style={{ zIndex: 1000, position: "relative" }}
+                            )}
+                          </>
+                        ) : (
+                          <View style={styles.pickerWrapper}>
+                            <Picker
+                              selectedValue={selectedWhichDaysValue.toString()}
+                              onValueChange={handlePaymentSubFrequencyChange}
+                              style={styles.androidPicker}
+                              dropdownIconColor="#000000"
                             >
-                              <Picker
-                                selectedValue={paymentDate}
-                                onValueChange={(itemValue) => {
-                                  setPaymentDate(itemValue);
-                                  setShowPaymentDatePicker(false);
-                                }}
-                                style={styles.iosPicker}
-                                itemStyle={{ color: "black" }}
-                              >
-                                {dateOptions.map((day, index) => (
-                                  <Picker.Item
-                                    key={index}
-                                    label={day.name}
-                                    value={day.value}
-                                  />
-                                ))}
-                              </Picker>
-                            </View>
-                          )}
-                        </>
-                      ) : (
-                        <View style={styles.pickerWrapper}>
-                          <Picker
-                            selectedValue={paymentDate}
-                            onValueChange={(itemValue) =>
-                              setPaymentDate(itemValue)
-                            }
-                            style={styles.androidPicker}
-                            dropdownIconColor="#000000"
-                          >
-                            {dateOptions.map((day, index) => (
-                              <Picker.Item
-                                key={index}
-                                label={day.name}
-                                value={day.value}
-                              />
-                            ))}
-                          </Picker>
-                        </View>
-                      )}
-                    </>
-                  )}
-                </>
-              )}
-              {paymentFrequency === IncomeFrequency.BiWeekly && (
-                <>
-                  <Text style={styles.helpText}>Last Pay Date</Text>
-                  <Pressable
-                    onPress={() =>
-                      setShowLastPayDatePicker(!showLastPayDatePicker)
-                    }
-                  >
-                    <View style={styles.datePickerButton}>
-                      <Text style={styles.dateText}>
-                        {lastPayDate ? formatDate(lastPayDate) : "MM/DD/YYYY"}
-                      </Text>
-                      <FontAwesome name="calendar" size={16} color="#27446F" />
-                    </View>
-                  </Pressable>
+                              {whichDaysOptions.map((option, index) => (
+                                <Picker.Item
+                                  key={index}
+                                  label={option.name}
+                                  value={option.value}
+                                />
+                              ))}
+                            </Picker>
+                          </View>
+                        )}
 
-                  {showLastPayDatePicker && (
-                    <DateTimePicker
-                      mode="date"
-                      display={Platform.OS === "ios" ? "spinner" : "default"}
-                      value={lastPayDate}
-                      onChange={(event, selectedDate) => {
-                        if (Platform.OS === "android") {
-                          setShowLastPayDatePicker(false);
-                        }
-                        if (selectedDate) {
-                          setLastPayDate(selectedDate);
-                        }
-                      }}
-                      textColor="black"
+                        <Text style={styles.helpText}>Payday One</Text>
+                        {Platform.OS === "ios" ? (
+                          <>
+                            <Pressable onPress={openPayDayOnePicker}>
+                              <View style={styles.pickerWrapper}>
+                                <View style={styles.pickerDisplayContainer}>
+                                  <Text style={styles.pickerDisplayText}>
+                                    {selectedPayDayOne || "Select a day"}
+                                  </Text>
+                                  <FontAwesome
+                                    name="chevron-down"
+                                    size={14}
+                                    color="#27446F"
+                                  />
+                                </View>
+                              </View>
+                            </Pressable>
+                            {showPayDayOnePicker && (
+                              <View style={{ zIndex: 1000, position: "relative" }}>
+                                <Picker
+                                  selectedValue={selectedPayDayOne}
+                                  onValueChange={handlePayDayOneChange}
+                                  style={styles.iosPicker}
+                                  itemStyle={{ color: "black" }}
+                                >
+                                  {date2.map((day, index) => (
+                                    <Picker.Item
+                                      key={index}
+                                      label={day.name}
+                                      value={day.value}
+                                    />
+                                  ))}
+                                </Picker>
+                              </View>
+                            )}
+                          </>
+                        ) : (
+                          <View style={styles.pickerWrapper}>
+                            <Picker
+                              selectedValue={selectedPayDayOne}
+                              onValueChange={handlePayDayOneChange}
+                              style={styles.androidPicker}
+                              dropdownIconColor="#000000"
+                            >
+                              {date2.map((day, index) => (
+                                <Picker.Item
+                                  key={index}
+                                  label={day.name}
+                                  value={day.value}
+                                />
+                              ))}
+                            </Picker>
+                          </View>
+                        )}
+
+                        <Text style={styles.helpText}>Payday Two</Text>
+                        {Platform.OS === "ios" ? (
+                          <>
+                            <Pressable onPress={openPayDayTwoPicker}>
+                              <View style={styles.pickerWrapper}>
+                                <View style={styles.pickerDisplayContainer}>
+                                  <Text style={styles.pickerDisplayText}>
+                                    {selectedPayDayTwo || "Select a day"}
+                                  </Text>
+                                  <FontAwesome
+                                    name="chevron-down"
+                                    size={14}
+                                    color="#27446F"
+                                  />
+                                </View>
+                              </View>
+                            </Pressable>
+                            {showPayDayTwoPicker && (
+                              <View style={{ zIndex: 1000, position: "relative" }}>
+                                <Picker
+                                  selectedValue={selectedPayDayTwo}
+                                  onValueChange={handlePayDayTwoChange}
+                                  style={styles.iosPicker}
+                                  itemStyle={{ color: "black" }}
+                                >
+                                  {date3.map((day, index) => (
+                                    <Picker.Item
+                                      key={index}
+                                      label={day.name}
+                                      value={day.value}
+                                    />
+                                  ))}
+                                </Picker>
+                              </View>
+                            )}
+                          </>
+                        ) : (
+                          <View style={styles.pickerWrapper}>
+                            <Picker
+                              selectedValue={selectedPayDayTwo}
+                              onValueChange={handlePayDayTwoChange}
+                              style={styles.androidPicker}
+                              dropdownIconColor="#000000"
+                            >
+                              {date3.map((day, index) => (
+                                <Picker.Item
+                                  key={index}
+                                  label={day.name}
+                                  value={day.value}
+                                />
+                              ))}
+                            </Picker>
+                          </View>
+                        )}
+
+                        {!isPayDayTwoValid() && (
+                          <Text style={{ color: "red", marginTop: 10 }}>
+                            Day Two must be at least 7 days after Day One.
+                          </Text>
+                        )}
+                      </>
+                    )}
+                    <Text style={styles.helpText}>Payment Amount</Text>
+                    <TextInput
+                      style={styles.specificInput}
+                      placeholder="Enter payment amount"
+                      placeholderTextColor="black"
+                      value={paymentAmount}
+                      onChangeText={setPaymentAmount}
+                      keyboardType="numeric"
                     />
-                  )}
-                </>
-              )}
-              {paymentFrequency === IncomeFrequency.SemiMonthly && (
-                <>
-                  <Text style={styles.helpText}>Which days</Text>
-                  {Platform.OS === "ios" ? (
-                    <>
-                      <Pressable onPress={openWhichDaysPicker}>
-                        <View style={styles.pickerWrapper}>
-                          <View style={styles.pickerDisplayContainer}>
-                            <Text style={styles.pickerDisplayText}>
-                              {whichDaysDisplayName || "Select an option"}
-                            </Text>
-                            <FontAwesome
-                              name="chevron-down"
-                              size={14}
-                              color="#27446F"
-                            />
-                          </View>
-                        </View>
-                      </Pressable>
-                      {showWhichDaysPicker && (
-                        <View style={{ zIndex: 1000, position: "relative" }}>
-                          <Picker
-                            selectedValue={selectedWhichDaysValue.toString()}
-                            onValueChange={handlePaymentSubFrequencyChange}
-                            style={styles.iosPicker}
-                            itemStyle={{ color: "black" }}
-                          >
-                            {whichDaysOptions.map((option, index) => (
-                              <Picker.Item
-                                key={index}
-                                label={option.name}
-                                value={option.value}
-                              />
-                            ))}
-                          </Picker>
-                        </View>
-                      )}
-                    </>
-                  ) : (
-                    <View style={styles.pickerWrapper}>
-                      <Picker
-                        selectedValue={selectedWhichDaysValue.toString()}
-                        onValueChange={handlePaymentSubFrequencyChange}
-                        style={styles.androidPicker}
-                        dropdownIconColor="#000000"
-                      >
-                        {whichDaysOptions.map((option, index) => (
-                          <Picker.Item
-                            key={index}
-                            label={option.name}
-                            value={option.value}
-                          />
-                        ))}
-                      </Picker>
-                    </View>
-                  )}
-
-                  <Text style={styles.helpText}>Payday One</Text>
-                  {Platform.OS === "ios" ? (
-                    <>
-                      <Pressable onPress={openPayDayOnePicker}>
-                        <View style={styles.pickerWrapper}>
-                          <View style={styles.pickerDisplayContainer}>
-                            <Text style={styles.pickerDisplayText}>
-                              {selectedPayDayOne || "Select a day"}
-                            </Text>
-                            <FontAwesome
-                              name="chevron-down"
-                              size={14}
-                              color="#27446F"
-                            />
-                          </View>
-                        </View>
-                      </Pressable>
-                      {showPayDayOnePicker && (
-                        <View style={{ zIndex: 1000, position: "relative" }}>
-                          <Picker
-                            selectedValue={selectedPayDayOne}
-                            onValueChange={handlePayDayOneChange}
-                            style={styles.iosPicker}
-                            itemStyle={{ color: "black" }}
-                          >
-                            {date2.map((day, index) => (
-                              <Picker.Item
-                                key={index}
-                                label={day.name}
-                                value={day.value}
-                              />
-                            ))}
-                          </Picker>
-                        </View>
-                      )}
-                    </>
-                  ) : (
-                    <View style={styles.pickerWrapper}>
-                      <Picker
-                        selectedValue={selectedPayDayOne}
-                        onValueChange={handlePayDayOneChange}
-                        style={styles.androidPicker}
-                        dropdownIconColor="#000000"
-                      >
-                        {date2.map((day, index) => (
-                          <Picker.Item
-                            key={index}
-                            label={day.name}
-                            value={day.value}
-                          />
-                        ))}
-                      </Picker>
-                    </View>
-                  )}
-
-                  <Text style={styles.helpText}>Payday Two</Text>
-                  {Platform.OS === "ios" ? (
-                    <>
-                      <Pressable onPress={openPayDayTwoPicker}>
-                        <View style={styles.pickerWrapper}>
-                          <View style={styles.pickerDisplayContainer}>
-                            <Text style={styles.pickerDisplayText}>
-                              {selectedPayDayTwo || "Select a day"}
-                            </Text>
-                            <FontAwesome
-                              name="chevron-down"
-                              size={14}
-                              color="#27446F"
-                            />
-                          </View>
-                        </View>
-                      </Pressable>
-                      {showPayDayTwoPicker && (
-                        <View style={{ zIndex: 1000, position: "relative" }}>
-                          <Picker
-                            selectedValue={selectedPayDayTwo}
-                            onValueChange={handlePayDayTwoChange}
-                            style={styles.iosPicker}
-                            itemStyle={{ color: "black" }}
-                          >
-                            {date3.map((day, index) => (
-                              <Picker.Item
-                                key={index}
-                                label={day.name}
-                                value={day.value}
-                              />
-                            ))}
-                          </Picker>
-                        </View>
-                      )}
-                    </>
-                  ) : (
-                    <View style={styles.pickerWrapper}>
-                      <Picker
-                        selectedValue={selectedPayDayTwo}
-                        onValueChange={handlePayDayTwoChange}
-                        style={styles.androidPicker}
-                        dropdownIconColor="#000000"
-                      >
-                        {date3.map((day, index) => (
-                          <Picker.Item
-                            key={index}
-                            label={day.name}
-                            value={day.value}
-                          />
-                        ))}
-                      </Picker>
-                    </View>
-                  )}
-
-                  {!isPayDayTwoValid() && (
-                    <Text style={{ color: "red", marginTop: 10 }}>
-                      Day Two must be at least 7 days after Day One.
+                    <Text style={styles.helpText}>Payment Start Date</Text>
+                    <Pressable onPress={toggleDatePicker}>
+                      <View style={styles.datePickerButton}>
+                        <Text style={styles.dateText}>
+                          {date ? formatDate(date) : "MM/DD/YYYY"}
+                        </Text>
+                        <FontAwesome name="calendar" size={16} color="#27446F" />
+                      </View>
+                    </Pressable>
+                    {showDatePicker && (
+                      <DateTimePicker
+                        mode="date"
+                        display={Platform.OS === "ios" ? "spinner" : "default"}
+                        value={date}
+                        onChange={onChange}
+                        textColor="black"
+                      />
+                    )}
+                    <Text style={styles.summaryText}>
+                      {getPaymentSummaryMessage()}
                     </Text>
-                  )}
-                </>
-              )}
-              <Text style={styles.helpText}>Payment Amount</Text>
-              <TextInput
-                style={styles.specificInput}
-                placeholder="Enter payment amount"
-                placeholderTextColor="black"
-                value={paymentAmount}
-                onChangeText={setPaymentAmount}
-                keyboardType="numeric"
-              />
-              <Text style={styles.helpText}>Payment Start Date</Text>
-              <Pressable onPress={toggleDatePicker}>
-                <View style={styles.datePickerButton}>
-                  <Text style={styles.dateText}>
-                    {date ? formatDate(date) : "MM/DD/YYYY"}
-                  </Text>
-                  <FontAwesome name="calendar" size={16} color="#27446F" />
-                </View>
-              </Pressable>
-              {showDatePicker && (
-                <DateTimePicker
-                  mode="date"
-                  display={Platform.OS === "ios" ? "spinner" : "default"}
-                  value={date}
-                  onChange={onChange}
-                  textColor="black"
-                />
-              )}
-              <Text style={styles.summaryText}>
-                {getPaymentSummaryMessage()}
-              </Text>
-              <View style={styles.container}>
-                {renderModal()}
+                    <View style={styles.container}>
+                      {renderModal()}
 
-                <TouchableOpacity onPress={handleTurnOffAutoPayPress}>
-                  <Text style={styles.turnOffAutoPayText}>
-                    Turn off AutoPay
-                  </Text>
-                </TouchableOpacity>
+                      <TouchableOpacity onPress={handleTurnOffAutoPayPress}>
+                        <Text style={styles.turnOffAutoPayText}>
+                          Turn off AutoPay
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                    <TouchableOpacity
+                      style={styles.submitButton}
+                      onPress={handleSubmit}
+                      disabled={isSubmitting} // Disable the button if submitting
+                    >
+                      <Text style={styles.submitButtonText}>
+                        {isSubmitting ? "Submitting..." : "SUBMIT"}
+                      </Text>
+                    </TouchableOpacity>
+                  </>
+                )}
               </View>
-              <TouchableOpacity
-                style={styles.submitButton}
-                onPress={handleSubmit}
-                disabled={isSubmitting} // Disable the button if submitting
-              >
-                <Text style={styles.submitButtonText}>
-                  {isSubmitting ? "Submitting..." : "SUBMIT"}
-                </Text>
-              </TouchableOpacity>
             </View>
-          </View>
-        </ScrollView>
-    <Toast/>
-      </View>
-    </KeyboardAvoidingView>
+          </ScrollView>
+          <Toast />
+        </View>
+      </KeyboardAvoidingView>
     </>
-    
   );
 };
 

@@ -52,8 +52,8 @@ export const styles = StyleSheet.create({
     borderWidth: 1,
     marginBottom: 10,
     paddingHorizontal: 10,
-    backgroundColor: "#f0f0f0", // Light grey background
-    color: "black", // Black text color
+    backgroundColor: "#f0f0f0",
+    color: "black",
   },
   pickerWrapper: {
     borderWidth: 1,
@@ -190,7 +190,7 @@ export const styles = StyleSheet.create({
     fontSize: 16,
   },
   warningText: {
-    color: "#D97706", // Amber or warning color
+    color: "#D97706",
     backgroundColor: "#FFF8E1",
     padding: 10,
     borderRadius: 6,
@@ -206,15 +206,15 @@ export const styles = StyleSheet.create({
     textAlign: "left",
   },
   modalImage: {
-    width: "100%", // Adjust the width as needed
-    height: 200, // Adjust the height as needed
-    resizeMode: "contain", // Adjust the resizeMode as needed
+    width: "100%",
+    height: 200,
+    resizeMode: "contain",
     marginVertical: 10,
   },
   confirmationText: {
     marginTop: 20,
     fontSize: 16,
-    color: "black", // You can choose any color you prefer
+    color: "black",
     textAlign: "center",
   },
   modalTitle: {
@@ -223,7 +223,6 @@ export const styles = StyleSheet.create({
     marginBottom: 10,
     textAlign: "center",
   },
-
   modalButton: {
     backgroundColor: "#27446F",
     padding: 10,
