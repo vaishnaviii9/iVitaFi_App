@@ -1,46 +1,58 @@
 import React from "react";
+import { useDispatch } from "react-redux";
 import {
-  DrawerContentScrollView,
-  DrawerItem,
-} from "@react-navigation/drawer";
+  clearCreditAccountId,
+  clearCreditSummaries,
+  clearAutopay,
+} from "../features/creditAccount/creditAccountSlice";
+import { logout as authLogout } from "../features/login/loginSlice";
+import { DrawerContentScrollView, DrawerItem } from "@react-navigation/drawer";
 import { View, StyleSheet, Pressable, Linking, Alert } from "react-native";
 import { router } from "expo-router";
 import type { DrawerContentComponentProps } from "@react-navigation/drawer";
 import { Ionicons } from "@expo/vector-icons";
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
-import AntDesign from '@expo/vector-icons/AntDesign';
-import Feather from '@expo/vector-icons/Feather';
-import FontAwesome from '@expo/vector-icons/FontAwesome';
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
+import AntDesign from "@expo/vector-icons/AntDesign";
+import Feather from "@expo/vector-icons/Feather";
+import FontAwesome from "@expo/vector-icons/FontAwesome";
 
 export default function CustomDrawerContent(props: DrawerContentComponentProps) {
+  const dispatch = useDispatch();
+
+  const handleLogout = () => {
+    dispatch(clearCreditAccountId());
+    dispatch(clearCreditSummaries());
+    dispatch(clearAutopay());
+    dispatch(authLogout());
+    router.push("/(auth)/Login");
+  };
+
   const handleCallPress = () => {
-    Linking.openURL('tel:8003412316')
-      .catch(() => Alert.alert('Error', 'Unable to open dialer. Please try again later.'));
+    Linking.openURL("tel:8003412316").catch(() =>
+      Alert.alert("Error", "Unable to open dialer. Please try again later.")
+    );
   };
 
   const handleEmailPress = () => {
-    Linking.openURL('mailto:customercare@amerisbank.ivitafi.com')
-      .catch(() => Alert.alert('Error', 'Unable to open email client. Please try again later.'));
+    Linking.openURL("mailto:customercare@amerisbank.ivitafi.com").catch(() =>
+      Alert.alert("Error", "Unable to open email client. Please try again later.")
+    );
   };
 
   const handleFaqPress = () => {
-    Linking.openURL('https://ivitafinancial.com/faq/#faq')
-      .catch(() => Alert.alert('Error', 'Unable to open FAQ page. Please try again later.'));
+    Linking.openURL("https://ivitafinancial.com/faq/#faq").catch(() =>
+      Alert.alert("Error", "Unable to open FAQ page. Please try again later.")
+    );
   };
 
   return (
     <View style={{ flex: 1 }}>
       <DrawerContentScrollView {...props}>
-        {/* 🔙 Back Button to Home */}
-        <Pressable
-          onPress={() => router.push('/(tabs)/Home')}
-          style={styles.backButton}
-        >
+        <Pressable onPress={() => router.push("/(tabs)/Home")} style={styles.backButton}>
           <Ionicons name="arrow-back" size={28} color="#37474F" />
         </Pressable>
 
-        {/* Profile */}
         <DrawerItem
           label="Profile"
           icon={({ color, size }: { color: string; size: number }) => (
@@ -49,7 +61,6 @@ export default function CustomDrawerContent(props: DrawerContentComponentProps) 
           onPress={() => router.push("/Profile")}
         />
 
-        {/* Manage Payments */}
         <DrawerItem
           label="Manage Payments"
           icon={({ color, size }: { color: string; size: number }) => (
@@ -58,7 +69,6 @@ export default function CustomDrawerContent(props: DrawerContentComponentProps) 
           onPress={() => router.push("/ManagePayments")}
         />
 
-        {/* Make Payment */}
         <DrawerItem
           label="Make Payment"
           icon={({ color, size }: { color: string; size: number }) => (
@@ -67,7 +77,6 @@ export default function CustomDrawerContent(props: DrawerContentComponentProps) 
           onPress={() => router.push("/MakePayment")}
         />
 
-        {/* Configure Autopay */}
         <DrawerItem
           label="Configure Autopay"
           icon={({ color, size }: { color: string; size: number }) => (
@@ -76,7 +85,6 @@ export default function CustomDrawerContent(props: DrawerContentComponentProps) 
           onPress={() => router.push("/ConfigureAutopay")}
         />
 
-        {/* Call Us */}
         <DrawerItem
           label="Call Us"
           icon={({ color, size }: { color: string; size: number }) => (
@@ -85,7 +93,6 @@ export default function CustomDrawerContent(props: DrawerContentComponentProps) 
           onPress={handleCallPress}
         />
 
-        {/* Email Us */}
         <DrawerItem
           label="Email Us"
           icon={({ color, size }: { color: string; size: number }) => (
@@ -94,7 +101,6 @@ export default function CustomDrawerContent(props: DrawerContentComponentProps) 
           onPress={handleEmailPress}
         />
 
-        {/* FAQ */}
         <DrawerItem
           label="FAQ"
           icon={({ color, size }: { color: string; size: number }) => (
@@ -103,13 +109,12 @@ export default function CustomDrawerContent(props: DrawerContentComponentProps) 
           onPress={handleFaqPress}
         />
 
-        {/* Logout */}
         <DrawerItem
           label="Logout"
           icon={({ color, size }: { color: string; size: number }) => (
             <Ionicons name="log-out-outline" size={size} color={color} />
           )}
-          onPress={() => router.push("/(auth)/Login")}
+          onPress={handleLogout}
         />
       </DrawerContentScrollView>
     </View>
