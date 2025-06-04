@@ -7,7 +7,7 @@ import ProfileScreen from "../Profile";
 import CustomDrawerContent from "../../components/CustomDrawerContent";
 import HomeScreen from "../(tabs)/Home"; // Ensure this is correctly imported
 import ManagePayments from '../ManagePayments';
-import MakePayment from "../MakePayment";
+import MakePayment from "../MakeAPayment";
 import ConfigureAutopay from "../ConfigureAutopay";
 // import CallUs from '../CallUs'; // Import the new CallUs screen
 // import EmailUs from '../EmailUs'; // Import the new EmailUs screen
@@ -54,7 +54,7 @@ export default function DrawerLayout() {
       />
       <Drawer.Screen name="Profile" component={ProfileScreen} options={{ title: "My Profile" }} />
       <Drawer.Screen name="Manage Payments" component={ManagePayments} options={{ title: "Manage Payments" }} />
-      <Drawer.Screen name="Make Payment" component={MakePayment} options={{ title: "Make Payment" }} />
+      <Drawer.Screen name="Make A Payment" component={MakePayment} options={{ title: "Make A Payment" }} />
       <Drawer.Screen name="Configure Autopay" component={ConfigureAutopay} options={{ title: "Configure Autopay" }} />
 
     </Drawer.Navigator>

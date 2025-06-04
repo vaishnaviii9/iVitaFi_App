@@ -70,11 +70,11 @@ export default function CustomDrawerContent(props: DrawerContentComponentProps) 
         />
 
         <DrawerItem
-          label="Make Payment"
+          label="Make A Payment"
           icon={({ color, size }: { color: string; size: number }) => (
             <FontAwesome6 name="credit-card" size={24} color="black" />
           )}
-          onPress={() => router.push("/MakePayment")}
+          onPress={() => router.push("/MakeAPayment")}
         />
 
         <DrawerItem
