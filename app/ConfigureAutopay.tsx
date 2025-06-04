@@ -411,6 +411,9 @@ const ConfigureAutopay = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true); // Add loading state
+  const currentDate = new Date();
+  const maxDate = new Date(currentDate);
+  maxDate.setDate(currentDate.getDate() + 30);
   // Retrieve token from Redux store to authenticate API requests
   const token = useSelector((state: any) => state.auth.token);
 
@@ -894,15 +897,30 @@ const ConfigureAutopay = () => {
     }
   };
 
-  const onChange = (_event: any, selectedDate?: Date) => {
-    if (Platform.OS === "android") {
-      setShowDatePicker(false);
-    }
+ const onChange = (event: any, selectedDate?: Date) => {
+  if (Platform.OS === "android") {
+    setShowDatePicker(false);
+  }
 
-    if (selectedDate) {
+  if (selectedDate) {
+    // Ensure the selected date is within the allowed range
+    if (selectedDate >= currentDate && selectedDate <= maxDate) {
       setDate(selectedDate);
+    } else {
+      // Optionally, show an error message or toast
+      Toast.show({
+        type: "error",
+        text1: "Invalid Date",
+        text2: "Please select a date within the next 30 days.",
+        visibilityTime: 3000,
+        autoHide: true,
+        topOffset: 60,
+        bottomOffset: 100,
+      });
     }
-  };
+  }
+};
+
 
   const formatDate = (date: Date) => {
     const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -913,156 +931,160 @@ const ConfigureAutopay = () => {
   };
 
   // Inside your handleSubmit function
-  const handleSubmit = async () => {
-    if (creditAccountId && selectedPaymentMethodId && token) {
-      setIsSubmitting(true); // Set submitting to true when starting the submission process
+const handleSubmit = async () => {
+  // Check if payment amount is valid
+  const safeNextPaymentAmount = parseFloat(paymentAmount.replace(/[^0-9.-]/g, ""));
 
-      const result = await updateDefaultPaymentMethod(
-        creditAccountId,
-        selectedPaymentMethodId,
-        accountNumber,
-        routingNumber,
-        cardNumber,
-        token,
-        expirationMonth,
-        expirationYear
-      );
+  if (isNaN(safeNextPaymentAmount) || safeNextPaymentAmount <= 0) {
+    Toast.show({
+      type: "error",
+      text1: "Invalid Payment Amount",
+      text2: "Please enter a valid payment amount greater than zero.",
+      visibilityTime: 3000,
+      autoHide: true,
+      topOffset: 60,
+      bottomOffset: 100,
+    });
+    return;
+  }
 
-      if (result) {
-        if (result.type === "data") {
-          const safeNextPaymentAmount = parseFloat(
-            paymentAmount.replace(/[^0-9.-]/g, "")
-          );
+  if (creditAccountId && selectedPaymentMethodId && token) {
+    setIsSubmitting(true);
 
-          if (isNaN(safeNextPaymentAmount)) {
-            setIsSubmitting(false);
-            return;
-          }
+    const result = await updateDefaultPaymentMethod(
+      creditAccountId,
+      selectedPaymentMethodId,
+      accountNumber,
+      routingNumber,
+      cardNumber,
+      token,
+      expirationMonth,
+      expirationYear
+    );
 
-          let safePaymentSubFrequency = paymentSubFrequency;
-          let safePaymentDayOne = paymentDayOne;
-          let safePaymentDayTwo = paymentDayTwo;
-          let safePaymentWeekOne = paymentWeekOne;
+    if (result) {
+      if (result.type === "data") {
+        let safePaymentSubFrequency = paymentSubFrequency;
+        let safePaymentDayOne = paymentDayOne;
+        let safePaymentDayTwo = paymentDayTwo;
+        let safePaymentWeekOne = paymentWeekOne;
 
-          if (paymentFrequency === IncomeFrequency.Monthly) {
-            if (paymentSubFrequency === PaymentSubFrequency.SpecificDay) {
-              safePaymentDayOne = Number(paymentDate);
-            } else if (
-              paymentSubFrequency === PaymentSubFrequency.SpecificWeekAndDay
-            ) {
-              safePaymentDayOne = Number(paymentWeek);
-              safePaymentWeekOne = daysOfTheWeek.find(
-                (day) => day.name === dayOfWeek
-              )?.value;
-            }
+        if (paymentFrequency === IncomeFrequency.Monthly) {
+          if (paymentSubFrequency === PaymentSubFrequency.SpecificDay) {
+            safePaymentDayOne = Number(paymentDate);
           } else if (
-            paymentFrequency === IncomeFrequency.Weekly ||
-            paymentFrequency === IncomeFrequency.BiWeekly
+            paymentSubFrequency === PaymentSubFrequency.SpecificWeekAndDay
           ) {
-            safePaymentSubFrequency = 0;
-            safePaymentDayOne =
-              daysOfTheWeek.find((day) => day.name === dayOfWeek)?.value || 0;
-            safePaymentWeekOne = 0;
-          } else if (paymentFrequency === IncomeFrequency.SemiMonthly) {
-            safePaymentSubFrequency = PaymentSubFrequency.SpecificDay;
+            safePaymentDayOne = Number(paymentWeek);
+            safePaymentWeekOne = daysOfTheWeek.find(
+              (day) => day.name === dayOfWeek
+            )?.value;
           }
+        } else if (
+          paymentFrequency === IncomeFrequency.Weekly ||
+          paymentFrequency === IncomeFrequency.BiWeekly
+        ) {
+          safePaymentSubFrequency = 0;
+          safePaymentDayOne =
+            daysOfTheWeek.find((day) => day.name === dayOfWeek)?.value || 0;
+          safePaymentWeekOne = 0;
+        } else if (paymentFrequency === IncomeFrequency.SemiMonthly) {
+          safePaymentSubFrequency = PaymentSubFrequency.SpecificDay;
+        }
 
-          const payload = {
-            autoPayEnabled: true,
-            paymentFrequency,
-            paymentSubFrequency: safePaymentSubFrequency,
-            paymentDayOne: safePaymentDayOne,
-            paymentDayTwo: safePaymentDayTwo,
-            paymentWeekOne: safePaymentWeekOne,
-            paymentWeekTwo: paymentWeekTwo,
-            paymentAmount: safeNextPaymentAmount,
-            initialPaymentDate: initialPaymentDate
-              ? new Date(initialPaymentDate)
+        const payload = {
+          autoPayEnabled: true,
+          paymentFrequency,
+          paymentSubFrequency: safePaymentSubFrequency,
+          paymentDayOne: safePaymentDayOne,
+          paymentDayTwo: safePaymentDayTwo,
+          paymentWeekOne: safePaymentWeekOne,
+          paymentWeekTwo: paymentWeekTwo,
+          paymentAmount: safeNextPaymentAmount,
+          initialPaymentDate: initialPaymentDate
+            ? new Date(initialPaymentDate)
+            : new Date(),
+          startDate: date ? new Date(date) : new Date(),
+          paymentType: paymentType ?? 0,
+          nextPaymentDate:
+            nextPaymentDate && !isNaN(nextPaymentDate.getTime())
+              ? new Date(nextPaymentDate)
               : new Date(),
-            startDate: date ? new Date(date) : new Date(),
-            paymentType: paymentType ?? 0,
-            nextPaymentDate:
-              nextPaymentDate && !isNaN(nextPaymentDate.getTime())
-                ? new Date(nextPaymentDate)
-                : new Date(),
-            nextPaymentAmount: safeNextPaymentAmount,
-          };
+          nextPaymentAmount: safeNextPaymentAmount,
+        };
 
-          const scheduleResult = await updatePaymentSchedule(
-            creditAccountId,
-            token,
-            payload
-          );
+        const scheduleResult = await updatePaymentSchedule(
+          creditAccountId,
+          token,
+          payload
+        );
 
-          if (scheduleResult) {
-            if (scheduleResult.type === "data") {
-              // Show a success toast notification
+        if (scheduleResult) {
+          if (scheduleResult.type === "data") {
+            Toast.show({
+              type: "success",
+              text1: "Success",
+              text2: "The AutoPay has been configured successfully.",
+              visibilityTime: 3000,
+              autoHide: true,
+              topOffset: 60,
+              bottomOffset: 100,
+            });
+
+            setTimeout(() => {
+              router.push("/(tabs)/Home");
+            }, 3000);
+
+            const customerResponse = await fetchCustomerData(token, () => {});
+            if (customerResponse) {
+              const { creditSummaries } = await fetchCreditSummariesWithId(
+                customerResponse,
+                token
+              );
+
+              if (creditSummaries && creditSummaries.length > 0) {
+                const paymentSchedule =
+                  creditSummaries[0]?.detail?.creditAccount?.paymentSchedule;
+                if (paymentSchedule) {
+                  setPaymentAmount(
+                    formatPaymentAmount(paymentSchedule.paymentAmount)
+                  );
+                }
+              }
+            }
+          } else if (scheduleResult.type === "error") {
+            if (
+              scheduleResult.error?.errorCode ===
+              ErrorCode.AdminPaymentAmountInvalid
+            ) {
               Toast.show({
-                type: "success",
-                text1: "Success",
-                text2: "The AutoPay has been configured successfully.",
+                type: "error",
+                text1: "Error",
+                text2: "Please enter a valid payment amount.",
                 visibilityTime: 3000,
                 autoHide: true,
                 topOffset: 60,
                 bottomOffset: 100,
               });
-
-              // Add a delay before navigating to the home screen
-              setTimeout(() => {
-                router.push("/(tabs)/Home");
-              }, 3000); // Delay of 3000 milliseconds (3 seconds)
-
-              // Refresh the page by refetching the data
-              const customerResponse = await fetchCustomerData(token, () => {});
-              if (customerResponse) {
-                const { creditSummaries } = await fetchCreditSummariesWithId(
-                  customerResponse,
-                  token
-                );
-
-                if (creditSummaries && creditSummaries.length > 0) {
-                  const paymentSchedule =
-                    creditSummaries[0]?.detail?.creditAccount?.paymentSchedule;
-                  if (paymentSchedule) {
-                    setPaymentAmount(
-                      formatPaymentAmount(paymentSchedule.paymentAmount)
-                    );
-                  }
-                }
-              }
-            } else if (scheduleResult.type === "error") {
-              // Check for specific error codes and display appropriate messages
-              if (
-                scheduleResult.error?.errorCode ===
-                ErrorCode.AdminPaymentAmountInvalid
-              ) {
-                Toast.show({
-                  type: "error",
-                  text1: "Error",
-                  text2: "Please enter a valid payment amount.",
-                  visibilityTime: 3000,
-                  autoHide: true,
-                  topOffset: 60,
-                  bottomOffset: 100,
-                });
-              } else {
-                Toast.show({
-                  type: "error",
-                  text1: "Error",
-                  text2: "Failed to update payment schedule.",
-                  visibilityTime: 3000,
-                  autoHide: true,
-                  topOffset: 60,
-                  bottomOffset: 100,
-                });
-              }
+            } else {
+              Toast.show({
+                type: "error",
+                text1: "Error",
+                text2: "Failed to update payment schedule.",
+                visibilityTime: 3000,
+                autoHide: true,
+                topOffset: 60,
+                bottomOffset: 100,
+              });
             }
           }
         }
       }
-      setIsSubmitting(false); // Reset submitting state after the process is complete
     }
-  };
+    setIsSubmitting(false);
+  }
+};
+
 
   // Function to handle the press event of the "Turn off AutoPay" text
   const handleTurnOffAutoPayPress = () => {
