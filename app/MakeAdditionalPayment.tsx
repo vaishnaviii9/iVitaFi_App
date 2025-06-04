@@ -5,25 +5,25 @@ import { router } from 'expo-router'
  const handleBackPress = () => {
     router.push("/(tabs)/Home");
   };
-const MakeAPayment = () => {
+const MakeAdditionalPayment = () => {
   return (
     <View style={styles.container}>
       <View style={styles.headerContainer}>
        <TouchableOpacity onPress={handleBackPress} style={styles.backButton}>
                    <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
                  </TouchableOpacity>
-        <Text style={styles.headerText}>Make A Payment</Text>
+        <Text style={styles.headerText}>Make Additional Payment</Text>
         <View style={{ width: 24 }} />
       </View>
 
       <View style={styles.content}>
-        <Text>Make A Payment Screen</Text>
+        <Text>Make Additional Payment Screen</Text>
       </View>
     </View>
   )
 }
 
-export default MakeAPayment
+export default MakeAdditionalPayment;
 
 const styles = StyleSheet.create({
   container: {
