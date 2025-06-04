@@ -742,11 +742,14 @@ const ConfigureAutopay = () => {
     if (value.startsWith("Debit Card -")) {
       const cardNumberFromValue = value.split(" - ")[1];
       const selectedMethod = savedMethods.find(
-        (method) => method.cardNumber && method.cardNumber.endsWith(cardNumberFromValue)
+        (method) =>
+          method.cardNumber && method.cardNumber.endsWith(cardNumberFromValue)
       );
 
       if (selectedMethod && selectedMethod.cardNumber) {
-        const formattedCardNumber = "x".repeat(selectedMethod.cardNumber.length - 4) + selectedMethod.cardNumber.slice(-4);
+        const formattedCardNumber =
+          "x".repeat(selectedMethod.cardNumber.length - 4) +
+          selectedMethod.cardNumber.slice(-4);
         setCardNumber(formattedCardNumber);
 
         const expirationDate = new Date(selectedMethod.expirationDate);
@@ -754,10 +757,22 @@ const ConfigureAutopay = () => {
         const expirationYear = expirationDate.getFullYear();
 
         const monthNames = [
-          "January", "February", "March", "April", "May", "June",
-          "July", "August", "September", "October", "November", "December"
+          "January",
+          "February",
+          "March",
+          "April",
+          "May",
+          "June",
+          "July",
+          "August",
+          "September",
+          "October",
+          "November",
+          "December",
         ];
-        const formattedExpirationMonth = `${expirationMonth.toString().padStart(2, "0")} - ${monthNames[expirationMonth - 1]}`;
+        const formattedExpirationMonth = `${expirationMonth
+          .toString()
+          .padStart(2, "0")} - ${monthNames[expirationMonth - 1]}`;
 
         setExpirationMonth(formattedExpirationMonth);
         setExpirationYear(expirationYear.toString());
@@ -765,7 +780,9 @@ const ConfigureAutopay = () => {
     } else if (value.startsWith("Checking Account -")) {
       const accountNumberFromValue = value.split(" - ")[1];
       const selectedMethod = savedMethods.find(
-        (method) => method.accountNumber && method.accountNumber.endsWith(accountNumberFromValue)
+        (method) =>
+          method.accountNumber &&
+          method.accountNumber.endsWith(accountNumberFromValue)
       );
 
       if (selectedMethod) {
@@ -778,13 +795,14 @@ const ConfigureAutopay = () => {
       const selectedMethodId = savedMethods.find(
         (method) =>
           (method.cardNumber && value.endsWith(method.cardNumber.slice(-4))) ||
-          (method.accountNumber && value.endsWith(method.accountNumber.slice(-4)))
+          (method.accountNumber &&
+            value.endsWith(method.accountNumber.slice(-4)))
       )?.id;
 
       setSelectedPaymentMethodId(selectedMethodId ?? null);
     }
 
-    if (value === "Add Debit Card") {
+    if (value === "Add Debit Card" || value === "Add Checking Account") {
       router.push("/ManagePayments");
     }
   };
@@ -1098,7 +1116,10 @@ const ConfigureAutopay = () => {
       >
         <View style={styles.container}>
           <View style={styles.headerContainer}>
-            <TouchableOpacity onPress={handleBackPress} style={styles.backButton}>
+            <TouchableOpacity
+              onPress={handleBackPress}
+              style={styles.backButton}
+            >
               <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
             </TouchableOpacity>
             <Text style={styles.headerText}>Configure AutoPay</Text>
@@ -1113,27 +1134,29 @@ const ConfigureAutopay = () => {
               <View style={styles.formContainer}>
                 {isLoading ? (
                   <>
-                    
                     {/* <SkeletonLoader style={styles.pickerWrapper} type="text" /> */}
-                    
+
                     <SkeletonLoader style={styles.specificInput} type="text" />
-                    
+
                     <SkeletonLoader style={styles.specificInput} type="text" />
-                    <SkeletonLoader style={styles.helpText} type="text" />
-                    <SkeletonLoader style={styles.specificInput} type="text" />
-                    <SkeletonLoader style={styles.helpText} type="text" />
-                    <SkeletonLoader style={styles.helpText} type="text" />
-                    {/* <SkeletonLoader style={styles.pickerWrapper} type="text" /> */}
-                    <SkeletonLoader style={styles.helpText} type="text" />
-                    {/* <SkeletonLoader style={styles.pickerWrapper} type="text" /> */}
-                    <SkeletonLoader style={styles.helpText} type="text" />
-                    {/* <SkeletonLoader style={styles.pickerWrapper} type="text" /> */}
-                    <SkeletonLoader style={styles.helpText} type="text" />
-                    {/* <SkeletonLoader style={styles.pickerWrapper} type="text" /> */}
                     <SkeletonLoader style={styles.helpText} type="text" />
                     <SkeletonLoader style={styles.specificInput} type="text" />
                     <SkeletonLoader style={styles.helpText} type="text" />
-                    <SkeletonLoader style={styles.datePickerButton} type="text" />
+                    <SkeletonLoader style={styles.helpText} type="text" />
+                    {/* <SkeletonLoader style={styles.pickerWrapper} type="text" /> */}
+                    <SkeletonLoader style={styles.helpText} type="text" />
+                    {/* <SkeletonLoader style={styles.pickerWrapper} type="text" /> */}
+                    <SkeletonLoader style={styles.helpText} type="text" />
+                    {/* <SkeletonLoader style={styles.pickerWrapper} type="text" /> */}
+                    <SkeletonLoader style={styles.helpText} type="text" />
+                    {/* <SkeletonLoader style={styles.pickerWrapper} type="text" /> */}
+                    <SkeletonLoader style={styles.helpText} type="text" />
+                    <SkeletonLoader style={styles.specificInput} type="text" />
+                    <SkeletonLoader style={styles.helpText} type="text" />
+                    <SkeletonLoader
+                      style={styles.datePickerButton}
+                      type="text"
+                    />
                     <SkeletonLoader style={styles.summaryText} type="text" />
                     <SkeletonLoader style={styles.submitButton} type="text" />
                   </>
@@ -1164,20 +1187,34 @@ const ConfigureAutopay = () => {
                               style={styles.iosPicker}
                               itemStyle={{ color: "black" }}
                             >
-                              <Picker.Item label="Add Debit Card" value="Add Debit Card" />
-                              <Picker.Item label="Add Checking Account" value="Add Checking Account" />
+                              <Picker.Item
+                                label="Add Debit Card"
+                                value="Add Debit Card"
+                              />
+                              <Picker.Item
+                                label="Add Checking Account"
+                                value="Add Checking Account"
+                              />
                               {savedMethods.map((method, index) => (
                                 <Picker.Item
                                   key={index}
                                   label={
                                     method.cardNumber
-                                      ? `Debit Card - ${method.cardNumber.slice(-4)}`
-                                      : `Checking Account - ${method.accountNumber?.slice(-4)}`
+                                      ? `Debit Card - ${method.cardNumber.slice(
+                                          -4
+                                        )}`
+                                      : `Checking Account - ${method.accountNumber?.slice(
+                                          -4
+                                        )}`
                                   }
                                   value={
                                     method.cardNumber
-                                      ? `Debit Card - ${method.cardNumber.slice(-4)}`
-                                      : `Checking Account - ${method.accountNumber?.slice(-4)}`
+                                      ? `Debit Card - ${method.cardNumber.slice(
+                                          -4
+                                        )}`
+                                      : `Checking Account - ${method.accountNumber?.slice(
+                                          -4
+                                        )}`
                                   }
                                 />
                               ))}
@@ -1193,20 +1230,34 @@ const ConfigureAutopay = () => {
                           style={styles.androidPicker}
                           dropdownIconColor="#000000"
                         >
-                          <Picker.Item label="Add Debit Card" value="Add Debit Card" />
-                          <Picker.Item label="Add Checking Account" value="Add Checking Account" />
+                          <Picker.Item
+                            label="Add Debit Card"
+                            value="Add Debit Card"
+                          />
+                          <Picker.Item
+                            label="Add Checking Account"
+                            value="Add Checking Account"
+                          />
                           {savedMethods.map((method, index) => (
                             <Picker.Item
                               key={index}
                               label={
                                 method.cardNumber
-                                  ? `Debit Card - ${method.cardNumber.slice(-4)}`
-                                  : `Checking Account - ${method.accountNumber?.slice(-4)}`
+                                  ? `Debit Card - ${method.cardNumber.slice(
+                                      -4
+                                    )}`
+                                  : `Checking Account - ${method.accountNumber?.slice(
+                                      -4
+                                    )}`
                               }
                               value={
                                 method.cardNumber
-                                  ? `Debit Card - ${method.cardNumber.slice(-4)}`
-                                  : `Checking Account - ${method.accountNumber?.slice(-4)}`
+                                  ? `Debit Card - ${method.cardNumber.slice(
+                                      -4
+                                    )}`
+                                  : `Checking Account - ${method.accountNumber?.slice(
+                                      -4
+                                    )}`
                               }
                             />
                           ))}
@@ -1366,7 +1417,8 @@ const ConfigureAutopay = () => {
                         <Picker
                           selectedValue={getLabelForValue(paymentFrequency)}
                           onValueChange={(itemValue) => {
-                            const frequency = getIncomeFrequencyFromString(itemValue);
+                            const frequency =
+                              getIncomeFrequencyFromString(itemValue);
                             setPaymentFrequency(frequency);
                           }}
                           style={styles.androidPicker}
@@ -1405,13 +1457,16 @@ const ConfigureAutopay = () => {
                               </View>
                             </Pressable>
                             {showDayPicker && (
-                              <View style={{ zIndex: 1000, position: "relative" }}>
+                              <View
+                                style={{ zIndex: 1000, position: "relative" }}
+                              >
                                 <Picker
                                   selectedValue={dayOfWeek}
                                   onValueChange={(itemValue) => {
                                     const selectedDay = daysOfTheWeek.find(
                                       (day) =>
-                                        day.value == (itemValue as unknown as number)
+                                        day.value ==
+                                        (itemValue as unknown as number)
                                     );
                                     if (selectedDay) {
                                       setDayOfWeek(selectedDay.name);
@@ -1484,7 +1539,9 @@ const ConfigureAutopay = () => {
                               </View>
                             </Pressable>
                             {showWhichDaysPicker && (
-                              <View style={{ zIndex: 1000, position: "relative" }}>
+                              <View
+                                style={{ zIndex: 1000, position: "relative" }}
+                              >
                                 <Picker
                                   selectedValue={selectedMonthlyPaymentOption}
                                   onValueChange={(itemValue) => {
@@ -1503,13 +1560,15 @@ const ConfigureAutopay = () => {
                                   style={styles.iosPicker}
                                   itemStyle={{ color: "black" }}
                                 >
-                                  {monthlyPaymentOptions.map((option, index) => (
-                                    <Picker.Item
-                                      key={index}
-                                      label={option.name}
-                                      value={option.name}
-                                    />
-                                  ))}
+                                  {monthlyPaymentOptions.map(
+                                    (option, index) => (
+                                      <Picker.Item
+                                        key={index}
+                                        label={option.name}
+                                        value={option.name}
+                                      />
+                                    )
+                                  )}
                                 </Picker>
                               </View>
                             )}
@@ -1544,13 +1603,16 @@ const ConfigureAutopay = () => {
                           </View>
                         )}
 
-                        {selectedMonthlyPaymentOption === "Specific Week And Day" && (
+                        {selectedMonthlyPaymentOption ===
+                          "Specific Week And Day" && (
                           <>
                             <Text style={styles.helpText}>Payment Week</Text>
                             {Platform.OS === "ios" ? (
                               <>
                                 <Pressable
-                                  onPress={() => setShowWeekPicker(!showWeekPicker)}
+                                  onPress={() =>
+                                    setShowWeekPicker(!showWeekPicker)
+                                  }
                                 >
                                   <View style={styles.pickerWrapper}>
                                     <View style={styles.pickerDisplayContainer}>
@@ -1567,7 +1629,10 @@ const ConfigureAutopay = () => {
                                 </Pressable>
                                 {showWeekPicker && (
                                   <View
-                                    style={{ zIndex: 1000, position: "relative" }}
+                                    style={{
+                                      zIndex: 1000,
+                                      position: "relative",
+                                    }}
                                   >
                                     <Picker
                                       selectedValue={paymentWeek}
@@ -1614,7 +1679,9 @@ const ConfigureAutopay = () => {
                             {Platform.OS === "ios" ? (
                               <>
                                 <Pressable
-                                  onPress={() => setShowDayPicker(!showDayPicker)}
+                                  onPress={() =>
+                                    setShowDayPicker(!showDayPicker)
+                                  }
                                 >
                                   <View style={styles.pickerWrapper}>
                                     <View style={styles.pickerDisplayContainer}>
@@ -1631,7 +1698,10 @@ const ConfigureAutopay = () => {
                                 </Pressable>
                                 {showDayPicker && (
                                   <View
-                                    style={{ zIndex: 1000, position: "relative" }}
+                                    style={{
+                                      zIndex: 1000,
+                                      position: "relative",
+                                    }}
                                   >
                                     <Picker
                                       selectedValue={dayOfWeek}
@@ -1683,7 +1753,9 @@ const ConfigureAutopay = () => {
                               <>
                                 <Pressable
                                   onPress={() =>
-                                    setShowPaymentDatePicker(!showPaymentDatePicker)
+                                    setShowPaymentDatePicker(
+                                      !showPaymentDatePicker
+                                    )
                                   }
                                 >
                                   <View style={styles.pickerWrapper}>
@@ -1701,7 +1773,10 @@ const ConfigureAutopay = () => {
                                 </Pressable>
                                 {showPaymentDatePicker && (
                                   <View
-                                    style={{ zIndex: 1000, position: "relative" }}
+                                    style={{
+                                      zIndex: 1000,
+                                      position: "relative",
+                                    }}
                                   >
                                     <Picker
                                       selectedValue={paymentDate}
@@ -1757,16 +1832,24 @@ const ConfigureAutopay = () => {
                         >
                           <View style={styles.datePickerButton}>
                             <Text style={styles.dateText}>
-                              {lastPayDate ? formatDate(lastPayDate) : "MM/DD/YYYY"}
+                              {lastPayDate
+                                ? formatDate(lastPayDate)
+                                : "MM/DD/YYYY"}
                             </Text>
-                            <FontAwesome name="calendar" size={16} color="#27446F" />
+                            <FontAwesome
+                              name="calendar"
+                              size={16}
+                              color="#27446F"
+                            />
                           </View>
                         </Pressable>
 
                         {showLastPayDatePicker && (
                           <DateTimePicker
                             mode="date"
-                            display={Platform.OS === "ios" ? "spinner" : "default"}
+                            display={
+                              Platform.OS === "ios" ? "spinner" : "default"
+                            }
                             value={lastPayDate}
                             onChange={(event, selectedDate) => {
                               if (Platform.OS === "android") {
@@ -1801,10 +1884,14 @@ const ConfigureAutopay = () => {
                               </View>
                             </Pressable>
                             {showWhichDaysPicker && (
-                              <View style={{ zIndex: 1000, position: "relative" }}>
+                              <View
+                                style={{ zIndex: 1000, position: "relative" }}
+                              >
                                 <Picker
                                   selectedValue={selectedWhichDaysValue.toString()}
-                                  onValueChange={handlePaymentSubFrequencyChange}
+                                  onValueChange={
+                                    handlePaymentSubFrequencyChange
+                                  }
                                   style={styles.iosPicker}
                                   itemStyle={{ color: "black" }}
                                 >
@@ -1856,7 +1943,9 @@ const ConfigureAutopay = () => {
                               </View>
                             </Pressable>
                             {showPayDayOnePicker && (
-                              <View style={{ zIndex: 1000, position: "relative" }}>
+                              <View
+                                style={{ zIndex: 1000, position: "relative" }}
+                              >
                                 <Picker
                                   selectedValue={selectedPayDayOne}
                                   onValueChange={handlePayDayOneChange}
@@ -1911,7 +2000,9 @@ const ConfigureAutopay = () => {
                               </View>
                             </Pressable>
                             {showPayDayTwoPicker && (
-                              <View style={{ zIndex: 1000, position: "relative" }}>
+                              <View
+                                style={{ zIndex: 1000, position: "relative" }}
+                              >
                                 <Picker
                                   selectedValue={selectedPayDayTwo}
                                   onValueChange={handlePayDayTwoChange}
@@ -1970,7 +2061,11 @@ const ConfigureAutopay = () => {
                         <Text style={styles.dateText}>
                           {date ? formatDate(date) : "MM/DD/YYYY"}
                         </Text>
-                        <FontAwesome name="calendar" size={16} color="#27446F" />
+                        <FontAwesome
+                          name="calendar"
+                          size={16}
+                          color="#27446F"
+                        />
                       </View>
                     </Pressable>
                     {showDatePicker && (
