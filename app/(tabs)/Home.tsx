@@ -161,6 +161,15 @@ const HomeScreen: React.FC = () => {
     } else if (daysDelinquent > 0) {
       setCustomerStandingDisplayMessage("THIS ACCOUNT IS PAST DUE");
     } else if (
+      isAutoPay === false &&
+      isBankrupt === false &&
+      !isAccountClosed
+    ) {
+      setEnableConfigureAutopayText(false);
+      setSetUpAutopay(true);
+      setNoAdditionalPayment(true);
+      setEnableClick(true);
+    } else if (
       currentAmountDue === 0 &&
       isAutoPay === true &&
       currentBalance > 0
@@ -339,7 +348,7 @@ const HomeScreen: React.FC = () => {
             </Pressable>
           </View>
         </View>
-
+        {renderAccountStatus()}
         <View style={styles.boxContainer}>
           {accountNumbers.length > 0 ? (
             accountNumbers.map((accountNum, index) => (
@@ -402,7 +411,6 @@ const HomeScreen: React.FC = () => {
           )}
         </View>
 
-        {renderAccountStatus()}
         <View style={styles.balanceContainer}>
           <View style={styles.balanceRow}>
             <Text style={styles.myBalance}>My Balance</Text>
