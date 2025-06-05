@@ -274,7 +274,37 @@ recentTransactionsSkeleton: {
   height: hp('30%'),
 },
 
-
+  accountStatusContainer: {
+    padding: 10,
+    borderRadius: 5,
+    marginBottom: 10,
+  },
+  accountStatus: {
+    backgroundColor: '#f8f9fa',
+  },
+  accountStatusRed: {
+    backgroundColor: '#f8d7da',
+  },
+  row: {
+    flexDirection: 'row',
+  },
+  col3: {
+    flex: 1,
+  },
+  col6: {
+    flex: 2,
+    alignItems: 'center',
+  },
+  typography: {
+    fontSize: 16,
+    textAlign: 'center',
+  },
+  icon: {
+    color: '#000',
+  },
+  iconRed: {
+    color: '#dc3545',
+  },
 });
 
 

@@ -2,7 +2,6 @@ import React, { useCallback, useState, useEffect } from "react";
 import { View, Text, TouchableOpacity, Image, Pressable } from "react-native";
 import { useSelector, useDispatch } from "react-redux";
 import SkeletonLoader from "../../components/SkeletonLoader";
-import styles from "../../components/styles/HomeStyles";
 import RecentTransactions from "../../features/transactions/RecentTransactions";
 import { fetchCustomerData } from "../services/customerService";
 import { fetchUserData } from "../services/userService";
@@ -12,9 +11,12 @@ import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { DrawerActions } from "@react-navigation/native";
 import { fetchPendingTransactions } from "../../app/services/pendingTransactionsService";
 import { logout } from "../../features/login/loginSlice";
+import { CreditApplicationStatus } from "../../utils/CreditApplicationStatusUtil";
+import styles from "../../components/styles/HomeStyles";
 
 interface CreditApplication {
   accountNumber: string;
+  status: CreditApplicationStatus;
 }
 
 const HomeScreen: React.FC = () => {
@@ -36,6 +38,19 @@ const HomeScreen: React.FC = () => {
   const [last4Digits, setLast4Digits] = useState<string | null>(null);
   const [isCardNumber, setIsCardNumber] = useState<boolean>(false);
   const [transactions, setTransactions] = useState<any[]>([]);
+
+  // State variables for customer standing logic
+  const [customerStandingDisplayMessage, setCustomerStandingDisplayMessage] = useState<string | null>(null);
+  const [noAdditionalPayment, setNoAdditionalPayment] = useState<boolean>(false);
+  const [setUpAutopay, setSetUpAutopay] = useState<boolean>(false);
+  const [enableClick, setEnableClick] = useState<boolean>(false);
+  const [enableConfigureAutopayText, setEnableConfigureAutopayText] = useState<boolean>(false);
+  const [enableDiv, setEnableDiv] = useState<boolean>(false);
+  const [enableCustomerDiv, setEnableCustomerDiv] = useState<boolean>(false);
+  const [enableManageCustomerDiv, setEnableManageCustomerDiv] = useState<boolean>(false);
+  const [closedAccount, setClosedAccount] = useState<boolean>(false);
+  const [bankruptAccount, setBankruptAccount] = useState<boolean>(false);
+  const [isActiveClass, setIsActiveClass] = useState<boolean>(false);
 
   const fetchAllData = useCallback(async () => {
     try {
@@ -92,6 +107,8 @@ const HomeScreen: React.FC = () => {
             validSummary.detail?.creditAccount?.paymentSchedule?.autoPayEnabled;
           setAutopay(isAutopayEnabled);
           dispatch({ type: "SET_AUTOPLAY_ENABLED", payload: isAutopayEnabled });
+
+          determineCustomerStandingPaymentOptions(validSummary);
         }
       }
 
@@ -106,18 +123,69 @@ const HomeScreen: React.FC = () => {
     }
   }, [token, dispatch, creditAccountId]);
 
+  const determineCustomerStandingPaymentOptions = (validSummary: any) => {
+    const isAccountClosed = validSummary.detail?.creditAccount.creditApplication.status === CreditApplicationStatus.AccountClosed;
+    const isBankrupt = validSummary.isBankrupt;
+    const isAutoPay = validSummary.detail?.creditAccount?.paymentSchedule?.autoPayEnabled;
+    const currentAmountDue = validSummary.currentAmountDue;
+    const currentBalance = validSummary.currentBalance;
+    const totalAmountDue = validSummary.totalAmountDue;
+    const daysDelinquent = validSummary.daysDelinquent;
+
+    if (isAccountClosed) {
+      setCustomerStandingDisplayMessage("ACCOUNT IS CLOSED");
+      setNoAdditionalPayment(true);
+      setSetUpAutopay(false);
+      setClosedAccount(true);
+      setIsActiveClass(true);
+    } else if (isBankrupt) {
+      setCustomerStandingDisplayMessage("ACCOUNT IN BANKRUPTCY");
+      setIsActiveClass(true);
+      setEnableClick(true);
+      setSetUpAutopay(false);
+      setNoAdditionalPayment(true);
+      setBankruptAccount(true);
+    } else if (isAutoPay === false && isBankrupt === false && !isAccountClosed) {
+      setEnableConfigureAutopayText(false);
+      setSetUpAutopay(true);
+      setNoAdditionalPayment(true);
+      setEnableClick(true);
+    } else if (currentAmountDue === 0 && isAutoPay === true && currentBalance > 0) {
+      setEnableConfigureAutopayText(false);
+      setSetUpAutopay(false);
+      setEnableClick(true);
+      setEnableDiv(false);
+      setClosedAccount(false);
+      setNoAdditionalPayment(false);
+    } else if (
+      (currentAmountDue === 0 && isAutoPay === false && currentBalance > 0) ||
+      (currentAmountDue > 0 && (totalAmountDue - currentAmountDue === 0)) ||
+      ((totalAmountDue - currentAmountDue > 0) && daysDelinquent <= 60) ||
+      ((totalAmountDue - currentAmountDue > 0) && daysDelinquent > 60)
+    ) {
+      if (isAutoPay === false && isBankrupt === false && !isAccountClosed) {
+        setSetUpAutopay(true);
+      } else {
+        setEnableConfigureAutopayText(false);
+        setSetUpAutopay(false);
+        setEnableClick(true);
+        setNoAdditionalPayment(true);
+        setEnableDiv(false);
+      }
+    }
+  };
+
   useFocusEffect(
     useCallback(() => {
       fetchAllData();
     }, [fetchAllData])
   );
 
-  // Listen for logout actions
   const isLoggedOut = useSelector((state: any) => !state.auth.token);
 
   useEffect(() => {
     if (isLoggedOut) {
-      setTransactions([]); // Reset transactions on logout
+      setTransactions([]);
     }
   }, [isLoggedOut]);
 
@@ -129,9 +197,44 @@ const HomeScreen: React.FC = () => {
     navigation.navigate("Profile");
   };
 
+  const handleMakeAdditionalPayment = () => {
+    navigation.navigate('MakeAdditionalPayment');
+  };
+
+  const handleMakeAPayment = () => {
+    navigation.navigate('MakeAPayment');
+  };
+
+  const renderAccountStatus = () => {
+    const isVisible = customerStandingDisplayMessage === 'ACCOUNT IS CLOSED' ||
+                      customerStandingDisplayMessage === 'ACCOUNT IN BANKRUPTCY' ||
+                      customerStandingDisplayMessage === 'THIS ACCOUNT IS PAST DUE' ||
+                      customerStandingDisplayMessage === 'ACCOUNT DELINQUENT';
+
+    if (!isVisible) return null;
+
+    const messageStyle = isActiveClass ? styles.accountStatusRed : styles.accountStatus;
+    const iconStyle = isActiveClass ? styles.iconRed : styles.icon;
+
+    return (
+      <View style={[styles.accountStatusContainer, messageStyle]}>
+        <View style={styles.row}>
+          <View style={styles.col3} />
+          <View style={styles.col6}>
+            <Text style={styles.typography}>
+              <Text style={iconStyle}>⚠️ </Text>
+              {customerStandingDisplayMessage}
+            </Text>
+          </View>
+          <View style={styles.col3} />
+        </View>
+      </View>
+    );
+  };
+
   if (loading) {
     return (
-      <View style={styles.container}>
+      <View style={styles.loaderContainer}>
         <View style={styles.headerContainer}>
           <SkeletonLoader style={styles.hamburgerIcon} />
           <View style={styles.iconAndTextContainer}>
@@ -202,31 +305,21 @@ const HomeScreen: React.FC = () => {
         </View>
       </View>
 
+      {renderAccountStatus()}
+
       <View style={styles.boxContainer}>
         {accountNumbers.length > 0 ? (
           accountNumbers.map((accountNum, index) => (
             <View key={index} style={styles.accountDetails}>
               <View style={styles.accountNumberContainer}>
-                <View
-                  style={{
-                    flexDirection: "row",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                  }}
-                >
+                <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
                   <Text style={styles.accountNumberText}>Account Number: {accountNum}</Text>
                 </View>
                 <View style={styles.autoPayParent}>
                   {autoPay ? (
-                    <Image
-                      source={require("../../assets/images/autopayOn.png")}
-                      style={styles.autopayIcon}
-                    />
+                    <Image source={require("../../assets/images/autopayOn.png")} style={styles.autopayIcon} />
                   ) : (
-                    <Image
-                      source={require("../../assets/images/autopayOff.png")}
-                      style={styles.autopayIcon}
-                    />
+                    <Image source={require("../../assets/images/autopayOff.png")} style={styles.autopayIcon} />
                   )}
                   <Text style={styles.autoPay}>Auto Pay</Text>
                 </View>
@@ -268,9 +361,20 @@ const HomeScreen: React.FC = () => {
       </View>
 
       <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.button}>
-          <Text style={styles.additionalPaymentText}>Make Additional Payment</Text>
-        </TouchableOpacity>
+        {!enableDiv && !enableCustomerDiv && !enableManageCustomerDiv && (
+          <View style={styles.buttonContainer}>
+            {noAdditionalPayment === false && enableConfigureAutopayText === false && enableClick === true && (
+              <TouchableOpacity style={styles.button} onPress={handleMakeAdditionalPayment}>
+                <Text style={styles.additionalPaymentText}>Make Additional Payment</Text>
+              </TouchableOpacity>
+            )}
+            {noAdditionalPayment === true && enableConfigureAutopayText === false && enableClick === true && setUpAutopay === false && (
+              <TouchableOpacity style={styles.button} onPress={handleMakeAPayment}>
+                <Text style={styles.additionalPaymentText}>Make a Payment</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        )}
       </View>
 
       <View style={styles.RecentTransactionsContainer}>
