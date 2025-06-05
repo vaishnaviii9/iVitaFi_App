@@ -10,17 +10,18 @@ import {
   Dimensions,
   ScrollView,
 } from "react-native";
-import RenderHTML from 'react-native-render-html';
+import RenderHTML from "react-native-render-html";
 import { Ionicons, FontAwesome } from "@expo/vector-icons";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { useSelector, useDispatch } from "react-redux";
 import { fetchCreditSummariesWithId } from "../services/creditAccountService";
 import { setCreditSummaries } from "../../features/creditAccount/creditAccountSlice";
 import { fetchDocuments } from "../services/documentService";
-import SkeletonLoader from '../../components/SkeletonLoader';
+import SkeletonLoader from "../../components/SkeletonLoader";
 import styles from "../../components/styles/DocumentStyles";
-import * as Print from 'expo-print';
-import * as Sharing from 'expo-sharing';
+import * as Print from "expo-print";
+import * as Sharing from "expo-sharing";
+import { fetchCustomerData } from "../services/customerService";
 
 const Documents: React.FC = () => {
   const navigation = useNavigation();
@@ -33,40 +34,60 @@ const Documents: React.FC = () => {
   }
 
   const [documents, setDocuments] = useState<Document[]>([]);
-  const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
+  const [selectedDocument, setSelectedDocument] = useState<Document | null>(
+    null
+  );
   const [modalVisible, setModalVisible] = useState(false);
-  const [bankruptcyMessage, setBankruptcyMessage] = useState<string | null>(null);
+  const [bankruptcyMessage, setBankruptcyMessage] = useState<string | null>(
+    null
+  );
   const [titleHeader, setTitleHeader] = useState("Document Viewer");
   const [isLoading, setIsLoading] = useState(true);
 
   const token = useSelector((state: any) => state.auth.token);
-  const creditAccountId = useSelector((state: any) => state.creditAccount.creditAccountId);
+  const creditAccountId = useSelector(
+    (state: any) => state.creditAccount.creditAccountId
+  );
 
-  const fetchDocumentsData = useCallback(async () => {
-    try {
-      if (!creditAccountId || !token) return;
+const fetchDocumentsData = useCallback(async () => {
+  try {
+    // console.log("Credit account id", creditAccountId);
 
-      setIsLoading(true);
+    if (!creditAccountId || !token) return;
 
-      const { creditSummaries } = await fetchCreditSummariesWithId(creditAccountId, token);
+    setIsLoading(true);
+
+    const customerResponse = await fetchCustomerData(token, () => {});
+    if (customerResponse) {
+      const { creditSummaries } = await fetchCreditSummariesWithId(
+        customerResponse,
+        token
+      );
+
+      // console.log("Credit Summaries:", creditSummaries);
       dispatch(setCreditSummaries(creditSummaries));
-
-      const data = await fetchDocuments(creditAccountId, token);
-
-      if (data?.accountSummary?.isBankrupt) {
-        setBankruptcyMessage("ACCOUNT IN BANKRUPTCY");
-      } else {
-        setBankruptcyMessage(null);
-      }
-
-      const validDocuments = (data || []).filter((doc: { documentContent: any; }) => doc.documentContent);
-      setDocuments(validDocuments);
-    } catch (error) {
-      console.log("Error fetching documents:", error);
-    } finally {
-      setIsLoading(false);
     }
-  }, [creditAccountId, token, dispatch]);
+
+    const data = await fetchDocuments(creditAccountId, token);
+    // console.log("Fetched Documents Data:", data);
+
+    if (data?.accountSummary?.isBankrupt) {
+      setBankruptcyMessage("ACCOUNT IN BANKRUPTCY");
+    } else {
+      setBankruptcyMessage(null);
+    }
+
+    // Ensure data is an array before filtering
+    const validDocuments = Array.isArray(data) ? data.filter(
+      (doc: { documentContent: any }) => doc.documentContent
+    ) : [];
+    setDocuments(validDocuments);
+  } catch (error) {
+    console.error("Error fetching documents:", error);
+  } finally {
+    setIsLoading(false);
+  }
+}, [creditAccountId, token, dispatch]);
 
   useFocusEffect(
     useCallback(() => {
@@ -101,7 +122,10 @@ const Documents: React.FC = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.headerContainer}>
-        <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
+        <Pressable
+          onPress={() => navigation.goBack()}
+          style={styles.backButton}
+        >
           <Ionicons name="arrow-back" size={28} color="#37474F" />
         </Pressable>
         <Text style={styles.title}>Documents</Text>
@@ -117,22 +141,42 @@ const Documents: React.FC = () => {
         <View style={styles.documentList}>
           {isLoading ? (
             Array.from({ length: 4 }).map((_, index) => (
-              <SkeletonLoader key={index} style={index % 2 === 0 ? styles.documentFolder : styles.documentFolderDark} type="container">
+              <SkeletonLoader
+                key={index}
+                style={
+                  index % 2 === 0
+                    ? styles.documentFolder
+                    : styles.documentFolderDark
+                }
+                type="container"
+              >
                 <SkeletonLoader style={styles.folderIconSkeleton} type="icon" />
                 <SkeletonLoader style={styles.folderTextSkeleton} type="text" />
               </SkeletonLoader>
             ))
           ) : documents.length > 0 ? (
-            documents.slice().reverse().map((doc, index) => (
-              <TouchableOpacity
-                key={doc.id || index}
-                style={index % 2 === 0 ? styles.documentFolder : styles.documentFolderDark}
-                onPress={() => openDocumentPopup(doc)}
-              >
-                <FontAwesome name="folder-open" size={30} color="#FFFFFF" style={styles.folderIcon} />
-                <Text style={styles.folderText}>{doc.documentName}</Text>
-              </TouchableOpacity>
-            ))
+            documents
+              .slice()
+              .reverse()
+              .map((doc, index) => (
+                <TouchableOpacity
+                  key={doc.id || index}
+                  style={
+                    index % 2 === 0
+                      ? styles.documentFolder
+                      : styles.documentFolderDark
+                  }
+                  onPress={() => openDocumentPopup(doc)}
+                >
+                  <FontAwesome
+                    name="folder-open"
+                    size={30}
+                    color="#FFFFFF"
+                    style={styles.folderIcon}
+                  />
+                  <Text style={styles.folderText}>{doc.documentName}</Text>
+                </TouchableOpacity>
+              ))
           ) : (
             <Text style={styles.noDocumentsText}>No documents available</Text>
           )}
@@ -155,12 +199,15 @@ const Documents: React.FC = () => {
             </View>
             <ScrollView contentContainerStyle={modalStyles.modalContent}>
               <RenderHTML
-                contentWidth={Dimensions.get('window').width}
+                contentWidth={Dimensions.get("window").width}
                 source={{ html: selectedDocument?.documentContent || "" }}
               />
             </ScrollView>
             <View style={modalStyles.footer}>
-              <TouchableOpacity style={modalStyles.button} onPress={closeDocumentPopup}>
+              <TouchableOpacity
+                style={modalStyles.button}
+                onPress={closeDocumentPopup}
+              >
                 <Text style={modalStyles.buttonText}>Close</Text>
               </TouchableOpacity>
               <TouchableOpacity

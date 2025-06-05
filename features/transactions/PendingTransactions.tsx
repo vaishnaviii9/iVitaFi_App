@@ -19,7 +19,7 @@ const Pending: React.FC = () => {
   useEffect(() => {
     const fetchTransactions = async () => {
       if (!creditAccountId) {
-        console.log("No Credit Account ID available in Redux.");
+        // console.log("No Credit Account ID available in Redux.");
         setLoading(false);
         return;
       }
@@ -28,7 +28,7 @@ const Pending: React.FC = () => {
         const response = await fetchPendingTransactions(token, creditAccountId);
         setTransactions(response || []);
       } catch (error) {
-        console.log("Error fetching transactions:", error);
+        // console.log("Error fetching transactions:", error);
       } finally {
         setLoading(false);
       }
