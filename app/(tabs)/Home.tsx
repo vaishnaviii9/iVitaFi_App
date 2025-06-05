@@ -143,66 +143,93 @@ const HomeScreen: React.FC = () => {
   }, [token, dispatch, creditAccountId]);
 
   const determineCustomerStandingPaymentOptions = (validSummary: any) => {
-    const isAccountClosed =
-      validSummary.detail?.creditAccount.creditApplication.status ===
-      CreditApplicationStatus.AccountClosed;
-    const isBankrupt = validSummary?.isBankrupt;
-    const isAutoPay =
-      validSummary.detail?.creditAccount?.paymentSchedule?.autoPayEnabled;
-    const currentAmountDue = validSummary.currentAmountDue;
-    const currentBalance = validSummary.currentBalance;
-    const totalAmountDue = validSummary.totalAmountDue;
-    const daysDelinquent = validSummary.daysDelinquent;
+  const isAccountClosed = validSummary?.detail?.creditAccount?.creditApplication?.status === CreditApplicationStatus.AccountClosed;
+  const isBankrupt = validSummary?.isBankrupt;
+  const isAutoPay = validSummary?.detail?.creditAccount?.paymentSchedule?.autoPayEnabled;
+  const currentAmountDue = validSummary?.currentAmountDue;
+  const currentBalance = validSummary?.currentBalance;
+  const totalAmountDue = validSummary?.totalAmountDue;
+  const daysDelinquent = validSummary?.daysDelinquent;
 
-    if (isAccountClosed) {
-      setCustomerStandingDisplayMessage("ACCOUNT IS CLOSED");
-    } else if (isBankrupt) {
-      setCustomerStandingDisplayMessage("ACCOUNT IN BANKRUPTCY");
-    } else if (daysDelinquent > 0) {
-      setCustomerStandingDisplayMessage("THIS ACCOUNT IS PAST DUE");
-    } else if (
-      isAutoPay === false &&
-      isBankrupt === false &&
-      !isAccountClosed
-    ) {
-      setEnableConfigureAutopayText(false);
+  if (isAccountClosed) {
+    setCustomerStandingDisplayMessage("ACCOUNT IS CLOSED");
+    setNoAdditionalPayment(true);
+    setSetUpAutopay(false);
+    setClosedAccount(true);
+    setIsActiveClass(true);
+  }
+  else if (isBankrupt) {
+    setCustomerStandingDisplayMessage("ACCOUNT IN BANKRUPTCY");
+    setIsActiveClass(true);
+    setEnableClick(true);
+    setSetUpAutopay(false);
+    setNoAdditionalPayment(true);
+    setBankruptAccount(true);
+  }
+  else if (isAutoPay === false && isBankrupt === false && !isAccountClosed) {
+    setEnableConfigureAutopayText(false);
+    setSetUpAutopay(true);
+    setNoAdditionalPayment(true);
+    setEnableClick(true);
+  }
+  else if (currentAmountDue === 0 && isAutoPay === true && currentBalance > 0) {
+    setEnableConfigureAutopayText(false);
+    setSetUpAutopay(false);
+    setEnableClick(true);
+    setEnableDiv(false);
+    setClosedAccount(false);
+    setNoAdditionalPayment(false);
+  }
+  else if (
+    (currentAmountDue === 0 && isAutoPay === false && currentBalance > 0) ||
+    (currentAmountDue > 0 && totalAmountDue - currentAmountDue === 0) ||
+    (totalAmountDue - currentAmountDue > 0 && daysDelinquent <= 60) ||
+    (totalAmountDue - currentAmountDue > 0 && daysDelinquent > 60)
+  ) {
+    if (isAutoPay === false && isBankrupt === false && !isAccountClosed) {
       setSetUpAutopay(true);
-      setNoAdditionalPayment(true);
-      setEnableClick(true);
-    } else if (
-      currentAmountDue === 0 &&
-      isAutoPay === true &&
-      currentBalance > 0
-    ) {
-      setEnableConfigureAutopayText(false);
+    } else {
       setSetUpAutopay(false);
       setEnableClick(true);
+      setNoAdditionalPayment(true);
       setEnableDiv(false);
-      setClosedAccount(false);
-      setNoAdditionalPayment(false);
-    } else if (
-      (currentAmountDue === 0 && isAutoPay === false && currentBalance > 0) ||
-      (currentAmountDue > 0 && totalAmountDue - currentAmountDue === 0) ||
-      (totalAmountDue - currentAmountDue > 0 && daysDelinquent <= 60) ||
-      (totalAmountDue - currentAmountDue > 0 && daysDelinquent > 60)
-    ) {
-      if (isAutoPay === false && isBankrupt === false && !isAccountClosed) {
-        setSetUpAutopay(true);
-      } else {
-        setEnableConfigureAutopayText(false);
-        setSetUpAutopay(false);
-        setEnableClick(true);
-        setNoAdditionalPayment(true);
-        setEnableDiv(false);
-      }
     }
-  };
+  } 
+};
+
 
   useFocusEffect(
     useCallback(() => {
       fetchAllData();
     }, [fetchAllData])
   );
+
+  useEffect(() => {
+    console.log("Token changed, resetting state");
+    setUserData(null);
+    setCustomerData(null);
+    setAccountNumbers([]);
+    setCurrentAmountDue(null);
+    setBalance(null);
+    setAvailableCredit(null);
+    setNextPaymentDate(null);
+    setCreditSummaries([]);
+    setAutopay(null);
+    setLast4Digits(null);
+    setIsCardNumber(false);
+    setTransactions([]);
+    setCustomerStandingDisplayMessage(null);
+    setNoAdditionalPayment(false);
+    setSetUpAutopay(false);
+    setEnableClick(false);
+    setEnableConfigureAutopayText(false);
+    setEnableDiv(false);
+    setEnableCustomerDiv(false);
+    setEnableManageCustomerDiv(false);
+    setClosedAccount(false);
+    setBankruptAccount(false);
+    setIsActiveClass(false);
+  }, [token]);
 
   const isLoggedOut = useSelector((state: any) => !state.auth.token);
 
@@ -256,6 +283,33 @@ const HomeScreen: React.FC = () => {
       </View>
     );
   };
+
+  useEffect(() => {
+    console.log(
+      "Button conditions - noAdditionalPayment:",
+      noAdditionalPayment
+    );
+    console.log(
+      "Button conditions - enableConfigureAutopayText:",
+      enableConfigureAutopayText
+    );
+    console.log("Button conditions - enableClick:", enableClick);
+    console.log("Button conditions - setUpAutopay:", setUpAutopay);
+    console.log("Button conditions - enableDiv:", enableDiv);
+    console.log("Button conditions - enableCustomerDiv:", enableCustomerDiv);
+    console.log(
+      "Button conditions - enableManageCustomerDiv:",
+      enableManageCustomerDiv
+    );
+  }, [
+    noAdditionalPayment,
+    enableConfigureAutopayText,
+    enableClick,
+    setUpAutopay,
+    enableDiv,
+    enableCustomerDiv,
+    enableManageCustomerDiv,
+  ]);
 
   if (loading) {
     return (
@@ -427,31 +481,26 @@ const HomeScreen: React.FC = () => {
         <View style={styles.buttonContainer}>
           {!enableDiv && !enableCustomerDiv && !enableManageCustomerDiv && (
             <View style={styles.buttonContainer}>
-              {noAdditionalPayment === false &&
-                enableConfigureAutopayText === false &&
-                enableClick === true && (
-                  <TouchableOpacity
-                    style={styles.button}
-                    onPress={handleMakeAdditionalPayment}
-                  >
-                    <Text style={styles.additionalPaymentText}>
-                      Make Additional Payment
-                    </Text>
-                  </TouchableOpacity>
-                )}
-              {noAdditionalPayment === true &&
-                enableConfigureAutopayText === false &&
-                enableClick === true &&
-                setUpAutopay === false && (
-                  <TouchableOpacity
-                    style={styles.button}
-                    onPress={handleMakeAPayment}
-                  >
-                    <Text style={styles.additionalPaymentText}>
-                      Make a Payment
-                    </Text>
-                  </TouchableOpacity>
-                )}
+              {noAdditionalPayment === false && enableClick === true && (
+                <TouchableOpacity
+                  style={styles.button}
+                  onPress={handleMakeAdditionalPayment}
+                >
+                  <Text style={styles.additionalPaymentText}>
+                    Make Additional Payment
+                  </Text>
+                </TouchableOpacity>
+              )}
+              {noAdditionalPayment === true && enableClick === true && (
+                <TouchableOpacity
+                  style={styles.button}
+                  onPress={handleMakeAPayment}
+                >
+                  <Text style={styles.additionalPaymentText}>
+                    Make a Payment
+                  </Text>
+                </TouchableOpacity>
+              )}
             </View>
           )}
         </View>

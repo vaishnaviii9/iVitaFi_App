@@ -7,5 +7,6 @@ export const logout = () => (dispatch) => {
   dispatch(clearCreditSummaries());
   dispatch(clearAutopay());
   dispatch(authLogout());
+  // Add any other actions to clear state here
   router.push("/(auth)/Login");
 };
