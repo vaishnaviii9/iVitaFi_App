@@ -35,6 +35,7 @@ const handleBackPress = () => {
   router.push("/(tabs)/Home");
 };
 
+const handleSubmit = () => {};
 const MakeAPayment = () => {
   const [paymentMethod, setPaymentMethod] = useState("");
   const [showPaymentMethodPicker, setShowPaymentMethodPicker] = useState(false);
@@ -48,9 +49,19 @@ const MakeAPayment = () => {
     string | null
   >(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [creditAccountId, setCreditAccountId] = useState<string | null>(null);
+  const [paymentAmount, setPaymentAmount] = useState("");
   const token = useSelector((state: any) => state.auth.token);
-
+  const [paymentSchedule, setPaymentSchedule] = useState<any>(null);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [date, setDate] = useState(new Date());
+  const currentDate = new Date();
+  const maxDate = new Date(currentDate);
+  maxDate.setDate(currentDate.getDate() + 30);
+  const formatPaymentAmount = (amount: number) => {
+    return `$${amount.toFixed(2)}`;
+  };
   useFocusEffect(
     React.useCallback(() => {
       const fetchData = async () => {
@@ -142,7 +153,15 @@ const MakeAPayment = () => {
                 }
               }
 
-             
+              const paymentSchedule =
+                creditSummaries[0]?.detail?.creditAccount?.paymentSchedule;
+
+              if (paymentSchedule) {
+                setPaymentSchedule(paymentSchedule);
+                setPaymentAmount(
+                  formatPaymentAmount(paymentSchedule.paymentAmount)
+                );
+              }
             }
           }
         } catch (error) {
@@ -158,6 +177,13 @@ const MakeAPayment = () => {
     }, [token])
   );
 
+  const toggleDatePicker = () => {
+    if (Platform.OS === "android") {
+      setShowDatePicker(true);
+    } else {
+      setShowDatePicker(!showDatePicker);
+    }
+  };
   const handlePaymentMethodChange = (value: string) => {
     setPaymentMethod(value);
 
@@ -234,7 +260,36 @@ const MakeAPayment = () => {
       setShowPaymentMethodPicker(!showPaymentMethodPicker);
     }
   };
+  const onChange = (event: any, selectedDate?: Date) => {
+    if (Platform.OS === "android") {
+      setShowDatePicker(false);
+    }
 
+    if (selectedDate) {
+      // Ensure the selected date is within the allowed range
+      if (selectedDate >= currentDate && selectedDate <= maxDate) {
+        setDate(selectedDate);
+      } else {
+        // Optionally, show an error message or toast
+        Toast.show({
+          type: "error",
+          text1: "Invalid Date",
+          text2: "Please select a date within the next 30 days.",
+          visibilityTime: 3000,
+          autoHide: true,
+          topOffset: 60,
+          bottomOffset: 100,
+        });
+      }
+    }
+  };
+  const formatDate = (date: Date) => {
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    const year = date.getFullYear();
+
+    return `${month}/${day}/${year}`;
+  };
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -410,7 +465,44 @@ const MakeAPayment = () => {
                   />
                 </>
               )}
+
+              <Text style={styles.helpText}>Payment Amount</Text>
+              <TextInput
+                style={styles.specificInput}
+                placeholder="Enter payment amount"
+                placeholderTextColor="black"
+                value={paymentAmount}
+                onChangeText={setPaymentAmount}
+                keyboardType="numeric"
+              />
+              <Text style={styles.helpText}>Payment Start Date</Text>
+              <Pressable onPress={toggleDatePicker}>
+                <View style={styles.datePickerButton}>
+                  <Text style={styles.dateText}>
+                    {date ? formatDate(date) : "MM/DD/YYYY"}
+                  </Text>
+                  <FontAwesome name="calendar" size={16} color="#27446F" />
+                </View>
+              </Pressable>
+              {showDatePicker && (
+                <DateTimePicker
+                  mode="date"
+                  display={Platform.OS === "ios" ? "spinner" : "default"}
+                  value={date}
+                  onChange={onChange}
+                  textColor="black"
+                />
+              )}
             </View>
+            <TouchableOpacity
+              style={styles.submitButton}
+              onPress={handleSubmit}
+              disabled={isSubmitting} // Disable the button if submitting
+            >
+              <Text style={styles.submitButtonText}>
+                {isSubmitting ? "Submitting..." : "SUBMIT"}
+              </Text>
+            </TouchableOpacity>
           </View>
         </ScrollView>
       </View>
