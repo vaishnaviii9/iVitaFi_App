@@ -22,3 +22,568 @@ Invalid Routing - 071000227
  
 4111111111111111
  
+
+
+
+
+
+
+
+ public async savePaymentMethodMakePaymentAdd(
+        f: UntypedFormGroup,
+        payments: any
+    ) {
+        const inputDate = new Date(this.transactionDate);
+        this.todayDateCheck = this.isToday(inputDate);
+        const inputDate1 = new Date(this.transactionDate);
+        this.futureDate = this.isFutureDate(inputDate1);
+        if (
+            this.selectedPaymentMethodType === 0 ||
+            this.selectedPaymentMethodType === 10 ||
+            this.selectedPaymentMethodType === null ||
+            this.selectedPaymentMethodType === undefined
+        ) {
+            this.makePaymentLabel.name = "Select";
+            this.makePaymentLabel.value = 0;
+            this.makePaymentLabel.id = 0;
+            this.showDelete = this.containsNumber(this.makePaymentLabel.name);
+
+            this.error1 = true;
+            if (this.frequencyLabel.name === "Select") {
+                this.error2 = true;
+                this.isSubmit = false;
+                this.disabledSubmit = false;
+                return;
+            } else {
+                this.error2 = false;
+            }
+            return;
+        } else {
+            this.error1 = false;
+        }
+        this.disabledSubmit = true;
+        this.isPost = true;
+        this.isSubmit = true;
+        if (this.transactionDate === null) {
+            this.isDateValid = true;
+            this.disabledSubmit = false;
+            this.isSubmit = false;
+            return;
+        }
+        if (this.DebitMakeAdd === 1) {
+            if (
+                (this.expirationLabel?.name === "Select" ||
+                    this.expirationLabel === null) &&
+                (this.year?.name === "Select" || this.year === null)
+            ) {
+                this.debitExpirationMonthError = true;
+                this.debitExpirationYearError = true;
+                this.isSubmit = false;
+                this.disabledSubmit = false;
+                return;
+            } else if (this.year?.name === "Select" || this.year === null) {
+                this.debitExpirationYearError = true;
+                this.isSubmit = false;
+                this.disabledSubmit = false;
+                return;
+            } else if (
+                this.expirationLabel?.name === "Select" ||
+                this.expirationLabel === null
+            ) {
+                this.debitExpirationYearError = true;
+                this.isSubmit = false;
+                this.disabledSubmit = false;
+                return;
+            } else if (
+                this.debitZipMake?.length > 5 ||
+                this.debitZipMake === null ||
+                (this.debitZipMake === undefined &&
+                    this.disableConfigMake === false)
+            ) {
+                this.isSubmit = false;
+                this.disabledSubmit = false;
+                return;
+            }
+        }
+        // if(this.achMakeAdd===3)
+        //     this.selectedPaymentMethodType=3;
+        // if(this.DebitMakeAdd===1){
+        //     this.selectedPaymentMethodType=1;
+        // }
+        if (this.enableMakeText === true) this.checkPaymentAmount();
+        if (this.enableMakeText === false) this.checkAdditionalPaymentAmount();
+        if (this.paymentAmountErrorMessage !== null) {
+            this.isSubmit = false;
+            this.disabledSubmit = false;
+            return;
+        }
+        if (this.transactionAmount <= 0 && this.enableMakeText === true) {
+            this.isSubmit = false;
+            this.disabledSubmit = false;
+            return;
+        }
+        if (
+            this.transactionAdditionalAmount <= 0 &&
+            this.enableMakeText === false
+        ) {
+            this.isSubmit = false;
+            this.disabledSubmit = false;
+            return;
+        }
+
+        if (this.customerPaymentMethodId === undefined) {
+            this.customerPaymentMethodId = 0;
+        }
+
+        if (this.achMakeAdd === 3) {
+            this.expirationMonth = null;
+            this.expirationYear = null;
+        }
+
+        if (
+            this.selectedPaymentMethodType === 0 ||
+            this.selectedPaymentMethodType === 10 ||
+            this.selectedPaymentMethodType === null ||
+            this.selectedPaymentMethodType === undefined
+        ) {
+            this.makePaymentLabel.name = "Select";
+            this.makePaymentLabel.value = 0;
+            this.makePaymentLabel.id = 0;
+            this.error1 = true;
+            this.isSubmit = false;
+            this.disabledSubmit = false;
+            return;
+        } else {
+            this.error1 = false;
+        }
+
+        if (this.achMakeAdd === 3) {
+            this.expirationMonth = null;
+            this.expirationYear = null;
+        }
+
+        if (
+            this.isDefaultPaymentMethod === undefined ||
+            this.isDefaultPaymentMethod === null
+        ) {
+            this.isDefaultPaymentMethod = false;
+        }
+
+        if (this.achMakeAdd === 3) {
+            if (
+                !f.valid ||
+                this.selectedRoutingNumber.length !== 9 ||
+                (this.selectedAccountNumber.length < 5 &&
+                    this.selectedAccountNumber.length <= 17 &&
+                    (this.transactionAmount === 0 ||
+                        this.transactionAdditionalAmount === 0))
+            ) {
+                this.isSubmit = false;
+                this.disabledSubmit = false;
+                return;
+            }
+        }
+        if (this.DebitMakeAdd === 1) {
+            if (f.controls.firstNameOnCard?.value?.trim() !== f.controls.firstNameOnCard?.value) {
+                f.controls.firstNameOnCard.setValue(f.controls.firstNameOnCard?.value?.trim() || '', { emitEvent: false });
+            }
+            
+            if (f.controls.lastNameOnCard?.value?.trim() !== f.controls.lastNameOnCard?.value) {
+                f.controls.lastNameOnCard.setValue(f.controls.lastNameOnCard?.value?.trim() || '', { emitEvent: false });
+            }
+            
+            f.updateValueAndValidity();
+            if (!f.valid || this.cardNumber2?.length !== 16) {
+                this.isSubmit = false;
+                this.disabledSubmit = false;
+                return;
+            }
+        }
+
+        this.debitVerificationErrorMessage = null;
+        if (this.DebitMakeAdd == 1) {
+            if (!this.labels.some(label => payments.name.includes(label))) {
+                if (this.cardNumber2 === null || this.securityCode1 === null) {
+                    this.isSubmit = false;
+                    this.disabledSubmit = false;
+                    return;
+                }                
+            } else {
+                if (this.cardNumber2 === null) {
+                    this.isSubmit = false;
+                    this.disabledSubmit = false;
+                    return;
+                } else {
+                    this.cardNumber2 = this.unMaskedCard;
+                }
+            }
+
+            if (this.expirationLabel === "Select") {
+                this.debitExpirationMonthError = true;
+                this.isSubmitMonth = true;
+            }
+            if (
+                this.expirationYear < 1970 ||
+                this.expirationYear === 0 ||
+                isNaN(this.expirationYear) ||
+                this.year === "Select"
+            ) {
+                this.debitExpirationYearError = true;
+                this.isSubmitMonth = true;
+            } else {
+                this.debitExpirationYearError = false;
+            }
+            this.isPaymentButtonDisabled = false;
+            //this.paymentDetails.expirationDate = new Date(this.expirationYear, this.expirationMonth);
+            // this.result.detail.creditAccount.paymentMethod.customerPaymentMethod.paymentMethodType=3;
+            await this.store.dispatch(
+                customerActionAndSelectors.updateCustomerSummeryAPISucess({
+                    summery: this.accountSummary,
+                })
+            );            
+            
+            //  this.customerDataService.setAccountSummary(this.accountSummary);
+            this.obj2 = {
+                firstName : this.firstNameOnCard,
+                lastName : this.lastNameOnCard,
+                zipCode : this.debitZipMake,
+                accountNumber: null,
+                routingNumber: null,
+                truncatedAccountNumber: null,
+                truncatedCardNumber: null,
+                truncatedRoutingNumber: null,
+                expirationDate: new Date(
+                    this.expirationYear,
+                    this.expirationMonth
+                ),
+                cardNumber: this.cardNumber2,
+                securityCode: this.securityCode1,
+                paymentMethodType: 3,
+            };
+
+            var convertedYear = Number(this.expirationYear);
+            var convertedMonth =  Number(this.expirationMonth.split(' - ')[0]) -1;
+            var expirationYear = moment(
+                new Date(convertedYear, convertedMonth)
+            ).format("YYYY");
+            var expirationMonth = moment(
+                new Date(convertedYear, convertedMonth)
+            ).format("MM");
+            var currentYear = moment(this.now).format("YYYY");
+            var currentMonth = moment(this.now).format("MM");
+            var currentDate = moment(this.now).format("MM/YYYY");
+            var paymentMethod = PaymentMethodUtil.toString(
+                this.selectedPaymentMethodType
+            );
+            if (
+                expirationYear !== null &&
+                expirationYear <= currentYear &&
+                paymentMethod == "Card Payment"
+            ) {
+                if (
+                    expirationMonth !== null && 
+                    expirationMonth !== undefined &&
+                    expirationYear <= currentYear &&
+                    expirationMonth < currentMonth
+                ) {
+                    this.isSubmit = false;
+                    this.disabledSubmit = false;
+                     this.notification.error(
+                         "The debit card you entered has expired. Please update your payment details."
+                     );
+                     return;
+                }
+            }
+        } else if (this.ManualAdd == 2) {
+            this.accountSummary.paymentMethod.cardNumber = null;
+            this.accountSummary.paymentMethod.securityCode = null;
+            this.accountSummary.paymentMethod.accountNumber = null;
+            this.accountSummary.paymentMethod.routingNumber = null;
+            this.accountSummary.paymentMethod.paymentMethodType = 2;
+            //this.result.detail.creditAccount.paymentMethod.customerPaymentMethod.paymentMethodType=2;
+            await this.store.dispatch(
+                customerActionAndSelectors.updateCustomerSummeryAPISucess({
+                    summery: this.accountSummary,
+                })
+            );
+            //  this.customerDataService.setAccountSummary(this.accountSummary);
+            this.obj2 = {
+                accountNumber: null,
+                routingNumber: null,
+                truncatedAccountNumber: null,
+                truncatedCardNumber: null,
+                truncatedRoutingNumber: null,
+                expirationDate: null,
+                cardNumber: null,
+                securityCode: null,
+                paymentMethodType: 2,
+            };
+        } else {
+            if (
+                this.selectedRoutingNumber === null ||
+                this.selectedRoutingNumber === null
+            ) {
+                this.isSubmit = false;
+                this.disabledSubmit = false;
+                return;
+            }
+            await this.store.dispatch(
+                customerActionAndSelectors.updateCustomerSummeryAPISucess({
+                    summery: this.accountSummary,
+                })
+            );
+            //this.customerDataService.setAccountSummary(this.accountSummary);
+
+            this.obj2 = {
+                accountNumber: this.selectedAccountNumber,
+                routingNumber: this.selectedRoutingNumber,
+                truncatedAccountNumber: null,
+                truncatedCardNumber: null,
+                truncatedRoutingNumber: null,
+                expirationDate: null,
+                cardNumber: null,
+                securityCode: null,
+                paymentMethodType: 1,
+            };
+        }
+        //debit case
+        if (
+            this.DebitMakeAdd == 1 &&
+            this.ManualCase === false &&
+            this.debitVerificationErrorMessage === null &&
+            f.valid &&
+            this.debitExpirationMonthError !== true &&
+            this.debitExpirationYearError !== true &&
+            this.cardRegexCheck === true
+        ) {
+            var checkCardNumber = this.customerPaymentMethodsList.filter(
+                (item) => "cardNumber" in item
+            );
+            var record = checkCardNumber.filter((m) => m.cardNumber !== null);
+            if (record !== null && record.length > 1 && this.unMaskedCard !== null && this.unMaskedCard !== undefined && this.customerPaymentMethodId !== 0)
+                this.cardNumber2 = this.unMaskedCard;
+
+            if (!this.labels.some(label => payments.name.includes(label))) {
+                var isDuplicate1 = this.customerPaymentMethodsList.filter(
+                    (a) =>
+                        a.cardNumber === this.obj2.cardNumber &&
+                        a.isDisabled === false
+                );
+                if (isDuplicate1.length > 0) {
+                    this.isSubmit = false;
+                    this.disabledSubmit = false;
+                    return this.notification.error(
+                        "Card Number  Already exists.",
+                        "Error!"
+                    );
+                }
+            }
+            this.isDefaultPaymentMethod = true;
+            if (payments.id === 0) {
+                const paymentMethResp =
+                    await this.creditAccountService.UpdateCreditAccountPaymentMethodWithDefaultPaymentMethodAsync(
+                        this.result?.detail?.creditAccountId,
+                        this.obj2,
+                        this.customerPaymentMethodId,
+                        this.isDefaultPaymentMethod
+                    );
+                if (this.accountSummary.currentBalance === 0) {
+                    this.disabledSubmit = true;
+                }
+                if (paymentMethResp.type === "data") {
+                    this.success = true;
+                    this.customerPaymentMethodId =
+                        paymentMethResp.data.customerPaymentMethod.id;
+                    await this.submitPayment(f);
+                    this.updateCreditAccountSummary.emit(true);
+                    await this.savePaymentAddNote(this.obj2.paymentMethodType);
+                } 
+                else if (paymentMethResp.response.errorCode == ErrorCode.AdminPaymentMethodVerificationFailed) {
+                    this.isSubmit = false;
+                    this.disabledSubmit = false;
+                    this.notification.error(paymentMethResp.response.errorMessage);
+                    return;
+                }
+                else if (
+                    paymentMethResp.response.errorCode ===
+                    ErrorCode.CustomerMaxMethodAdded
+                ) {
+                    this.isSubmit = false;
+                    this.disabledSubmit = false;
+                    this.notification.error(
+                        "Maximum number of payment methods reached! Please delete a payment method and try again.",
+                        "Error!"
+                    );
+                    return;
+                } else {
+                    this.isSubmit = false;
+                    this.success = false;
+                    this.disabledSubmit = false;
+                    this.notification.error(
+                        "There was an error while making payment",
+                        "Error!"
+                    );
+                    return;
+                }
+            } else {
+                await this.submitPayment(f);
+            }
+
+            await this.getCustomerMakePaymentMethod();
+            await this.getCustomerPaymentMethod();
+            // this.makePayments.pop();
+            //this.isSubmit = false;
+        }
+        //ach
+        else if (
+            this.debitVerificationErrorMessage === null &&
+            f.valid &&
+            this.ManualCase === false
+        ) {
+            if (payments.name === "Add Checking Account") {
+                this.managePaymentClick.emit();
+                var isDuplicate1 = this.customerPaymentMethodsList.filter(
+                    (a) =>
+                        a.accountNumber === this.obj2.accountNumber &&
+                        a.isDisabled === false
+                );
+                if (isDuplicate1.length > 0) {
+                    this.isSubmit = false;
+                    this.disabledSubmit = false;
+                    return this.notification.error(
+                        "Account Number  Already exists.",
+                        "Error!"
+                    );
+                }
+            }
+            this.isDefaultPaymentMethod = true;
+            if (payments.id === 0) {
+                const paymentMethResp =
+                    await this.creditAccountService.UpdateCreditAccountPaymentMethodWithDefaultPaymentMethodAsync(
+                        this.result?.detail?.creditAccountId,
+                        this.obj2,
+                        this.customerPaymentMethodId,
+                        this.isDefaultPaymentMethod
+                    );
+                if (this.accountSummary.currentBalance === 0) {
+                    this.disabledSubmit = true;
+                }
+                if (paymentMethResp.type === "data") {
+                    this.paymentVerified = true;
+                    this.success = true;
+                    this.customerPaymentMethodId =
+                        paymentMethResp.data.customerPaymentMethod.id;
+                    await this.submitPayment(f);
+                    this.updateCreditAccountSummary.emit(true);
+                    await this.savePaymentAddNote(this.obj2.paymentMethodType);
+                } else if (
+                    paymentMethResp.response.errorCode ===
+                    ErrorCode.CustomerMaxMethodAdded
+                ) {
+                    this.isSubmit = false;
+                    this.disabledSubmit = false;
+                    this.notification.error(
+                        "Maximum number of payment methods reached! Please delete a payment method and try again.",
+                        "Error!"
+                    );
+                    return;
+                } else if (
+                    paymentMethResp.response.errorCode ==
+                    ErrorCode.AdminPaymentMethodVerificationFailed
+                ) {
+                    this.isSubmit = false;
+                    this.paymentVerified = false;
+                    this.success = false;
+                    this.disabledSubmit = false;
+                    this.notification.error(
+                        "Please enter a valid routing number and account number."
+                    );
+                    return;
+                } else {
+                    this.isSubmit = false;
+                    this.success = false;
+                    this.disabledSubmit = false;
+                    this.notification.error(
+                        "There was an error while configuring autopay.",
+                        "Error!"
+                    );
+                    return;
+                }
+            } else {
+                await this.submitPayment(f);
+            }
+            // else{
+            //     const paymentMethResp = await this.creditAccountService.UpdateDefaultPaymentMethod(this.result?.detail?.creditAccountId, this.obj2,this.customerPaymentMethodId,this.isDefaultPaymentMethod);
+            //     if (paymentMethResp.type === 'data') {
+            //         this.updateCreditAccountSummary.emit(true);
+            //        await this.savePaymentAddNote(this.obj2.paymentMethodType);
+            //     } else {
+            //         this.notification.error('There was an error while configuring autopay.', 'Error!');
+            //     }
+            // }
+
+            await this.getCustomerMakePaymentMethod();
+            await this.getCustomerPaymentMethod();
+            //this.makePayments.pop();
+
+            //this.isSubmit = false;
+        } else if (this.ManualCase === true) {
+            //this.closeButtonManage1.nativeElement.click();
+            const paymentMethResp =
+                await this.creditAccountService.UpdateCreditAccountPaymentMethodWithDefaultPaymentMethodAsync(
+                    this.result?.detail?.creditAccountId,
+                    this.obj2,
+                    0,
+                    this.isDefaultPaymentMethod
+                );
+            if (paymentMethResp.type === "data") {
+                this.success = true;
+                this.updateCreditAccountSummary.emit(true);
+                this.customerPaymentMethodId =
+                    paymentMethResp.data.customerPaymentMethod.id;
+                await this.submitPayment(f);
+                await this.savePaymentAddNote(this.obj2.paymentMethodType);
+            } else {
+                this.isSubmit = false;
+                this.success = false;
+                this.disabledSubmit = false;
+                this.notification.error(
+                    "There was an error while configuring AutoPay.",
+                    "Error!"
+                );
+            }
+            //this.isSubmit = false;
+        }
+        await this.checkAutoPayOnOff();
+        this.isPost = false;
+        // this.isSubmit = false;
+        this.firstNameOnCard = "";
+        this.lastNameOnCard = "";
+        // this.loading.complete();
+        this.accountSummary = JSON.parse(
+            sessionStorage.getItem("accountSummary")
+        );
+        this.tempAccountSummery = JSON.parse(
+            sessionStorage.getItem("accountSummary")
+        );
+        this.paymentDetails = this.accountSummary?.paymentMethod;
+        this.result = this.accountSummary;
+        if (payments.name.includes("Card")) this.maskCard();
+        if (this.cardNumber2 !== undefined) this.cardNumber2 = this.maskedCard;
+        //this.disabledSubmit = true;
+
+        // if (this.success)
+        //     location.reload();
+    }
+    isToday(date) {
+        const today = new Date();
+        return (
+            date.getDate() === today.getDate() &&
+            date.getMonth() === today.getMonth() &&
+            date.getFullYear() === today.getFullYear()
+        );
+    }
+    isFutureDate(date) {
+        const now = new Date();
+        return date > now;
+    }

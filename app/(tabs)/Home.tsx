@@ -454,33 +454,32 @@ const HomeScreen: React.FC = () => {
           </View>
         </View>
 
-        <View style={styles.buttonContainer}>
-          {
-            <View style={styles.buttonContainer}>
-              {noAdditionalPayment === false && enableClick === true && (
-                <TouchableOpacity
-                  style={styles.button}
-                  onPress={handleMakeAdditionalPayment}
-                >
-                  <Text style={styles.additionalPaymentText}>
-                    Make Additional Payment
-                  </Text>
-                </TouchableOpacity>
-              )}
-              {noAdditionalPayment === true && enableClick === true && (
-                <TouchableOpacity
-                  style={styles.button}
-                  onPress={handleMakeAPayment}
-                >
-                  <Text style={styles.additionalPaymentText}>
-                    Make a Payment
-                  </Text>
-                </TouchableOpacity>
-              )}
-            </View>
-          }
-        </View>
+    <View style={styles.buttonContainer}>
+          {noAdditionalPayment === false &&
+            enableConfigureAutopayText === false &&
+            enableClick === true && (
+              <TouchableOpacity
+                style={styles.button}
+                onPress={handleMakeAdditionalPayment}
+              >
+                <Text style={styles.additionalPaymentText}>
+                  Make Additional Payment
+                </Text>
+              </TouchableOpacity>
+            )}
 
+          {noAdditionalPayment === true &&
+            enableConfigureAutopayText === false &&
+            enableClick === true &&
+            setUpAutopay === false && (
+              <TouchableOpacity
+                style={styles.button}
+                onPress={handleMakeAPayment}
+              >
+                <Text style={styles.additionalPaymentText}>Make a Payment</Text>
+              </TouchableOpacity>
+            )}
+        </View>
         <View style={styles.RecentTransactionsContainer}>
           {creditAccountId ? (
             <RecentTransactions loading={loading} transactions={transactions} />
