@@ -1,10 +1,12 @@
 import { configureStore } from "@reduxjs/toolkit";
 import authReducer from '../../features/login/loginSlice';
-import creditAccountReducer from '../../features/creditAccount/creditAccountSlice';  // Import the new slice
+import creditAccountReducer from '../../features/creditAccount/creditAccountSlice';
+import buttonVisibilityReducer from '../../features/buttonVisibility/buttonVisibilitySlice';
 
 export const store = configureStore({
   reducer: {
     auth: authReducer,
-    creditAccount: creditAccountReducer,  // Add the new reducer
+    creditAccount: creditAccountReducer,
+    buttonVisibility: buttonVisibilityReducer,
   },
 });

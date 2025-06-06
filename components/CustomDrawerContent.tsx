@@ -1,5 +1,5 @@
 import React from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import {
   clearCreditAccountId,
   clearCreditSummaries,
@@ -19,6 +19,7 @@ import FontAwesome from "@expo/vector-icons/FontAwesome";
 
 export default function CustomDrawerContent(props: DrawerContentComponentProps) {
   const dispatch = useDispatch();
+const { showMakePayment, showMakeAdditionalPayment } = useSelector((state: { buttonVisibility: { showMakePayment: boolean; showMakeAdditionalPayment: boolean } }) => state.buttonVisibility);
 
   const handleLogout = () => {
     dispatch(clearCreditAccountId());
@@ -69,13 +70,25 @@ export default function CustomDrawerContent(props: DrawerContentComponentProps) 
           onPress={() => router.push("/ManagePayments")}
         />
 
-        <DrawerItem
-          label="Make A Payment"
-          icon={({ color, size }: { color: string; size: number }) => (
-            <FontAwesome6 name="credit-card" size={24} color="black" />
-          )}
-          onPress={() => router.push("/MakeAPayment")}
-        />
+        {showMakePayment && (
+          <DrawerItem
+            label="Make A Payment"
+           icon={({ color, size }: { color: string; size: number }) => (
+              <FontAwesome6 name="credit-card" size={24} color="black" />
+            )}
+            onPress={() => router.push("/MakeAPayment")}
+          />
+        )}
+
+        {showMakeAdditionalPayment && (
+          <DrawerItem
+            label="Make Additional Payment"
+             icon={({ color, size }: { color: string; size: number }) => (
+              <FontAwesome6 name="credit-card" size={24} color="black" />
+            )}
+            onPress={() => router.push("/MakeAdditionalPayment")}
+          />
+        )}
 
         <DrawerItem
           label="Configure Autopay"

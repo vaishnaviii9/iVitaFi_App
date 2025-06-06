@@ -20,6 +20,7 @@ import { fetchPendingTransactions } from "../../app/services/pendingTransactions
 import { logout } from "../../features/login/loginSlice";
 import { CreditApplicationStatus } from "../../utils/CreditApplicationStatusUtil";
 import styles from "../../components/styles/HomeStyles";
+import { setShowMakePayment, setShowMakeAdditionalPayment } from "../../features/buttonVisibility/buttonVisibilitySlice";
 
 interface CreditApplication {
   accountNumber: string;
@@ -205,7 +206,7 @@ const HomeScreen: React.FC = () => {
   );
 
   useEffect(() => {
-    console.log("Token changed, resetting state");
+    // console.log("Token changed, resetting state");
     setUserData(null);
     setCustomerData(null);
     setAccountNumbers([]);
@@ -284,32 +285,11 @@ const HomeScreen: React.FC = () => {
     );
   };
 
-  useEffect(() => {
-    console.log(
-      "Button conditions - noAdditionalPayment:",
-      noAdditionalPayment
-    );
-    console.log(
-      "Button conditions - enableConfigureAutopayText:",
-      enableConfigureAutopayText
-    );
-    console.log("Button conditions - enableClick:", enableClick);
-    console.log("Button conditions - setUpAutopay:", setUpAutopay);
-    console.log("Button conditions - enableDiv:", enableDiv);
-    console.log("Button conditions - enableCustomerDiv:", enableCustomerDiv);
-    console.log(
-      "Button conditions - enableManageCustomerDiv:",
-      enableManageCustomerDiv
-    );
-  }, [
-    noAdditionalPayment,
-    enableConfigureAutopayText,
-    enableClick,
-    setUpAutopay,
-    enableDiv,
-    enableCustomerDiv,
-    enableManageCustomerDiv,
-  ]);
+useEffect(() => {
+    dispatch(setShowMakePayment(noAdditionalPayment && enableClick));
+    dispatch(setShowMakeAdditionalPayment(!noAdditionalPayment && enableClick));
+  }, [noAdditionalPayment, enableClick, dispatch]);
+
 
   if (loading) {
     return (
