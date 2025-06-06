@@ -63,10 +63,6 @@ const HomeScreen: React.FC = () => {
   const [enableClick, setEnableClick] = useState<boolean>(false);
   const [enableConfigureAutopayText, setEnableConfigureAutopayText] =
     useState<boolean>(false);
-  const [enableDiv, setEnableDiv] = useState<boolean>(false);
-  const [enableCustomerDiv, setEnableCustomerDiv] = useState<boolean>(false);
-  const [enableManageCustomerDiv, setEnableManageCustomerDiv] =
-    useState<boolean>(false);
   const [closedAccount, setClosedAccount] = useState<boolean>(false);
   const [bankruptAccount, setBankruptAccount] = useState<boolean>(false);
   const [isActiveClass, setIsActiveClass] = useState<boolean>(false);
@@ -89,9 +85,7 @@ const HomeScreen: React.FC = () => {
     setSetUpAutopay(false);
     setEnableClick(false);
     setEnableConfigureAutopayText(false);
-    setEnableDiv(false);
-    setEnableCustomerDiv(false);
-    setEnableManageCustomerDiv(false);
+
     setClosedAccount(false);
     setBankruptAccount(false);
     setIsActiveClass(false);
@@ -218,7 +212,7 @@ const HomeScreen: React.FC = () => {
       setEnableConfigureAutopayText(false);
       setSetUpAutopay(false);
       setEnableClick(true);
-      setEnableDiv(false);
+
       setClosedAccount(false);
       setNoAdditionalPayment(false);
     } else {
@@ -226,7 +220,6 @@ const HomeScreen: React.FC = () => {
       setSetUpAutopay(false);
       setEnableClick(true);
       setNoAdditionalPayment(true);
-      setEnableDiv(false);
     }
   };
 
@@ -462,7 +455,7 @@ const HomeScreen: React.FC = () => {
         </View>
 
         <View style={styles.buttonContainer}>
-          {!enableDiv && !enableCustomerDiv && !enableManageCustomerDiv && (
+          {
             <View style={styles.buttonContainer}>
               {noAdditionalPayment === false && enableClick === true && (
                 <TouchableOpacity
@@ -485,7 +478,7 @@ const HomeScreen: React.FC = () => {
                 </TouchableOpacity>
               )}
             </View>
-          )}
+          }
         </View>
 
         <View style={styles.RecentTransactionsContainer}>
