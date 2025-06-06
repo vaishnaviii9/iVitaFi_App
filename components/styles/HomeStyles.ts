@@ -11,7 +11,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     backgroundColor: "#fff",
-    paddingTop: hp("2.5%"),
+    paddingTop: hp("1%"),
     paddingBottom: hp("2.5%"),
   },
   headerContainer: {

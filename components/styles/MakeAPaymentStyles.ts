@@ -7,11 +7,12 @@ export const styles = StyleSheet.create({
   },
   headerContainer: {
     backgroundColor: "#27446F",
-    paddingVertical: 30,
+    paddingTop: Platform.OS === "ios" ? 50 : 30,
+    paddingBottom: 30,
     paddingHorizontal: 20,
     borderBottomLeftRadius: 60,
     borderBottomRightRadius: 60,
-    height: 130,
+    height: Platform.OS === "ios" ? 150 : 130,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
@@ -24,15 +25,13 @@ export const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: "bold",
   },
-  content: {
-    flex: 1,
-    padding: 20,
-    justifyContent: "center",
-    alignItems: "center",
-  },
   scrollContent: {
     flexGrow: 1,
     padding: 20,
+  },
+  content: {
+    flex: 1,
+    paddingBottom: 25,
   },
   formContainer: {
     marginTop: 20,
@@ -40,42 +39,63 @@ export const styles = StyleSheet.create({
   pickerWrapper: {
     borderWidth: 1,
     borderColor: "#ccc",
-    borderRadius: 5,
+    borderRadius: 6,
     marginBottom: 15,
+    backgroundColor: "#f9f9f9",
+    overflow: Platform.OS === "android" ? "hidden" : "visible",
+    ...Platform.select({
+      ios: {
+        height: 40,
+        justifyContent: "center",
+        backgroundColor: "#fff",
+      },
+    }),
+  },
+  iosPicker: {
+    ...Platform.select({
+      ios: {
+        height: 200,
+        marginTop: 8,
+        width: "100%",
+        color: "#000000",
+        backgroundColor: "#f9f9f9",
+        borderWidth: 1,
+        borderColor: "#ccc",
+        borderRadius: 6,
+        zIndex: 1000,
+        position: "relative",
+      },
+    }),
+  },
+  androidPicker: {
+    height: 50,
+    width: "100%",
+    color: "#000000",
   },
   pickerDisplayContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    padding: 10,
+    paddingHorizontal: 10,
+    height: 40,
   },
   pickerDisplayText: {
-    color: "black",
-  },
-  iosPicker: {
-    position: "absolute",
-    top: 50,
-    width: "100%",
-    backgroundColor: "#fff",
-    borderWidth: 1,
-    borderColor: "#ccc",
-  },
-  androidPicker: {
-    width: "100%",
-    height: 50,
+    fontSize: 16,
+    color: "#000000",
   },
   helpText: {
+    color: "#27446F",
     marginBottom: 5,
-    color: "#000",
   },
   specificInput: {
     height: 40,
-    borderColor: "gray",
+    borderColor: "#ccc",
     borderWidth: 1,
-    marginBottom: 15,
-    padding: 10,
+    marginBottom: 10,
+    paddingHorizontal: 10,
+    backgroundColor: "#f0f0f0",
     color: "black",
-  }, 
+  },
   datePickerButton: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -88,11 +108,11 @@ export const styles = StyleSheet.create({
     marginBottom: 15,
     backgroundColor: "#ffffff",
   },
-   dateText: {
+  dateText: {
     color: "#000000",
     fontSize: 15,
   },
-   submitButton: {
+  submitButton: {
     alignSelf: "center",
     width: "50%",
     backgroundColor: "#27446F",
