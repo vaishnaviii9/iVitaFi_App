@@ -1,16 +1,14 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
   TouchableOpacity,
   TextInput,
   ScrollView,
-  Modal,
   Platform,
   Pressable,
   KeyboardAvoidingView,
-  Image,
-  LogBox,
+  Modal,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import DateTimePicker from "@react-native-community/datetimepicker";
@@ -52,21 +50,33 @@ const MakeAdditionalPayment = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [creditAccountId, setCreditAccountId] = useState<string | null>(null);
   const [paymentAmount, setPaymentAmount] = useState("");
-  const token = useSelector((state: any) => state.auth.token);
   const [paymentSchedule, setPaymentSchedule] = useState<any>(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [date, setDate] = useState(new Date());
+  const [firstNameOnCard, setFirstNameOnCard] = useState("");
+  const [lastNameOnCard, setLastNameOnCard] = useState("");
+  const [debitZipMake, setDebitZipMake] = useState("");
+  const [securityCode1, setSecurityCode1] = useState("");
+
+  const [isModalVisible, setIsModalVisible] = useState(false);
+
+  const obj2Ref = useRef<any>(null);
+
   const currentDate = new Date();
   const maxDate = new Date(currentDate);
-  maxDate.setDate(currentDate.getDate() + 30);
+  maxDate.setDate(currentDate.getDate() + 180);
+
+  const token = useSelector((state: any) => state.auth.token);
+
   const formatPaymentAmount = (amount: number) => {
     return `$${amount.toFixed(2)}`;
   };
+
   useFocusEffect(
     React.useCallback(() => {
       const fetchData = async () => {
         try {
-          setIsLoading(true); // Set loading to true when starting to fetch data
+          setIsLoading(true);
           const customerResponse = await fetchCustomerData(token, () => {});
           if (customerResponse) {
             const { creditSummaries } = await fetchCreditSummariesWithId(
@@ -77,10 +87,8 @@ const MakeAdditionalPayment = () => {
             if (creditSummaries && creditSummaries.length > 0) {
               const customerId =
                 creditSummaries[0]?.detail?.creditAccount?.customerId;
-
               const creditAccountId =
                 creditSummaries[0]?.detail?.creditAccountId;
-
               setCreditAccountId(creditAccountId);
 
               if (customerId) {
@@ -155,7 +163,6 @@ const MakeAdditionalPayment = () => {
 
               const paymentSchedule =
                 creditSummaries[0]?.detail?.creditAccount?.paymentSchedule;
-
               if (paymentSchedule) {
                 setPaymentSchedule(paymentSchedule);
                 setPaymentAmount(
@@ -165,9 +172,9 @@ const MakeAdditionalPayment = () => {
             }
           }
         } catch (error) {
-          console.error("Error fetching data:", error);
+          console.log("Error fetching data:", error);
         } finally {
-          setIsLoading(false); // Set loading to false after data is fetched
+          setIsLoading(false);
         }
       };
 
@@ -184,6 +191,7 @@ const MakeAdditionalPayment = () => {
       setShowDatePicker(!showDatePicker);
     }
   };
+
   const handlePaymentMethodChange = (value: string) => {
     setPaymentMethod(value);
 
@@ -224,6 +232,22 @@ const MakeAdditionalPayment = () => {
 
         setExpirationMonth(formattedExpirationMonth);
         setExpirationYear(expirationYear.toString());
+
+        // Create obj2 for debit card
+        obj2Ref.current = {
+          firstName: firstNameOnCard,
+          lastName: lastNameOnCard,
+          zipCode: debitZipMake,
+          accountNumber: null,
+          routingNumber: null,
+          truncatedAccountNumber: null,
+          truncatedCardNumber: null,
+          truncatedRoutingNumber: null,
+          expirationDate: new Date(expirationYear, expirationMonth - 1),
+          cardNumber: selectedMethod.cardNumber,
+          securityCode: securityCode1,
+          paymentMethodType: 3,
+        };
       }
     } else if (value.startsWith("Checking Account -")) {
       const accountNumberFromValue = value.split(" - ")[1];
@@ -236,6 +260,19 @@ const MakeAdditionalPayment = () => {
       if (selectedMethod) {
         setAccountNumber(selectedMethod.accountNumber || "");
         setRoutingNumber(selectedMethod.routingNumber || "");
+
+        // Create obj2 for checking account
+        obj2Ref.current = {
+          accountNumber: selectedMethod.accountNumber,
+          routingNumber: selectedMethod.routingNumber,
+          truncatedAccountNumber: null,
+          truncatedCardNumber: null,
+          truncatedRoutingNumber: null,
+          expirationDate: null,
+          cardNumber: null,
+          securityCode: null,
+          paymentMethodType: 1,
+        };
       }
     }
 
@@ -260,21 +297,23 @@ const MakeAdditionalPayment = () => {
       setShowPaymentMethodPicker(!showPaymentMethodPicker);
     }
   };
+
   const onChange = (event: any, selectedDate?: Date) => {
     if (Platform.OS === "android") {
       setShowDatePicker(false);
     }
 
     if (selectedDate) {
-      // Ensure the selected date is within the allowed range
+      const currentDate = new Date();
+      currentDate.setHours(0, 0, 0, 0);
+
       if (selectedDate >= currentDate && selectedDate <= maxDate) {
         setDate(selectedDate);
       } else {
-        // Optionally, show an error message or toast
         Toast.show({
           type: "error",
           text1: "Invalid Date",
-          text2: "Please select a date within the next 30 days.",
+          text2: "Please select a date within the next 30 days from today.",
           visibilityTime: 3000,
           autoHide: true,
           topOffset: 60,
@@ -283,6 +322,7 @@ const MakeAdditionalPayment = () => {
       }
     }
   };
+
   const formatDate = (date: Date) => {
     const month = String(date.getMonth() + 1).padStart(2, "0");
     const day = String(date.getDate()).padStart(2, "0");
@@ -290,31 +330,146 @@ const MakeAdditionalPayment = () => {
 
     return `${month}/${day}/${year}`;
   };
-  const handleSubmit = () => {
-    setIsSubmitting(true); // Set submitting to true to disable the submit button
 
-    // Create an object with the current state values
-    const submissionData = {
-      paymentMethod,
-      cardNumber,
-      expirationMonth,
-      expirationYear,
-      routingNumber,
-      accountNumber,
-      paymentAmount,
-      paymentSchedule,
-      date,
-      selectedPaymentMethodId,
-      creditAccountId,
+  const handleSubmit = async () => {
+    setIsSubmitting(true);
+
+    const convertedYear = Number(expirationYear);
+    const convertedMonth = Number(expirationMonth.split(" - ")[0]) - 1;
+
+    const expirationDate = new Date(convertedYear, convertedMonth);
+    const currentDate = new Date();
+
+    if (paymentMethod.startsWith("Debit Card -")) {
+      if (expirationDate < currentDate) {
+        Toast.show({
+          type: "error",
+          text1: "Card Expired",
+          text2:
+            "The debit card you entered has expired. Please update your payment details.",
+          visibilityTime: 3000,
+          autoHide: true,
+          topOffset: 60,
+          bottomOffset: 100,
+        });
+        setIsSubmitting(false);
+        return;
+      }
+    }
+
+    // Format expiration date as ISO string
+    const formattedExpirationDate = new Date(
+      convertedYear,
+      convertedMonth
+    ).toISOString();
+
+    // Format transaction date as ISO string
+    const formattedTransactionDate = date.toISOString();
+
+    // Validate that all necessary data is present
+    if (!obj2Ref.current || !creditAccountId || !selectedPaymentMethodId) {
+      console.log("Missing required data:", {
+        obj2Ref: obj2Ref.current,
+        creditAccountId,
+        selectedPaymentMethodId,
+      });
+      Toast.show({
+        type: "error",
+        text1: "Submission Error",
+        text2: "Required data is missing. Please check your inputs.",
+        visibilityTime: 3000,
+        autoHide: true,
+        topOffset: 60,
+        bottomOffset: 100,
+      });
+      setIsSubmitting(false);
+      return;
+    }
+
+    const payload = {
+      customAmount: null,
+      enableAutoPay: true,
+      expirationDate: formattedExpirationDate,
+      paymentMethodType: obj2Ref.current.paymentMethodType,
+      transactionAmount: parseFloat(paymentAmount.replace(/[^0-9.-]+/g, "")), // Convert to a number
+      transactionDate: formattedTransactionDate,
+      useSavedPaymentMethod: true,
     };
+    console.log("Payload", payload);
 
-    // Log the values to the console
-    console.log("Submission Data:", submissionData);
+    try {
+      const response = await fetch(
+        `https://dev.ivitafi.com/api/creditaccount/${creditAccountId}/transaction/${selectedPaymentMethodId}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(payload),
+        }
+      );
+      console.log("APi response", response);
 
-    // Simulate an asynchronous submission process
-    setTimeout(() => {
-      setIsSubmitting(false); // Re-enable the submit button after submission is complete
-    }, 2000); // Simulate a delay for submission
+      const contentType = response.headers.get("content-type");
+      let result;
+
+      if (!response.ok) {
+        const errorData = contentType?.includes("application/json")
+          ? await response.json()
+          : { errorMessage: await response.text() };
+
+        result = { type: "error", response: errorData };
+      } else {
+        const data = contentType?.includes("application/json")
+          ? await response.json()
+          : await response.text();
+
+        result = { type: "data", data };
+      }
+
+      if (result.type === "error") {
+        Toast.show({
+          type: "error",
+          text1: "Payment Failed",
+          text2:
+            result.response.errorMessage ||
+            "There was an error processing your payment. Please try again.",
+          visibilityTime: 3000,
+          autoHide: true,
+          topOffset: 60,
+          bottomOffset: 100,
+        });
+      } else {
+        Toast.show({
+          type: "success",
+          text1: "Payment Successful",
+          text2: "Your payment has been processed successfully.",
+          visibilityTime: 3000,
+          autoHide: true,
+          topOffset: 60,
+          bottomOffset: 100,
+        });
+
+        // Show the modal on successful submission
+        setIsModalVisible(true);
+      }
+    } catch (error) {
+      Toast.show({
+        type: "error",
+        text1: "Payment Failed",
+        text2: "There was an error processing your payment. Please try again.",
+        visibilityTime: 3000,
+        autoHide: true,
+        topOffset: 60,
+        bottomOffset: 100,
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+  const handleOKPress = () => {
+    setIsModalVisible(false);
   };
 
   return (
@@ -335,204 +490,254 @@ const MakeAdditionalPayment = () => {
         <View style={{ width: 24 }} />
       </View>
 
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={styles.content}>
-          <View style={styles.formContainer}>
-            <Text style={styles.helpText}>Payment Method</Text>
-            {Platform.OS === "ios" ? (
-              <>
-                <Pressable onPress={openPaymentMethodPicker}>
-                  <View style={styles.pickerWrapper}>
-                    <View style={styles.pickerDisplayContainer}>
-                      <Text style={styles.pickerDisplayText}>
-                        {paymentMethod || "Select a payment method"}
-                      </Text>
-                      <FontAwesome
-                        name="chevron-down"
-                        size={14}
-                        color="#27446F"
-                      />
-                    </View>
-                  </View>
-                </Pressable>
-                {showPaymentMethodPicker && (
-                  <View style={{ zIndex: 1000, position: "relative" }}>
-                    <Picker
-                      selectedValue={paymentMethod}
-                      onValueChange={handlePaymentMethodChange}
-                      style={styles.iosPicker}
-                      itemStyle={{ color: "black" }}
-                    >
-                      <Picker.Item
-                        label="Add Debit Card"
-                        value="Add Debit Card"
-                      />
-                      <Picker.Item
-                        label="Add Checking Account"
-                        value="Add Checking Account"
-                      />
-                      {savedMethods.map((method, index) => (
-                        <Picker.Item
-                          key={index}
-                          label={
-                            method.cardNumber
-                              ? `Debit Card - ${method.cardNumber.slice(-4)}`
-                              : `Checking Account - ${method.accountNumber?.slice(
-                                  -4
-                                )}`
-                          }
-                          value={
-                            method.cardNumber
-                              ? `Debit Card - ${method.cardNumber.slice(-4)}`
-                              : `Checking Account - ${method.accountNumber?.slice(
-                                  -4
-                                )}`
-                          }
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.content}>
+            <View style={styles.formContainer}>
+              <Text style={styles.helpText}>Payment Method</Text>
+              {Platform.OS === "ios" ? (
+                <>
+                  <Pressable onPress={openPaymentMethodPicker}>
+                    <View style={styles.pickerWrapper}>
+                      <View style={styles.pickerDisplayContainer}>
+                        <Text style={styles.pickerDisplayText}>
+                          {paymentMethod || "Select a payment method"}
+                        </Text>
+                        <FontAwesome
+                          name="chevron-down"
+                          size={14}
+                          color="#27446F"
                         />
-                      ))}
-                    </Picker>
-                  </View>
-                )}
-              </>
-            ) : (
-              <View style={styles.pickerWrapper}>
-                <Picker
-                  selectedValue={paymentMethod}
-                  onValueChange={handlePaymentMethodChange}
-                  style={styles.androidPicker}
-                  dropdownIconColor="#000000"
-                >
-                  <Picker.Item label="Add Debit Card" value="Add Debit Card" />
-                  <Picker.Item
-                    label="Add Checking Account"
-                    value="Add Checking Account"
-                  />
-                  {savedMethods.map((method, index) => (
+                      </View>
+                    </View>
+                  </Pressable>
+                  {showPaymentMethodPicker && (
+                    <View style={{ zIndex: 1000, position: "relative" }}>
+                      <Picker
+                        selectedValue={paymentMethod}
+                        onValueChange={handlePaymentMethodChange}
+                        style={styles.iosPicker}
+                        itemStyle={{ color: "black" }}
+                      >
+                        <Picker.Item
+                          label="Add Debit Card"
+                          value="Add Debit Card"
+                        />
+                        <Picker.Item
+                          label="Add Checking Account"
+                          value="Add Checking Account"
+                        />
+                        {savedMethods.map((method, index) => (
+                          <Picker.Item
+                            key={index}
+                            label={
+                              method.cardNumber
+                                ? `Debit Card - ${method.cardNumber.slice(-4)}`
+                                : `Checking Account - ${method.accountNumber?.slice(
+                                    -4
+                                  )}`
+                            }
+                            value={
+                              method.cardNumber
+                                ? `Debit Card - ${method.cardNumber.slice(-4)}`
+                                : `Checking Account - ${method.accountNumber?.slice(
+                                    -4
+                                  )}`
+                            }
+                          />
+                        ))}
+                      </Picker>
+                    </View>
+                  )}
+                </>
+              ) : (
+                <View style={styles.pickerWrapper}>
+                  <Picker
+                    selectedValue={paymentMethod}
+                    onValueChange={handlePaymentMethodChange}
+                    style={styles.androidPicker}
+                    dropdownIconColor="#000000"
+                  >
                     <Picker.Item
-                      key={index}
-                      label={
-                        method.cardNumber
-                          ? `Debit Card - ${method.cardNumber.slice(-4)}`
-                          : `Checking Account - ${method.accountNumber?.slice(
-                              -4
-                            )}`
-                      }
-                      value={
-                        method.cardNumber
-                          ? `Debit Card - ${method.cardNumber.slice(-4)}`
-                          : `Checking Account - ${method.accountNumber?.slice(
-                              -4
-                            )}`
-                      }
+                      label="Add Debit Card"
+                      value="Add Debit Card"
                     />
-                  ))}
-                </Picker>
-              </View>
-            )}
+                    <Picker.Item
+                      label="Add Checking Account"
+                      value="Add Checking Account"
+                    />
+                    {savedMethods.map((method, index) => (
+                      <Picker.Item
+                        key={index}
+                        label={
+                          method.cardNumber
+                            ? `Debit Card - ${method.cardNumber.slice(-4)}`
+                            : `Checking Account - ${method.accountNumber?.slice(
+                                -4
+                              )}`
+                        }
+                        value={
+                          method.cardNumber
+                            ? `Debit Card - ${method.cardNumber.slice(-4)}`
+                            : `Checking Account - ${method.accountNumber?.slice(
+                                -4
+                              )}`
+                        }
+                      />
+                    ))}
+                  </Picker>
+                </View>
+              )}
 
-            {paymentMethod && paymentMethod.startsWith("Debit Card -") ? (
-              <>
-                <Text style={styles.helpText}>Card Number</Text>
-                <TextInput
-                  style={styles.specificInput}
-                  placeholder="Enter card number"
-                  placeholderTextColor="black"
-                  value={cardNumber}
-                  onChangeText={setCardNumber}
-                  keyboardType="numeric"
-                  editable={paymentMethod === "Add Debit Card"}
-                />
+              {paymentMethod && paymentMethod.startsWith("Debit Card -") ? (
+                <>
+                  <Text style={styles.helpText}>Card Number</Text>
+                  <TextInput
+                    style={styles.specificInput}
+                    placeholder="Enter card number"
+                    placeholderTextColor="black"
+                    value={cardNumber}
+                    onChangeText={setCardNumber}
+                    keyboardType="numeric"
+                    editable={paymentMethod === "Add Debit Card"}
+                  />
 
-                <Text style={styles.helpText}>Expiration Month</Text>
-                <TextInput
-                  style={styles.specificInput}
-                  placeholder="Enter expiration month"
-                  placeholderTextColor="black"
-                  value={expirationMonth}
-                  onChangeText={setExpirationMonth}
-                  keyboardType="numeric"
-                  editable={paymentMethod === "Add Debit Card"}
-                />
+                  <Text style={styles.helpText}>Expiration Month</Text>
+                  <TextInput
+                    style={styles.specificInput}
+                    placeholder="Enter expiration month"
+                    placeholderTextColor="black"
+                    value={expirationMonth}
+                    onChangeText={setExpirationMonth}
+                    keyboardType="numeric"
+                    editable={paymentMethod === "Add Debit Card"}
+                  />
 
-                <Text style={styles.helpText}>Expiration Year</Text>
-                <TextInput
-                  style={styles.specificInput}
-                  placeholder="Enter expiration year"
-                  placeholderTextColor="black"
-                  value={expirationYear}
-                  onChangeText={setExpirationYear}
-                  keyboardType="numeric"
-                  editable={paymentMethod === "Add Debit Card"}
-                />
-              </>
-            ) : (
-              <>
-                <Text style={styles.helpText}>Routing Number</Text>
-                <TextInput
-                  style={styles.specificInput}
-                  placeholder="Enter routing number"
-                  placeholderTextColor="black"
-                  value={routingNumber}
-                  onChangeText={setRoutingNumber}
-                  keyboardType="numeric"
-                  editable={paymentMethod === "Add Checking Account"}
-                />
+                  <Text style={styles.helpText}>Expiration Year</Text>
+                  <TextInput
+                    style={styles.specificInput}
+                    placeholder="Enter expiration year"
+                    placeholderTextColor="black"
+                    value={expirationYear}
+                    onChangeText={setExpirationYear}
+                    keyboardType="numeric"
+                    editable={paymentMethod === "Add Debit Card"}
+                  />
+                </>
+              ) : (
+                <>
+                  <Text style={styles.helpText}>Routing Number</Text>
+                  <TextInput
+                    style={styles.specificInput}
+                    placeholder="Enter routing number"
+                    placeholderTextColor="black"
+                    value={routingNumber}
+                    onChangeText={setRoutingNumber}
+                    keyboardType="numeric"
+                    editable={paymentMethod === "Add Checking Account"}
+                  />
 
-                <Text style={styles.helpText}>Account Number</Text>
-                <TextInput
-                  style={styles.specificInput}
-                  placeholder="Enter account number"
-                  placeholderTextColor="black"
-                  value={accountNumber}
-                  onChangeText={setAccountNumber}
-                  keyboardType="numeric"
-                  editable={paymentMethod === "Add Checking Account"}
-                />
-              </>
-            )}
+                  <Text style={styles.helpText}>Account Number</Text>
+                  <TextInput
+                    style={styles.specificInput}
+                    placeholder="Enter account number"
+                    placeholderTextColor="black"
+                    value={accountNumber}
+                    onChangeText={setAccountNumber}
+                    keyboardType="numeric"
+                    editable={paymentMethod === "Add Checking Account"}
+                  />
+                </>
+              )}
 
-            <Text style={styles.helpText}>Payment Amount</Text>
-            <TextInput
-              style={styles.specificInput}
-              placeholder="Enter payment amount"
-              placeholderTextColor="black"
-              value={paymentAmount}
-              onChangeText={setPaymentAmount}
-              keyboardType="numeric"
-            />
-            <Text style={styles.helpText}>Payment Start Date</Text>
-            <Pressable onPress={toggleDatePicker}>
-              <View style={styles.datePickerButton}>
-                <Text style={styles.dateText}>
-                  {date ? formatDate(date) : "MM/DD/YYYY"}
-                </Text>
-                <FontAwesome name="calendar" size={16} color="#27446F" />
-              </View>
-            </Pressable>
-            {showDatePicker && (
-              <DateTimePicker
-                mode="date"
-                display={Platform.OS === "ios" ? "spinner" : "default"}
-                value={date}
-                onChange={onChange}
-                textColor="black"
+              <Text style={styles.helpText}>Payment Amount</Text>
+              <TextInput
+                style={styles.specificInput}
+                placeholder="Enter payment amount"
+                placeholderTextColor="black"
+                value={paymentAmount}
+                onChangeText={setPaymentAmount}
+                keyboardType="numeric"
               />
-            )}
+
+              <Text style={styles.helpText}>Payment Start Date</Text>
+              <Pressable onPress={toggleDatePicker}>
+                <View style={styles.datePickerButton}>
+                  <Text style={styles.dateText}>
+                    {date ? formatDate(date) : "MM/DD/YYYY"}
+                  </Text>
+                  <FontAwesome name="calendar" size={16} color="#27446F" />
+                </View>
+              </Pressable>
+              {showDatePicker && (
+                <DateTimePicker
+                  mode="date"
+                  display={Platform.OS === "ios" ? "spinner" : "default"}
+                  value={date}
+                  onChange={onChange}
+                  textColor="black"
+                />
+              )}
+            </View>
+            <TouchableOpacity
+              style={styles.submitButton}
+              onPress={handleSubmit}
+              disabled={isSubmitting}
+            >
+              <Text style={styles.submitButtonText}>
+                {isSubmitting ? "Submitting..." : "SUBMIT"}
+              </Text>
+            </TouchableOpacity>
           </View>
-          <TouchableOpacity
-            style={styles.submitButton}
-            onPress={handleSubmit}
-            disabled={isSubmitting} // Disable the button if submitting
-          >
-            <Text style={styles.submitButtonText}>
-              {isSubmitting ? "Submitting..." : "SUBMIT"}
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
+        </ScrollView>
+        <Toast />
+
+        {/* Modal for successful payment */}
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={isModalVisible}
+          onRequestClose={() => {
+            setIsModalVisible(false);
+          }}
+        >
+          <View style={styles.centeredView}>
+            <View style={styles.modalView}>
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  marginBottom: 15,
+                }}
+              >
+                <Text style={styles.modalText}>Success</Text>
+                <TouchableOpacity
+                  style={styles.closeIcon}
+                  onPress={() => setIsModalVisible(false)}
+                >
+                  <Ionicons name="close" size={24} color="black" />
+                </TouchableOpacity>
+              </View>
+              <Text style={styles.modalText}>Your payment was successful</Text>
+              <Text style={styles.modalMessage}>
+                Thank You! Your payment has been submitted. Please allow 2-4
+                business days for it to be reflected on your account.
+              </Text>
+              <TouchableOpacity
+                style={styles.modalButton}
+                onPress={() => {
+                  setIsModalVisible(!isModalVisible);
+                  router.push("/(tabs)/Home");
+                }}
+              >
+                <Text style={styles.modalButtonText}>Done</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+
     </KeyboardAvoidingView>
   );
 };

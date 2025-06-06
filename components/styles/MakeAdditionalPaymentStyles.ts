@@ -6,7 +6,7 @@ export const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
   },
   headerContainer: {
-     backgroundColor: "#27446F",
+    backgroundColor: "#27446F",
     paddingTop: Platform.OS === "ios" ? 50 : 30,
     paddingBottom: 30,
     paddingHorizontal: 20,
@@ -17,37 +17,27 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
   },
-  backButton: {
-    padding: 4,
-  },
-  headerTextContainer: {
+    headerTextContainer: {
     flex: 1, // This will allow the container to take up available space
     alignItems: 'center', // Center the items horizontally
     justifyContent: 'center', // Center the items vertically
 
   },
+  backButton: {
+    padding: 4,
+  },
   headerText: {
-    color: '#FFFFFF',
-    fontSize: 20,
-    fontWeight: 'bold',
-    // other styles for headerText
-  },
-  subHeaderText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    textAlign: 'center',
-    marginTop: 5, // Add some margin to separate the header and subheader
-    // other styles for subHeaderText
-  },
-  content: {
-    flex: 1,
-    padding: 20,
-    justifyContent: "center",
-    alignItems: "center",
+    color: "#FFFFFF",
+    fontSize: 22,
+    fontWeight: "bold",
   },
   scrollContent: {
     flexGrow: 1,
     padding: 20,
+  },
+  content: {
+    flex: 1,
+    paddingBottom: 25,
   },
   formContainer: {
     marginTop: 20,
@@ -55,42 +45,63 @@ export const styles = StyleSheet.create({
   pickerWrapper: {
     borderWidth: 1,
     borderColor: "#ccc",
-    borderRadius: 5,
+    borderRadius: 6,
     marginBottom: 15,
+    backgroundColor: "#f9f9f9",
+    overflow: Platform.OS === "android" ? "hidden" : "visible",
+    ...Platform.select({
+      ios: {
+        height: 40,
+        justifyContent: "center",
+        backgroundColor: "#fff",
+      },
+    }),
+  },
+  iosPicker: {
+    ...Platform.select({
+      ios: {
+        height: 200,
+        marginTop: 8,
+        width: "100%",
+        color: "#000000",
+        backgroundColor: "#f9f9f9",
+        borderWidth: 1,
+        borderColor: "#ccc",
+        borderRadius: 6,
+        zIndex: 1000,
+        position: "relative",
+      },
+    }),
+  },
+  androidPicker: {
+    height: 50,
+    width: "100%",
+    color: "#000000",
   },
   pickerDisplayContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    padding: 10,
+    paddingHorizontal: 10,
+    height: 40,
   },
   pickerDisplayText: {
-    color: "black",
-  },
-  iosPicker: {
-    position: "absolute",
-    top: 50,
-    width: "100%",
-    backgroundColor: "#fff",
-    borderWidth: 1,
-    borderColor: "#ccc",
-  },
-  androidPicker: {
-    width: "100%",
-    height: 50,
+    fontSize: 16,
+    color: "#000000",
   },
   helpText: {
+    color: "#27446F",
     marginBottom: 5,
-    color: "#000",
   },
   specificInput: {
     height: 40,
-    borderColor: "gray",
+    borderColor: "#ccc",
     borderWidth: 1,
-    marginBottom: 15,
-    padding: 10,
+    marginBottom: 10,
+    paddingHorizontal: 10,
+    backgroundColor: "#f0f0f0",
     color: "black",
-  }, 
+  },
   datePickerButton: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -103,11 +114,11 @@ export const styles = StyleSheet.create({
     marginBottom: 15,
     backgroundColor: "#ffffff",
   },
-   dateText: {
+  dateText: {
     color: "#000000",
     fontSize: 15,
   },
-   submitButton: {
+  submitButton: {
     alignSelf: "center",
     width: "50%",
     backgroundColor: "#27446F",
@@ -121,4 +132,63 @@ export const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "bold",
   },
+  centeredView: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 22,
+  },
+  modalView: {
+    margin: 20,
+    backgroundColor: 'white',
+    borderRadius: 20,
+    padding: 35,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  modalText: {
+    marginBottom: 15,
+    textAlign: 'center',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  modalMessage: {
+    marginBottom: 20,
+    textAlign: 'center',
+    fontSize: 16,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    marginBottom: 10,
+    textAlign: "center",
+  },
+  modalButton: {
+    backgroundColor: "#27446F",
+    padding: 10,
+    borderRadius: 5,
+    alignItems: "center",
+  },
+  modalButtonText: {
+    color: "white",
+    fontSize: 16,
+  },
+  closeIcon: {
+    padding: 5,
+  },
+  subHeaderText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    textAlign: 'center',
+    marginTop: 5, // Add some margin to separate the header and subheader
+    // other styles for subHeaderText
+  },
 });
+

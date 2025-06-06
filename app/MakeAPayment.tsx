@@ -394,9 +394,8 @@ const MakeAPayment = () => {
       transactionAmount: parseFloat(paymentAmount.replace(/[^0-9.-]+/g, "")), // Convert to a number
       transactionDate: formattedTransactionDate,
       useSavedPaymentMethod: true,
-    };  
+    };
     console.log("Payload", payload);
-    
 
     try {
       const response = await fetch(
@@ -411,7 +410,7 @@ const MakeAPayment = () => {
         }
       );
       console.log("APi response", response);
-      
+
       const contentType = response.headers.get("content-type");
       let result;
 
@@ -453,7 +452,7 @@ const MakeAPayment = () => {
         });
 
         // Show the modal on successful submission
-        setIsModalVisible(true)
+        setIsModalVisible(true);
       }
     } catch (error) {
       Toast.show({
@@ -469,9 +468,9 @@ const MakeAPayment = () => {
       setIsSubmitting(false);
     }
   };
-const handleOKPress = () => {
-  setIsModalVisible(false);
-};
+  const handleOKPress = () => {
+    setIsModalVisible(false);
+  };
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
