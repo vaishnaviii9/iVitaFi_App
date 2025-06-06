@@ -15,19 +15,26 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import { FontAwesome, Ionicons } from "@expo/vector-icons";
 import { router, useFocusEffect } from "expo-router";
 import { fetchSavedPaymentMethods } from "./services/savedPaymentMethodService";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { fetchCustomerData } from "./services/customerService";
 import { fetchCreditSummariesWithId } from "./services/creditAccountService";
 import { ErrorCode } from "../utils/ErrorCodeUtil";
 import Toast from "react-native-toast-message";
 import { styles } from "../components/styles/MakeAdditionalPaymentStyles";
-
+import { postCreditAccountTransactionsNew } from "./services/postCreditAccountTransactionsNew";
+import { setCreditSummaries } from "../features/creditAccount/creditAccountSlice";
 interface PaymentMethod {
   id: string;
   expirationDate: string | number | Date;
   cardNumber: string | null;
   accountNumber: string | null;
   routingNumber: string | null;
+}
+
+interface ValidSummary {
+  paymentMethod: {
+    autoPayEnabled: boolean;
+  };
 }
 
 const handleBackPress = () => {
@@ -57,17 +64,17 @@ const MakeAdditionalPayment = () => {
   const [lastNameOnCard, setLastNameOnCard] = useState("");
   const [debitZipMake, setDebitZipMake] = useState("");
   const [securityCode1, setSecurityCode1] = useState("");
-
+  const [validSummary, setValidSummary] = useState<ValidSummary | null>(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
 
   const obj2Ref = useRef<any>(null);
 
   const currentDate = new Date();
   const maxDate = new Date(currentDate);
-  maxDate.setDate(currentDate.getDate() + 180);
+  maxDate.setDate(currentDate.getDate() + 90);
 
   const token = useSelector((state: any) => state.auth.token);
-
+  const dispatch = useDispatch();
   const formatPaymentAmount = (amount: number) => {
     return `$${amount.toFixed(2)}`;
   };
@@ -83,7 +90,7 @@ const MakeAdditionalPayment = () => {
               customerResponse,
               token
             );
-
+            dispatch(setCreditSummaries(creditSummaries));
             if (creditSummaries && creditSummaries.length > 0) {
               const customerId =
                 creditSummaries[0]?.detail?.creditAccount?.customerId;
@@ -161,6 +168,10 @@ const MakeAdditionalPayment = () => {
                 }
               }
 
+              const summary = creditSummaries[0]?.detail
+                ?.validSummary as ValidSummary;
+              setValidSummary(summary);
+
               const paymentSchedule =
                 creditSummaries[0]?.detail?.creditAccount?.paymentSchedule;
               if (paymentSchedule) {
@@ -181,7 +192,7 @@ const MakeAdditionalPayment = () => {
       if (token) {
         fetchData();
       }
-    }, [token])
+    }, [creditAccountId, token, dispatch])
   );
 
   const toggleDatePicker = () => {
@@ -194,7 +205,7 @@ const MakeAdditionalPayment = () => {
 
   const handlePaymentMethodChange = (value: string) => {
     setPaymentMethod(value);
-setShowPaymentMethodPicker(false); 
+    setShowPaymentMethodPicker(false);
     if (value.startsWith("Debit Card -")) {
       const cardNumberFromValue = value.split(" - ")[1];
       const selectedMethod = savedMethods.find(
@@ -233,7 +244,6 @@ setShowPaymentMethodPicker(false);
         setExpirationMonth(formattedExpirationMonth);
         setExpirationYear(expirationYear.toString());
 
-        // Create obj2 for debit card
         obj2Ref.current = {
           firstName: firstNameOnCard,
           lastName: lastNameOnCard,
@@ -261,7 +271,6 @@ setShowPaymentMethodPicker(false);
         setAccountNumber(selectedMethod.accountNumber || "");
         setRoutingNumber(selectedMethod.routingNumber || "");
 
-        // Create obj2 for checking account
         obj2Ref.current = {
           accountNumber: selectedMethod.accountNumber,
           routingNumber: selectedMethod.routingNumber,
@@ -283,7 +292,6 @@ setShowPaymentMethodPicker(false);
           (method.accountNumber &&
             value.endsWith(method.accountNumber.slice(-4)))
       )?.id;
-
       setSelectedPaymentMethodId(selectedMethodId ?? null);
     }
 
@@ -309,7 +317,7 @@ setShowPaymentMethodPicker(false);
 
       if (selectedDate >= currentDate && selectedDate <= maxDate) {
         setDate(selectedDate);
-        setShowDatePicker(false); 
+        setShowDatePicker(false);
       } else {
         Toast.show({
           type: "error",
@@ -358,16 +366,27 @@ setShowPaymentMethodPicker(false);
       }
     }
 
-    // Format expiration date as ISO string
     const formattedExpirationDate = new Date(
       convertedYear,
       convertedMonth
     ).toISOString();
-
-    // Format transaction date as ISO string
     const formattedTransactionDate = date.toISOString();
 
-    // Validate that all necessary data is present
+    const enableAutoPay = validSummary?.paymentMethod
+      ? validSummary.paymentMethod.autoPayEnabled
+      : false;
+
+    const transactionPost = {
+      transactionAmount: Number(paymentAmount.replace(/[^0-9.-]+/g, "")),
+      transactionDate: formattedTransactionDate,
+      customAmount: null,
+      useSavedPaymentMethod: true,
+      enableAutoPay: enableAutoPay,
+      paymentMethodType: obj2Ref.current
+        ? obj2Ref.current.paymentMethodType
+        : null,
+    };
+
     if (!obj2Ref.current || !creditAccountId || !selectedPaymentMethodId) {
       console.log("Missing required data:", {
         obj2Ref: obj2Ref.current,
@@ -388,54 +407,24 @@ setShowPaymentMethodPicker(false);
     }
 
     const payload = {
-      customAmount: null,
-      enableAutoPay: true,
+      ...transactionPost,
       expirationDate: formattedExpirationDate,
-      paymentMethodType: obj2Ref.current.paymentMethodType,
-      transactionAmount: parseFloat(paymentAmount.replace(/[^0-9.-]+/g, "")), // Convert to a number
-      transactionDate: formattedTransactionDate,
-      useSavedPaymentMethod: true,
     };
+
     console.log("Payload", payload);
 
     try {
-      const response = await fetch(
-        `https://dev.ivitafi.com/api/creditaccount/${creditAccountId}/transaction/${selectedPaymentMethodId}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(payload),
-        }
+      const result = await postCreditAccountTransactionsNew(
+        Number(creditAccountId),
+        Number(selectedPaymentMethodId),
+        payload,
+        token
       );
-      console.log("APi response", response);
-
-      const contentType = response.headers.get("content-type");
-      let result;
-
-      if (!response.ok) {
-        const errorData = contentType?.includes("application/json")
-          ? await response.json()
-          : { errorMessage: await response.text() };
-
-        result = { type: "error", response: errorData };
-      } else {
-        const data = contentType?.includes("application/json")
-          ? await response.json()
-          : await response.text();
-
-        result = { type: "data", data };
-      }
 
       if (result.type === "error") {
         Toast.show({
           type: "error",
           text1: "Payment Failed",
-          text2:
-            result.response.errorMessage ||
-            "There was an error processing your payment. Please try again.",
           visibilityTime: 3000,
           autoHide: true,
           topOffset: 60,
@@ -452,7 +441,6 @@ setShowPaymentMethodPicker(false);
           bottomOffset: 100,
         });
 
-        // Show the modal on successful submission
         setIsModalVisible(true);
       }
     } catch (error) {
@@ -469,6 +457,7 @@ setShowPaymentMethodPicker(false);
       setIsSubmitting(false);
     }
   };
+
   const handleOKPress = () => {
     setIsModalVisible(false);
   };
@@ -704,7 +693,6 @@ setShowPaymentMethodPicker(false);
       </ScrollView>
       <Toast />
 
-      {/* Modal for successful payment */}
       <Modal
         animationType="slide"
         transparent={true}
@@ -742,7 +730,12 @@ setShowPaymentMethodPicker(false);
                 router.push("/(tabs)/Home");
               }}
             >
-              <Text style={styles.modalButtonText}>Done</Text>
+              <TouchableOpacity
+                style={styles.modalButton}
+                onPress={handleOKPress}
+              >
+                <Text>Done</Text>
+              </TouchableOpacity>
             </TouchableOpacity>
           </View>
         </View>
