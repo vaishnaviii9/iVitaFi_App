@@ -35,7 +35,6 @@ const handleBackPress = () => {
   router.push("/(tabs)/Home");
 };
 
-const handleSubmit = () => {};
 const MakeAPayment = () => {
   const [paymentMethod, setPaymentMethod] = useState("");
   const [showPaymentMethodPicker, setShowPaymentMethodPicker] = useState(false);
@@ -290,6 +289,33 @@ const MakeAPayment = () => {
 
     return `${month}/${day}/${year}`;
   };
+  const handleSubmit = () => {
+    setIsSubmitting(true); // Set submitting to true to disable the submit button
+
+    // Create an object with the current state values
+    const submissionData = {
+      paymentMethod,
+      cardNumber,
+      expirationMonth,
+      expirationYear,
+      routingNumber,
+      accountNumber,
+      paymentAmount,
+      paymentSchedule,
+      date,
+      selectedPaymentMethodId,
+      creditAccountId,
+    };
+
+    // Log the values to the console
+    console.log("Submission Data:", submissionData);
+
+    // Simulate an asynchronous submission process
+    setTimeout(() => {
+      setIsSubmitting(false); // Re-enable the submit button after submission is complete
+    }, 2000); // Simulate a delay for submission
+  };
+
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
