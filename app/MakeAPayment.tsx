@@ -194,7 +194,7 @@ const MakeAPayment = () => {
 
   const handlePaymentMethodChange = (value: string) => {
     setPaymentMethod(value);
-
+ setShowPaymentMethodPicker(false); 
     if (value.startsWith("Debit Card -")) {
       const cardNumberFromValue = value.split(" - ")[1];
       const selectedMethod = savedMethods.find(
@@ -309,6 +309,7 @@ const MakeAPayment = () => {
 
       if (selectedDate >= currentDate && selectedDate <= maxDate) {
         setDate(selectedDate);
+        setShowDatePicker(false); 
       } else {
         Toast.show({
           type: "error",
@@ -676,6 +677,18 @@ const MakeAPayment = () => {
                 />
               )}
             </View>
+            {paymentMethod && (
+              <Text style={styles.agreementText}>
+                {paymentMethod.startsWith("Debit Card -")
+                  ? `You agree to pay a one-time payment of ${paymentAmount} on ${formatDate(
+                      date
+                    )} using your Debit Card.`
+                  : `You agree to pay a one-time payment of ${paymentAmount} on ${formatDate(
+                      date
+                    )} from your Checking Account.`}
+              </Text>
+            )}
+
             <TouchableOpacity
               style={styles.submitButton}
               onPress={handleSubmit}

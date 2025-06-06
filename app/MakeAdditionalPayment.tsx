@@ -194,7 +194,7 @@ const MakeAdditionalPayment = () => {
 
   const handlePaymentMethodChange = (value: string) => {
     setPaymentMethod(value);
-
+setShowPaymentMethodPicker(false); 
     if (value.startsWith("Debit Card -")) {
       const cardNumberFromValue = value.split(" - ")[1];
       const selectedMethod = savedMethods.find(
@@ -309,6 +309,7 @@ const MakeAdditionalPayment = () => {
 
       if (selectedDate >= currentDate && selectedDate <= maxDate) {
         setDate(selectedDate);
+        setShowDatePicker(false); 
       } else {
         Toast.show({
           type: "error",
@@ -490,254 +491,262 @@ const MakeAdditionalPayment = () => {
         <View style={{ width: 24 }} />
       </View>
 
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-        >
-          <View style={styles.content}>
-            <View style={styles.formContainer}>
-              <Text style={styles.helpText}>Payment Method</Text>
-              {Platform.OS === "ios" ? (
-                <>
-                  <Pressable onPress={openPaymentMethodPicker}>
-                    <View style={styles.pickerWrapper}>
-                      <View style={styles.pickerDisplayContainer}>
-                        <Text style={styles.pickerDisplayText}>
-                          {paymentMethod || "Select a payment method"}
-                        </Text>
-                        <FontAwesome
-                          name="chevron-down"
-                          size={14}
-                          color="#27446F"
-                        />
-                      </View>
-                    </View>
-                  </Pressable>
-                  {showPaymentMethodPicker && (
-                    <View style={{ zIndex: 1000, position: "relative" }}>
-                      <Picker
-                        selectedValue={paymentMethod}
-                        onValueChange={handlePaymentMethodChange}
-                        style={styles.iosPicker}
-                        itemStyle={{ color: "black" }}
-                      >
-                        <Picker.Item
-                          label="Add Debit Card"
-                          value="Add Debit Card"
-                        />
-                        <Picker.Item
-                          label="Add Checking Account"
-                          value="Add Checking Account"
-                        />
-                        {savedMethods.map((method, index) => (
-                          <Picker.Item
-                            key={index}
-                            label={
-                              method.cardNumber
-                                ? `Debit Card - ${method.cardNumber.slice(-4)}`
-                                : `Checking Account - ${method.accountNumber?.slice(
-                                    -4
-                                  )}`
-                            }
-                            value={
-                              method.cardNumber
-                                ? `Debit Card - ${method.cardNumber.slice(-4)}`
-                                : `Checking Account - ${method.accountNumber?.slice(
-                                    -4
-                                  )}`
-                            }
-                          />
-                        ))}
-                      </Picker>
-                    </View>
-                  )}
-                </>
-              ) : (
-                <View style={styles.pickerWrapper}>
-                  <Picker
-                    selectedValue={paymentMethod}
-                    onValueChange={handlePaymentMethodChange}
-                    style={styles.androidPicker}
-                    dropdownIconColor="#000000"
-                  >
-                    <Picker.Item
-                      label="Add Debit Card"
-                      value="Add Debit Card"
-                    />
-                    <Picker.Item
-                      label="Add Checking Account"
-                      value="Add Checking Account"
-                    />
-                    {savedMethods.map((method, index) => (
-                      <Picker.Item
-                        key={index}
-                        label={
-                          method.cardNumber
-                            ? `Debit Card - ${method.cardNumber.slice(-4)}`
-                            : `Checking Account - ${method.accountNumber?.slice(
-                                -4
-                              )}`
-                        }
-                        value={
-                          method.cardNumber
-                            ? `Debit Card - ${method.cardNumber.slice(-4)}`
-                            : `Checking Account - ${method.accountNumber?.slice(
-                                -4
-                              )}`
-                        }
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.content}>
+          <View style={styles.formContainer}>
+            <Text style={styles.helpText}>Payment Method</Text>
+            {Platform.OS === "ios" ? (
+              <>
+                <Pressable onPress={openPaymentMethodPicker}>
+                  <View style={styles.pickerWrapper}>
+                    <View style={styles.pickerDisplayContainer}>
+                      <Text style={styles.pickerDisplayText}>
+                        {paymentMethod || "Select a payment method"}
+                      </Text>
+                      <FontAwesome
+                        name="chevron-down"
+                        size={14}
+                        color="#27446F"
                       />
-                    ))}
-                  </Picker>
-                </View>
-              )}
-
-              {paymentMethod && paymentMethod.startsWith("Debit Card -") ? (
-                <>
-                  <Text style={styles.helpText}>Card Number</Text>
-                  <TextInput
-                    style={styles.specificInput}
-                    placeholder="Enter card number"
-                    placeholderTextColor="black"
-                    value={cardNumber}
-                    onChangeText={setCardNumber}
-                    keyboardType="numeric"
-                    editable={paymentMethod === "Add Debit Card"}
-                  />
-
-                  <Text style={styles.helpText}>Expiration Month</Text>
-                  <TextInput
-                    style={styles.specificInput}
-                    placeholder="Enter expiration month"
-                    placeholderTextColor="black"
-                    value={expirationMonth}
-                    onChangeText={setExpirationMonth}
-                    keyboardType="numeric"
-                    editable={paymentMethod === "Add Debit Card"}
-                  />
-
-                  <Text style={styles.helpText}>Expiration Year</Text>
-                  <TextInput
-                    style={styles.specificInput}
-                    placeholder="Enter expiration year"
-                    placeholderTextColor="black"
-                    value={expirationYear}
-                    onChangeText={setExpirationYear}
-                    keyboardType="numeric"
-                    editable={paymentMethod === "Add Debit Card"}
-                  />
-                </>
-              ) : (
-                <>
-                  <Text style={styles.helpText}>Routing Number</Text>
-                  <TextInput
-                    style={styles.specificInput}
-                    placeholder="Enter routing number"
-                    placeholderTextColor="black"
-                    value={routingNumber}
-                    onChangeText={setRoutingNumber}
-                    keyboardType="numeric"
-                    editable={paymentMethod === "Add Checking Account"}
-                  />
-
-                  <Text style={styles.helpText}>Account Number</Text>
-                  <TextInput
-                    style={styles.specificInput}
-                    placeholder="Enter account number"
-                    placeholderTextColor="black"
-                    value={accountNumber}
-                    onChangeText={setAccountNumber}
-                    keyboardType="numeric"
-                    editable={paymentMethod === "Add Checking Account"}
-                  />
-                </>
-              )}
-
-              <Text style={styles.helpText}>Payment Amount</Text>
-              <TextInput
-                style={styles.specificInput}
-                placeholder="Enter payment amount"
-                placeholderTextColor="black"
-                value={paymentAmount}
-                onChangeText={setPaymentAmount}
-                keyboardType="numeric"
-              />
-
-              <Text style={styles.helpText}>Payment Start Date</Text>
-              <Pressable onPress={toggleDatePicker}>
-                <View style={styles.datePickerButton}>
-                  <Text style={styles.dateText}>
-                    {date ? formatDate(date) : "MM/DD/YYYY"}
-                  </Text>
-                  <FontAwesome name="calendar" size={16} color="#27446F" />
-                </View>
-              </Pressable>
-              {showDatePicker && (
-                <DateTimePicker
-                  mode="date"
-                  display={Platform.OS === "ios" ? "spinner" : "default"}
-                  value={date}
-                  onChange={onChange}
-                  textColor="black"
-                />
-              )}
-            </View>
-            <TouchableOpacity
-              style={styles.submitButton}
-              onPress={handleSubmit}
-              disabled={isSubmitting}
-            >
-              <Text style={styles.submitButtonText}>
-                {isSubmitting ? "Submitting..." : "SUBMIT"}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </ScrollView>
-        <Toast />
-
-        {/* Modal for successful payment */}
-        <Modal
-          animationType="slide"
-          transparent={true}
-          visible={isModalVisible}
-          onRequestClose={() => {
-            setIsModalVisible(false);
-          }}
-        >
-          <View style={styles.centeredView}>
-            <View style={styles.modalView}>
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  marginBottom: 15,
-                }}
-              >
-                <Text style={styles.modalText}>Success</Text>
-                <TouchableOpacity
-                  style={styles.closeIcon}
-                  onPress={() => setIsModalVisible(false)}
+                    </View>
+                  </View>
+                </Pressable>
+                {showPaymentMethodPicker && (
+                  <View style={{ zIndex: 1000, position: "relative" }}>
+                    <Picker
+                      selectedValue={paymentMethod}
+                      onValueChange={handlePaymentMethodChange}
+                      style={styles.iosPicker}
+                      itemStyle={{ color: "black" }}
+                    >
+                      <Picker.Item
+                        label="Add Debit Card"
+                        value="Add Debit Card"
+                      />
+                      <Picker.Item
+                        label="Add Checking Account"
+                        value="Add Checking Account"
+                      />
+                      {savedMethods.map((method, index) => (
+                        <Picker.Item
+                          key={index}
+                          label={
+                            method.cardNumber
+                              ? `Debit Card - ${method.cardNumber.slice(-4)}`
+                              : `Checking Account - ${method.accountNumber?.slice(
+                                  -4
+                                )}`
+                          }
+                          value={
+                            method.cardNumber
+                              ? `Debit Card - ${method.cardNumber.slice(-4)}`
+                              : `Checking Account - ${method.accountNumber?.slice(
+                                  -4
+                                )}`
+                          }
+                        />
+                      ))}
+                    </Picker>
+                  </View>
+                )}
+              </>
+            ) : (
+              <View style={styles.pickerWrapper}>
+                <Picker
+                  selectedValue={paymentMethod}
+                  onValueChange={handlePaymentMethodChange}
+                  style={styles.androidPicker}
+                  dropdownIconColor="#000000"
                 >
-                  <Ionicons name="close" size={24} color="black" />
-                </TouchableOpacity>
+                  <Picker.Item label="Add Debit Card" value="Add Debit Card" />
+                  <Picker.Item
+                    label="Add Checking Account"
+                    value="Add Checking Account"
+                  />
+                  {savedMethods.map((method, index) => (
+                    <Picker.Item
+                      key={index}
+                      label={
+                        method.cardNumber
+                          ? `Debit Card - ${method.cardNumber.slice(-4)}`
+                          : `Checking Account - ${method.accountNumber?.slice(
+                              -4
+                            )}`
+                      }
+                      value={
+                        method.cardNumber
+                          ? `Debit Card - ${method.cardNumber.slice(-4)}`
+                          : `Checking Account - ${method.accountNumber?.slice(
+                              -4
+                            )}`
+                      }
+                    />
+                  ))}
+                </Picker>
               </View>
-              <Text style={styles.modalText}>Your payment was successful</Text>
-              <Text style={styles.modalMessage}>
-                Thank You! Your payment has been submitted. Please allow 2-4
-                business days for it to be reflected on your account.
-              </Text>
+            )}
+
+            {paymentMethod && paymentMethod.startsWith("Debit Card -") ? (
+              <>
+                <Text style={styles.helpText}>Card Number</Text>
+                <TextInput
+                  style={styles.specificInput}
+                  placeholder="Enter card number"
+                  placeholderTextColor="black"
+                  value={cardNumber}
+                  onChangeText={setCardNumber}
+                  keyboardType="numeric"
+                  editable={paymentMethod === "Add Debit Card"}
+                />
+
+                <Text style={styles.helpText}>Expiration Month</Text>
+                <TextInput
+                  style={styles.specificInput}
+                  placeholder="Enter expiration month"
+                  placeholderTextColor="black"
+                  value={expirationMonth}
+                  onChangeText={setExpirationMonth}
+                  keyboardType="numeric"
+                  editable={paymentMethod === "Add Debit Card"}
+                />
+
+                <Text style={styles.helpText}>Expiration Year</Text>
+                <TextInput
+                  style={styles.specificInput}
+                  placeholder="Enter expiration year"
+                  placeholderTextColor="black"
+                  value={expirationYear}
+                  onChangeText={setExpirationYear}
+                  keyboardType="numeric"
+                  editable={paymentMethod === "Add Debit Card"}
+                />
+              </>
+            ) : (
+              <>
+                <Text style={styles.helpText}>Routing Number</Text>
+                <TextInput
+                  style={styles.specificInput}
+                  placeholder="Enter routing number"
+                  placeholderTextColor="black"
+                  value={routingNumber}
+                  onChangeText={setRoutingNumber}
+                  keyboardType="numeric"
+                  editable={paymentMethod === "Add Checking Account"}
+                />
+
+                <Text style={styles.helpText}>Account Number</Text>
+                <TextInput
+                  style={styles.specificInput}
+                  placeholder="Enter account number"
+                  placeholderTextColor="black"
+                  value={accountNumber}
+                  onChangeText={setAccountNumber}
+                  keyboardType="numeric"
+                  editable={paymentMethod === "Add Checking Account"}
+                />
+              </>
+            )}
+
+            <Text style={styles.helpText}>Payment Amount</Text>
+            <TextInput
+              style={styles.specificInput}
+              placeholder="Enter payment amount"
+              placeholderTextColor="black"
+              value={paymentAmount}
+              onChangeText={setPaymentAmount}
+              keyboardType="numeric"
+            />
+
+            <Text style={styles.helpText}>Payment Start Date</Text>
+            <Pressable onPress={toggleDatePicker}>
+              <View style={styles.datePickerButton}>
+                <Text style={styles.dateText}>
+                  {date ? formatDate(date) : "MM/DD/YYYY"}
+                </Text>
+                <FontAwesome name="calendar" size={16} color="#27446F" />
+              </View>
+            </Pressable>
+            {showDatePicker && (
+              <DateTimePicker
+                mode="date"
+                display={Platform.OS === "ios" ? "spinner" : "default"}
+                value={date}
+                onChange={onChange}
+                textColor="black"
+              />
+            )}
+          </View>
+          {paymentMethod && (
+            <Text style={styles.agreementText}>
+              {paymentMethod.startsWith("Debit Card -")
+                ? `You agree to pay a one-time payment of ${paymentAmount} on ${formatDate(
+                    date
+                  )} using your Debit Card.`
+                : `You agree to pay a one-time payment of ${paymentAmount} on ${formatDate(
+                    date
+                  )} from your Checking Account.`}
+            </Text>
+          )}
+
+          <TouchableOpacity
+            style={styles.submitButton}
+            onPress={handleSubmit}
+            disabled={isSubmitting}
+          >
+            <Text style={styles.submitButtonText}>
+              {isSubmitting ? "Submitting..." : "SUBMIT"}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+      <Toast />
+
+      {/* Modal for successful payment */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={isModalVisible}
+        onRequestClose={() => {
+          setIsModalVisible(false);
+        }}
+      >
+        <View style={styles.centeredView}>
+          <View style={styles.modalView}>
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                marginBottom: 15,
+              }}
+            >
+              <Text style={styles.modalText}>Success</Text>
               <TouchableOpacity
-                style={styles.modalButton}
-                onPress={() => {
-                  setIsModalVisible(!isModalVisible);
-                  router.push("/(tabs)/Home");
-                }}
+                style={styles.closeIcon}
+                onPress={() => setIsModalVisible(false)}
               >
-                <Text style={styles.modalButtonText}>Done</Text>
+                <Ionicons name="close" size={24} color="black" />
               </TouchableOpacity>
             </View>
+            <Text style={styles.modalText}>Your payment was successful</Text>
+            <Text style={styles.modalMessage}>
+              Thank You! Your payment has been submitted. Please allow 2-4
+              business days for it to be reflected on your account.
+            </Text>
+            <TouchableOpacity
+              style={styles.modalButton}
+              onPress={() => {
+                setIsModalVisible(!isModalVisible);
+                router.push("/(tabs)/Home");
+              }}
+            >
+              <Text style={styles.modalButtonText}>Done</Text>
+            </TouchableOpacity>
           </View>
-        </Modal>
-
+        </View>
+      </Modal>
     </KeyboardAvoidingView>
   );
 };

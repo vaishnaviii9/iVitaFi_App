@@ -177,5 +177,13 @@ export const styles = StyleSheet.create({
   closeIcon: {
     padding: 5,
   },
+  agreementText: {
+  marginTop: 20,
+  textAlign: 'center',
+  color: 'black',
+  fontSize: 14,
+  marginBottom: 20,
+},
+
 });
 

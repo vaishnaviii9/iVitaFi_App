@@ -190,5 +190,13 @@ export const styles = StyleSheet.create({
     marginTop: 5, // Add some margin to separate the header and subheader
     // other styles for subHeaderText
   },
+  agreementText: {
+  marginTop: 20,
+  textAlign: 'center',
+  color: 'black',
+  fontSize: 14,
+  marginBottom: 20,
+},
+
 });
 
