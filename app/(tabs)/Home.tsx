@@ -20,7 +20,10 @@ import { fetchPendingTransactions } from "../../app/services/pendingTransactions
 import { logout } from "../../features/login/loginSlice";
 import { CreditApplicationStatus } from "../../utils/CreditApplicationStatusUtil";
 import styles from "../../components/styles/HomeStyles";
-import { setShowMakePayment, setShowMakeAdditionalPayment } from "../../features/buttonVisibility/buttonVisibilitySlice";
+import {
+  setShowMakePayment,
+  setShowMakeAdditionalPayment,
+} from "../../features/buttonVisibility/buttonVisibilitySlice";
 
 interface CreditApplication {
   accountNumber: string;
@@ -67,7 +70,32 @@ const HomeScreen: React.FC = () => {
   const [closedAccount, setClosedAccount] = useState<boolean>(false);
   const [bankruptAccount, setBankruptAccount] = useState<boolean>(false);
   const [isActiveClass, setIsActiveClass] = useState<boolean>(false);
-
+  useEffect(() => {
+    // console.log("Token changed, resetting state");
+    setUserData(null);
+    setCustomerData(null);
+    setAccountNumbers([]);
+    setCurrentAmountDue(null);
+    setBalance(null);
+    setAvailableCredit(null);
+    setNextPaymentDate(null);
+    setCreditSummaries([]);
+    setAutopay(null);
+    setLast4Digits(null);
+    setIsCardNumber(false);
+    setTransactions([]);
+    setCustomerStandingDisplayMessage(null);
+    setNoAdditionalPayment(false);
+    setSetUpAutopay(false);
+    setEnableClick(false);
+    setEnableConfigureAutopayText(false);
+    setEnableDiv(false);
+    setEnableCustomerDiv(false);
+    setEnableManageCustomerDiv(false);
+    setClosedAccount(false);
+    setBankruptAccount(false);
+    setIsActiveClass(false);
+  }, [token]);
   const fetchAllData = useCallback(async () => {
     try {
       setLoading(true);
@@ -144,93 +172,69 @@ const HomeScreen: React.FC = () => {
   }, [token, dispatch, creditAccountId]);
 
   const determineCustomerStandingPaymentOptions = (validSummary: any) => {
-  const isAccountClosed = validSummary?.detail?.creditAccount?.creditApplication?.status === CreditApplicationStatus.AccountClosed;
-  const isBankrupt = validSummary?.isBankrupt;
-  const isAutoPay = validSummary?.detail?.creditAccount?.paymentSchedule?.autoPayEnabled;
-  const currentAmountDue = validSummary?.currentAmountDue;
-  const currentBalance = validSummary?.currentBalance;
-  const totalAmountDue = validSummary?.totalAmountDue;
-  const daysDelinquent = validSummary?.daysDelinquent;
+    const isAccountClosed =
+      validSummary.detail?.creditAccount?.creditApplication?.status ===
+      CreditApplicationStatus.AccountClosed;
+    const isBankrupt = validSummary.isBankrupt;
+    const isAutoPay =
+      validSummary.detail?.creditAccount?.paymentSchedule?.autoPayEnabled;
+    const currentAmountDue = validSummary.currentAmountDue;
+    const currentBalance = validSummary.currentBalance;
+    const totalAmountDue = validSummary.totalAmountDue;
+    const daysDelinquent = validSummary.daysDelinquent;
 
-  if (isAccountClosed) {
-    setCustomerStandingDisplayMessage("ACCOUNT IS CLOSED");
-    setNoAdditionalPayment(true);
-    setSetUpAutopay(false);
-    setClosedAccount(true);
-    setIsActiveClass(true);
-  }
-  else if (isBankrupt) {
-    setCustomerStandingDisplayMessage("ACCOUNT IN BANKRUPTCY");
-    setIsActiveClass(true);
-    setEnableClick(true);
-    setSetUpAutopay(false);
-    setNoAdditionalPayment(true);
-    setBankruptAccount(true);
-  }
-  else if (isAutoPay === false && isBankrupt === false && !isAccountClosed) {
-    setEnableConfigureAutopayText(false);
-    setSetUpAutopay(true);
-    setNoAdditionalPayment(true);
-    setEnableClick(true);
-  }
-  else if (currentAmountDue === 0 && isAutoPay === true && currentBalance > 0) {
-    setEnableConfigureAutopayText(false);
-    setSetUpAutopay(false);
-    setEnableClick(true);
-    setEnableDiv(false);
-    setClosedAccount(false);
-    setNoAdditionalPayment(false);
-  }
-  else if (
-    (currentAmountDue === 0 && isAutoPay === false && currentBalance > 0) ||
-    (currentAmountDue > 0 && totalAmountDue - currentAmountDue === 0) ||
-    (totalAmountDue - currentAmountDue > 0 && daysDelinquent <= 60) ||
-    (totalAmountDue - currentAmountDue > 0 && daysDelinquent > 60)
-  ) {
-    if (isAutoPay === false && isBankrupt === false && !isAccountClosed) {
+    if (isAccountClosed) {
+      setCustomerStandingDisplayMessage("ACCOUNT IS CLOSED");
+      setNoAdditionalPayment(true);
+      setSetUpAutopay(false);
+      setClosedAccount(true);
+      setIsActiveClass(true);
+    } else if (isBankrupt) {
+      setCustomerStandingDisplayMessage("ACCOUNT IN BANKRUPTCY");
+      setIsActiveClass(true);
+      setEnableClick(true);
+      setSetUpAutopay(false);
+      setNoAdditionalPayment(true);
+      setBankruptAccount(true);
+    } else if (daysDelinquent > 0) {
+      setCustomerStandingDisplayMessage("THIS ACCOUNT IS PAST DUE");
+      setIsActiveClass(true);
+      setEnableClick(true);
+      setNoAdditionalPayment(false);
+    } else if (
+      isAutoPay === false &&
+      isBankrupt === false &&
+      !isAccountClosed
+    ) {
+      setEnableConfigureAutopayText(false);
       setSetUpAutopay(true);
+      setNoAdditionalPayment(true);
+      setEnableClick(true);
+    } else if (
+      currentAmountDue === 0 &&
+      isAutoPay === true &&
+      currentBalance > 0
+    ) {
+      setEnableConfigureAutopayText(false);
+      setSetUpAutopay(false);
+      setEnableClick(true);
+      setEnableDiv(false);
+      setClosedAccount(false);
+      setNoAdditionalPayment(false);
     } else {
+      setEnableConfigureAutopayText(false);
       setSetUpAutopay(false);
       setEnableClick(true);
       setNoAdditionalPayment(true);
       setEnableDiv(false);
     }
-  } 
-};
-
+  };
 
   useFocusEffect(
     useCallback(() => {
       fetchAllData();
     }, [fetchAllData])
   );
-
-  useEffect(() => {
-    // console.log("Token changed, resetting state");
-    setUserData(null);
-    setCustomerData(null);
-    setAccountNumbers([]);
-    setCurrentAmountDue(null);
-    setBalance(null);
-    setAvailableCredit(null);
-    setNextPaymentDate(null);
-    setCreditSummaries([]);
-    setAutopay(null);
-    setLast4Digits(null);
-    setIsCardNumber(false);
-    setTransactions([]);
-    setCustomerStandingDisplayMessage(null);
-    setNoAdditionalPayment(false);
-    setSetUpAutopay(false);
-    setEnableClick(false);
-    setEnableConfigureAutopayText(false);
-    setEnableDiv(false);
-    setEnableCustomerDiv(false);
-    setEnableManageCustomerDiv(false);
-    setClosedAccount(false);
-    setBankruptAccount(false);
-    setIsActiveClass(false);
-  }, [token]);
 
   const isLoggedOut = useSelector((state: any) => !state.auth.token);
 
@@ -285,11 +289,10 @@ const HomeScreen: React.FC = () => {
     );
   };
 
-useEffect(() => {
+  useEffect(() => {
     dispatch(setShowMakePayment(noAdditionalPayment && enableClick));
     dispatch(setShowMakeAdditionalPayment(!noAdditionalPayment && enableClick));
   }, [noAdditionalPayment, enableClick, dispatch]);
-
 
   if (loading) {
     return (
