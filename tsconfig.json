@@ -28,7 +28,7 @@
     "**/*.tsx",
     ".expo/types/**/*.ts",
     "expo-env.d.ts"
-  ]
+, "features/transactions/TransactionList.js"  ]
 }
 
  
