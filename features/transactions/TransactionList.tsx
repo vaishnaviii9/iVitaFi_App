@@ -49,10 +49,10 @@ const TransactionList: React.FC<TransactionListProps> = ({ transactions, maxTran
     }, [fetchTransactions])
   );
 
-  const renderTrashIcon = (disable: boolean) => {
-    const iconColor = disable ? mergedStyles.trashIconDisabled.color : mergedStyles.trashIconRed.color;
-    return <Ionicons name="trash-sharp" size={24} color={iconColor} />;
-  };
+const renderTrashIcon = (disable: boolean) => {
+  const iconColor = disable ? '#D3D3D3' : '#FF0000'; // Try a different shade of red
+  return <Ionicons name="trash-sharp" size={24} color={iconColor} />;
+};
 
   const renderCheckIcon = () => {
     return <Feather name="check" size={24} color="green" />;
@@ -127,13 +127,13 @@ const TransactionList: React.FC<TransactionListProps> = ({ transactions, maxTran
         transactionType === CreditAccountTransactionType.AchNonDirectedPayment ||
         transactionType === CreditAccountTransactionType.CardPayment
       ) {
-        if ((givenDate > currentDate && (executedDate === null || executedDate === undefined))) {
-          setDisable(false);
-        } else {
+        if (!(givenDate > currentDate && (executedDate === null || executedDate === undefined))) {
           setDisable(true);
+        } else {
+          setDisable(false);
         }
       } 
-       if (
+       else if (
         transactionType === CreditAccountTransactionType.SubsequentProcedureDischarge ||
         transactionType === CreditAccountTransactionType.UpwardAdjustment
       ) {

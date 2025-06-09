@@ -51,7 +51,7 @@ const styles = StyleSheet.create({
     marginHorizontal: wp(1),
   },
   trashIconRed: {
-    color: 'red',
+    color: '#FF0000',
   },
   trashIconDisabled: {
     color: '#D3D3D3',
