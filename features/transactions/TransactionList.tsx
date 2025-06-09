@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, ScrollView, TouchableOpacity, Modal } from "react-native";
-import { CreditAccountTransactionTypeUtil, CreditAccountTransactionType } from "../../utils/CreditAccountTransactionTypeUtil";
+import {
+  CreditAccountTransactionTypeUtil,
+  CreditAccountTransactionType,
+} from "../../utils/CreditAccountTransactionTypeUtil";
 import styles from "../../components/styles/TransactionListStyles";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import Entypo from "@expo/vector-icons/Entypo";
@@ -9,6 +12,7 @@ import { deleteTransaction } from "../../app/services/deletePendingTransactionSe
 import Toast from "react-native-toast-message";
 import { useSelector } from "react-redux";
 import { useFocusEffect } from "@react-navigation/native";
+import { approvalTransaction } from "../../app/services/approvalTransactionService";
 
 // Define types for your props
 interface Transaction {
@@ -41,53 +45,105 @@ interface TransactionListProps {
   fetchTransactions?: () => void;
 }
 
-const getPendingTransactionClassification = (transaction: Transaction): number => {
-  if (transaction.transactionType === CreditAccountTransactionType.ProcedureDischarge) {
-    return 1; // ProcedureDischarge
-  } else if (transaction.transactionType === CreditAccountTransactionType.CardPayment) {
-    return 14; // Pending Payment: Credit
-  } else if (transaction.transactionType === CreditAccountTransactionType.AchNonDirectedPayment) {
-    return 15; // Pending Payment: ACH
-  } else if (transaction.requiresCustomerApproval && transaction.hasCustomerApproval) {
-    // Already approved
-    if (transaction.transactionType === CreditAccountTransactionType.SubsequentProcedureDischarge) {
-      return 3; // SubsequentProcedureDischarge: Approved
-    } else if (transaction.transactionType === CreditAccountTransactionType.UpwardAdjustment) {
-      return 7; // UpwardAdjustment: Approved
-    } else if (transaction.transactionType === CreditAccountTransactionType.DownwardAdjustment) {
-      return 11; // DownwardAdjustment: Approved
+const getPendingTransactionClassification = (
+  transaction: Transaction
+): number => {
+  if (
+    transaction.transactionType ===
+    CreditAccountTransactionType.ProcedureDischarge
+  ) {
+    return 1;
+  } else if (
+    transaction.transactionType === CreditAccountTransactionType.CardPayment
+  ) {
+    return 14;
+  } else if (
+    transaction.transactionType ===
+    CreditAccountTransactionType.AchNonDirectedPayment
+  ) {
+    return 15;
+  } else if (
+    transaction.requiresCustomerApproval &&
+    transaction.hasCustomerApproval
+  ) {
+    if (
+      transaction.transactionType ===
+      CreditAccountTransactionType.SubsequentProcedureDischarge
+    ) {
+      return 3;
+    } else if (
+      transaction.transactionType ===
+      CreditAccountTransactionType.UpwardAdjustment
+    ) {
+      return 7;
+    } else if (
+      transaction.transactionType ===
+      CreditAccountTransactionType.DownwardAdjustment
+    ) {
+      return 11;
     }
-  } else if (transaction.requiresCustomerApproval && transaction.hasCustomerApproval === false) {
-    // Already rejected
-    if (transaction.transactionType === CreditAccountTransactionType.SubsequentProcedureDischarge) {
-      return 4; // SubsequentProcedureDischarge: Rejected
-    } else if (transaction.transactionType === CreditAccountTransactionType.UpwardAdjustment) {
-      return 8; // UpwardAdjustment: Rejected
-    } else if (transaction.transactionType === CreditAccountTransactionType.DownwardAdjustment) {
-      return 12; // DownwardAdjustment: Rejected
+  } else if (
+    transaction.requiresCustomerApproval &&
+    transaction.hasCustomerApproval === false
+  ) {
+    if (
+      transaction.transactionType ===
+      CreditAccountTransactionType.SubsequentProcedureDischarge
+    ) {
+      return 4;
+    } else if (
+      transaction.transactionType ===
+      CreditAccountTransactionType.UpwardAdjustment
+    ) {
+      return 8;
+    } else if (
+      transaction.transactionType ===
+      CreditAccountTransactionType.DownwardAdjustment
+    ) {
+      return 12;
     }
-  } else if (transaction.requiresCustomerApproval && transaction.hasCustomerApproval === null) {
-    // Needs approval
+  } else if (
+    transaction.requiresCustomerApproval &&
+    transaction.hasCustomerApproval === null
+  ) {
     const currentDate = new Date();
-    const expirationDate = transaction.expirationDate ? new Date(transaction.expirationDate) : currentDate;
+    const expirationDate = transaction.expirationDate
+      ? new Date(transaction.expirationDate)
+      : currentDate;
 
-    if (transaction.transactionType === CreditAccountTransactionType.SubsequentProcedureDischarge) {
-      return currentDate > expirationDate ? 5 : 2; // SubsequentProcedureDischarge: Expired or Needs Approval
-    } else if (transaction.transactionType === CreditAccountTransactionType.UpwardAdjustment) {
-      return currentDate > expirationDate ? 9 : 6; // UpwardAdjustment: Expired or Needs Approval
-    } else if (transaction.transactionType === CreditAccountTransactionType.DownwardAdjustment) {
-      return currentDate > expirationDate ? 13 : 10; // DownwardAdjustment: Expired or Needs Approval
+    if (
+      transaction.transactionType ===
+      CreditAccountTransactionType.SubsequentProcedureDischarge
+    ) {
+      return currentDate > expirationDate ? 5 : 2;
+    } else if (
+      transaction.transactionType ===
+      CreditAccountTransactionType.UpwardAdjustment
+    ) {
+      return currentDate > expirationDate ? 9 : 6;
+    } else if (
+      transaction.transactionType ===
+      CreditAccountTransactionType.DownwardAdjustment
+    ) {
+      return currentDate > expirationDate ? 13 : 10;
     }
   }
 
-  return 0; // Default classification
+  return 0;
 };
 
-const TransactionList: React.FC<TransactionListProps> = ({ transactions, maxTransactions, styles: passedStyles, fetchTransactions }) => {
+const TransactionList: React.FC<TransactionListProps> = ({
+  transactions,
+  maxTransactions,
+  styles: passedStyles,
+  fetchTransactions,
+}) => {
   const token = useSelector((state: any) => state.auth.token);
   const mergedStyles = { ...styles, ...passedStyles };
   const [modalVisible, setModalVisible] = useState(false);
-  const [selectedTransactionId, setSelectedTransactionId] = useState<string | null>(null);
+  const [selectedTransactionId, setSelectedTransactionId] = useState<
+    string | null
+  >(null);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -96,6 +152,61 @@ const TransactionList: React.FC<TransactionListProps> = ({ transactions, maxTran
       }
     }, [fetchTransactions])
   );
+  const approvalFunction = async (
+    id: string,
+    isApproved: boolean
+  ): Promise<void> => {
+    try {
+      const response = await approvalTransaction(id, isApproved, token);
+      if (response.status === 200) {
+        console.log(
+          `Transaction ${isApproved ? "approved" : "rejected"} successfully`
+        );
+        Toast.show({
+          type: "success",
+          text1: "Success",
+          text2: `Transaction has been successfully ${
+            isApproved ? "approved" : "rejected"
+          }.`,
+          visibilityTime: 3000,
+          autoHide: true,
+          topOffset: 60,
+          bottomOffset: 100,
+        });
+      } else {
+        console.error(
+          `Failed to ${isApproved ? "approve" : "reject"} the transaction`
+        );
+        Toast.show({
+          type: "error",
+          text1: "Error",
+          text2: `Failed to ${
+            isApproved ? "approve" : "reject"
+          } the transaction.`,
+          visibilityTime: 3000,
+          autoHide: true,
+          topOffset: 60,
+          bottomOffset: 100,
+        });
+      }
+    } catch (error) {
+      console.error(
+        `Error ${isApproved ? "approving" : "rejecting"} transaction:`,
+        error
+      );
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: `An error occurred while ${
+          isApproved ? "approving" : "rejecting"
+        } the transaction.`,
+        visibilityTime: 3000,
+        autoHide: true,
+        topOffset: 60,
+        bottomOffset: 100,
+      });
+    }
+  };
 
   const renderTrashIcon = (disable: boolean) => {
     const iconColor = disable ? "#D3D3D3" : "#FF0000";
@@ -121,18 +232,21 @@ const TransactionList: React.FC<TransactionListProps> = ({ transactions, maxTran
 
   const handleCheckIconPress = (id: string) => {
     console.log("Check icon pressed for ID:", id);
-    // Add your logic for handling check icon press
+    approvalFunction(id, true);
   };
 
   const handleXIconPress = (id: string) => {
     console.log("X icon pressed for ID:", id);
-    // Add your logic for handling X icon press
+    approvalFunction(id, false);
   };
 
   const handleDeleteConfirmation = async (confirm: boolean) => {
     setModalVisible(false);
     if (confirm && selectedTransactionId) {
-      console.log("Attempting to delete transaction with ID:", selectedTransactionId);
+      console.log(
+        "Attempting to delete transaction with ID:",
+        selectedTransactionId
+      );
       try {
         const response = await deleteTransaction(selectedTransactionId, token);
         if (response.status === 200) {
@@ -176,9 +290,27 @@ const TransactionList: React.FC<TransactionListProps> = ({ transactions, maxTran
     }
   };
 
-  const TransactionIcon: React.FC<TransactionIconProps> = ({ transactionType, transactionDate, executedDate, paymentType, id, requiresCustomerApproval, hasCustomerApproval, expirationDate }) => {
+  const TransactionIcon: React.FC<TransactionIconProps> = ({
+    transactionType,
+    transactionDate,
+    executedDate,
+    paymentType,
+    id,
+    requiresCustomerApproval,
+    hasCustomerApproval,
+    expirationDate,
+  }) => {
     const [disable, setDisable] = useState(false);
-    const classification = getPendingTransactionClassification({ id, transactionType, pendingTransactionDate: transactionDate, executedDate, paymentType, requiresCustomerApproval, hasCustomerApproval, expirationDate });
+    const classification = getPendingTransactionClassification({
+      id,
+      transactionType,
+      pendingTransactionDate: transactionDate,
+      executedDate,
+      paymentType,
+      requiresCustomerApproval,
+      hasCustomerApproval,
+      expirationDate,
+    });
 
     useEffect(() => {
       const givenDate = new Date(transactionDate || 0);
@@ -187,16 +319,23 @@ const TransactionList: React.FC<TransactionListProps> = ({ transactions, maxTran
       if (transactionType === CreditAccountTransactionType.ProcedureDischarge) {
         setDisable(true);
       } else if (
-        transactionType === CreditAccountTransactionType.AchNonDirectedPayment ||
+        transactionType ===
+          CreditAccountTransactionType.AchNonDirectedPayment ||
         transactionType === CreditAccountTransactionType.CardPayment
       ) {
-        if (!(givenDate > currentDate && (executedDate === null || executedDate === undefined))) {
+        if (
+          !(
+            givenDate > currentDate &&
+            (executedDate === null || executedDate === undefined)
+          )
+        ) {
           setDisable(true);
         } else {
           setDisable(false);
         }
       } else if (
-        transactionType === CreditAccountTransactionType.SubsequentProcedureDischarge ||
+        transactionType ===
+          CreditAccountTransactionType.SubsequentProcedureDischarge ||
         transactionType === CreditAccountTransactionType.UpwardAdjustment
       ) {
         setDisable(true);
@@ -221,7 +360,10 @@ const TransactionList: React.FC<TransactionListProps> = ({ transactions, maxTran
     }
 
     return (
-      <TouchableOpacity onPress={() => handleTrashIconPress(id, disable)} disabled={disable}>
+      <TouchableOpacity
+        onPress={() => handleTrashIconPress(id, disable)}
+        disabled={disable}
+      >
         {renderTrashIcon(disable)}
       </TouchableOpacity>
     );
@@ -239,18 +381,33 @@ const TransactionList: React.FC<TransactionListProps> = ({ transactions, maxTran
         showsVerticalScrollIndicator={false}
       >
         {transactionsToDisplay.map((transaction, index) => (
-          <View key={index} style={[mergedStyles.transactionRow, index % 2 === 0 ? mergedStyles.rowLight : mergedStyles.rowDark]}>
+          <View
+            key={index}
+            style={[
+              mergedStyles.transactionRow,
+              index % 2 === 0 ? mergedStyles.rowLight : mergedStyles.rowDark,
+            ]}
+          >
             <View style={mergedStyles.transactionDetailsContainer}>
-              <Text style={[mergedStyles.transactionDetails, mergedStyles.textSmall]}>
+              <Text
+                style={[
+                  mergedStyles.transactionDetails,
+                  mergedStyles.textSmall,
+                ]}
+              >
                 <Text style={mergedStyles.textBold}>{transaction.id}</Text>
                 {"\n"}
                 <Text style={mergedStyles.textSecondary}>
-                  {CreditAccountTransactionTypeUtil.toString(transaction.transactionType) || "Unknown Type"}
+                  {CreditAccountTransactionTypeUtil.toString(
+                    transaction.transactionType
+                  ) || "Unknown Type"}
                 </Text>
                 {"\n"}
                 <Text style={mergedStyles.textSecondary}>
                   {transaction.pendingTransactionDate
-                    ? new Date(transaction.pendingTransactionDate).toLocaleDateString("en-US", {
+                    ? new Date(
+                        transaction.pendingTransactionDate
+                      ).toLocaleDateString("en-US", {
                         month: "2-digit",
                         day: "2-digit",
                         year: "numeric",
@@ -288,7 +445,10 @@ const TransactionList: React.FC<TransactionListProps> = ({ transactions, maxTran
       >
         <View style={mergedStyles.modalContainer}>
           <View style={mergedStyles.modalView}>
-            <TouchableOpacity style={mergedStyles.modalCloseButton} onPress={() => setModalVisible(false)}>
+            <TouchableOpacity
+              style={mergedStyles.modalCloseButton}
+              onPress={() => setModalVisible(false)}
+            >
               <Ionicons name="close" size={24} color="#333" />
             </TouchableOpacity>
             <Text style={mergedStyles.modalTitle}>Delete Transaction</Text>
@@ -296,16 +456,23 @@ const TransactionList: React.FC<TransactionListProps> = ({ transactions, maxTran
               Are you sure you want to delete this transaction?
             </Text>
             <View style={mergedStyles.modalButtonContainer}>
-              <TouchableOpacity style={mergedStyles.modalButton} onPress={() => handleDeleteConfirmation(false)}>
+              <TouchableOpacity
+                style={mergedStyles.modalButton}
+                onPress={() => handleDeleteConfirmation(false)}
+              >
                 <Text style={mergedStyles.modalButtonText}>No</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={mergedStyles.modalButton} onPress={() => handleDeleteConfirmation(true)}>
+              <TouchableOpacity
+                style={mergedStyles.modalButton}
+                onPress={() => handleDeleteConfirmation(true)}
+              >
                 <Text style={mergedStyles.modalButtonText}>Yes</Text>
               </TouchableOpacity>
             </View>
           </View>
         </View>
       </Modal>
+       <Toast />
     </View>
   );
 };
