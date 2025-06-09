@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
-import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 
 const styles = StyleSheet.create({
   scrollView: {
@@ -47,9 +47,11 @@ const styles = StyleSheet.create({
     height: wp(5),
     marginHorizontal: wp(1),
   },
-  trashIcon: {
-    width: wp(5),
-    height: wp(5),
+  trashIconRed: {
+    color: 'red',
+  },
+  trashIconDisabled: {
+    color: '#D3D3D3',
   },
 });
 
