@@ -454,7 +454,7 @@ const HomeScreen: React.FC = () => {
           </View>
         </View>
 
-    <View style={styles.buttonContainer}>
+        <View style={styles.buttonContainer}>
           {noAdditionalPayment === false &&
             enableConfigureAutopayText === false &&
             enableClick === true && (
@@ -482,7 +482,7 @@ const HomeScreen: React.FC = () => {
         </View>
         <View style={styles.RecentTransactionsContainer}>
           {creditAccountId ? (
-            <RecentTransactions loading={loading} transactions={transactions} />
+            <RecentTransactions />
           ) : (
             <Text style={styles.noAccountText}>No transactions available</Text>
           )}
