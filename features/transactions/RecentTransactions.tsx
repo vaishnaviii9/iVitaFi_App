@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { View, Text, Pressable, Dimensions, ScrollView } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import SkeletonLoader from '../../components/SkeletonLoader';
 import useTransactions from '../../hooks/useTransactions';
@@ -15,10 +15,15 @@ const { height: screenHeight } = Dimensions.get("window");
 
 const RecentTransactions = () => {
   const navigation = useNavigation();
-  const { transactions, loading } = useTransactions();
+  const { transactions, loading, fetchTransactions } = useTransactions();
   const isSmallScreen = screenHeight < 700;
   const isMediumScreen = screenHeight >= 700 && screenHeight <= 800;
   const isLargeScreen = screenHeight > 800;
+  useFocusEffect(
+    useCallback(() => {
+      fetchTransactions(); // Fetch transactions when the screen comes into focus
+    }, [fetchTransactions])
+  );
 
   if (loading) {
     return (
@@ -30,7 +35,8 @@ const RecentTransactions = () => {
       </SkeletonLoader>
     );
   }
-return (
+
+  return (
     <View style={[
       styles.recentTransactions,
       { height: isSmallScreen ? hp(30) : isMediumScreen ? hp(32) : hp(45) },
@@ -67,6 +73,7 @@ return (
                 transactions={transactions}
                 maxTransactions={3}
                 styles={styles}
+                fetchTransactions={fetchTransactions}
               />
             </ScrollView>
           ) : (

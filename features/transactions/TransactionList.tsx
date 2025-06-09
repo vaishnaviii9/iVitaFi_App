@@ -1,17 +1,55 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Modal, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Modal } from 'react-native';
 import { CreditAccountTransactionTypeUtil, CreditAccountTransactionType } from '../../utils/CreditAccountTransactionTypeUtil';
 import styles from '../../components/styles/TransactionListStyles';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import Entypo from '@expo/vector-icons/Entypo';
 import Feather from '@expo/vector-icons/Feather';
+import { deleteTransaction } from '../../app/services/deletePendingTransactionService';
+import Toast from 'react-native-toast-message';
+import { useSelector } from "react-redux";
+import { useFocusEffect } from '@react-navigation/native';
 
-const TransactionList = ({ transactions, maxTransactions, styles: passedStyles }) => {
+// Define types for your props
+interface Transaction {
+  id: string;
+  transactionType: CreditAccountTransactionType;
+  pendingTransactionDate?: string;
+  executedDate?: string | null;
+  paymentType?: string;
+  requestedAmount?: number;
+}
+
+interface TransactionIconProps {
+  transactionType: CreditAccountTransactionType;
+  transactionDate?: string;
+  executedDate?: string | null;
+  paymentType?: string;
+  id: string;
+}
+
+interface TransactionListProps {
+  transactions: Transaction[];
+  maxTransactions?: number;
+  styles?: any;
+  fetchTransactions?: () => void;
+}
+
+const TransactionList: React.FC<TransactionListProps> = ({ transactions, maxTransactions, styles: passedStyles, fetchTransactions }) => {
+  const token = useSelector((state: any) => state.auth.token);
   const mergedStyles = { ...styles, ...passedStyles };
   const [modalVisible, setModalVisible] = useState(false);
-  const [selectedTransactionId, setSelectedTransactionId] = useState(null);
+  const [selectedTransactionId, setSelectedTransactionId] = useState<string | null>(null);
 
-  const renderTrashIcon = (disable) => {
+  useFocusEffect(
+    React.useCallback(() => {
+      if (fetchTransactions) {
+        fetchTransactions();
+      }
+    }, [fetchTransactions])
+  );
+
+  const renderTrashIcon = (disable: boolean) => {
     const iconColor = disable ? mergedStyles.trashIconDisabled.color : mergedStyles.trashIconRed.color;
     return <Ionicons name="trash-sharp" size={24} color={iconColor} />;
   };
@@ -24,7 +62,7 @@ const TransactionList = ({ transactions, maxTransactions, styles: passedStyles }
     return <Entypo name="cross" size={24} color="red" />;
   };
 
-  const handleTrashIconPress = (id, disable) => {
+  const handleTrashIconPress = (id: string, disable: boolean) => {
     if (disable) {
       console.log('Trash icon is disabled');
       return;
@@ -33,27 +71,54 @@ const TransactionList = ({ transactions, maxTransactions, styles: passedStyles }
     setModalVisible(true);
   };
 
-  const handleCheckIconPress = (id) => {
+  const handleCheckIconPress = (id: string) => {
     console.log('Check icon pressed for ID:', id);
   };
 
-  const handleXIconPress = (id) => {
+  const handleXIconPress = (id: string) => {
     console.log('X icon pressed for ID:', id);
   };
 
-  const handleDeleteConfirmation = (confirm) => {
+  const handleDeleteConfirmation = async (confirm: boolean) => {
     setModalVisible(false);
     if (confirm && selectedTransactionId) {
-      console.log('Transaction deleted:', selectedTransactionId);
-      // Add your logic to delete the transaction here
+      console.log('Attempting to delete transaction with ID:', selectedTransactionId);
+      try {
+        const response = await deleteTransaction(selectedTransactionId, token);
+        if (response.status === 200) {
+          console.log('Transaction successfully deleted');
+          Toast.show({
+            type: 'success',
+            text1: 'Success',
+            text2: 'Transaction has been successfully deleted.',
+          });
+          if (fetchTransactions) {
+            fetchTransactions();
+          }
+        } else {
+          console.error('Failed to delete the transaction');
+          Toast.show({
+            type: 'error',
+            text1: 'Error',
+            text2: 'Failed to delete the transaction.',
+          });
+        }
+      } catch (error) {
+        console.error('Error deleting transaction:', error);
+        Toast.show({
+          type: 'error',
+          text1: 'Error',
+          text2: 'An error occurred while deleting the transaction.',
+        });
+      }
     }
   };
 
-  const TransactionIcon = ({ transactionType, transactionDate, executedDate, paymentType, id }) => {
+  const TransactionIcon: React.FC<TransactionIconProps> = ({ transactionType, transactionDate, executedDate, paymentType, id }) => {
     const [disable, setDisable] = useState(false);
 
     useEffect(() => {
-      const givenDate = new Date(transactionDate);
+      const givenDate = new Date(transactionDate || 0);
       const currentDate = new Date();
 
       if (transactionType === CreditAccountTransactionType.ProcedureDischarge) {
@@ -62,12 +127,13 @@ const TransactionList = ({ transactions, maxTransactions, styles: passedStyles }
         transactionType === CreditAccountTransactionType.AchNonDirectedPayment ||
         transactionType === CreditAccountTransactionType.CardPayment
       ) {
-        if (!(givenDate > currentDate && (executedDate === null || executedDate === undefined))) {
-          setDisable(true);
-        } else {
+        if ((givenDate > currentDate && (executedDate === null || executedDate === undefined))) {
           setDisable(false);
+        } else {
+          setDisable(true);
         }
-      } else if (
+      } 
+       if (
         transactionType === CreditAccountTransactionType.SubsequentProcedureDischarge ||
         transactionType === CreditAccountTransactionType.UpwardAdjustment
       ) {
@@ -176,6 +242,7 @@ const TransactionList = ({ transactions, maxTransactions, styles: passedStyles }
           </View>
         </View>
       </Modal>
+      <Toast />
     </View>
   );
 };

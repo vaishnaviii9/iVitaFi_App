@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { fetchPendingTransactions } from '../app/services/pendingTransactionsService';
 
@@ -9,27 +9,27 @@ const useTransactions = () => {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchTransactions = async () => {
-      if (!creditAccountId) {
-        setLoading(false);
-        return;
-      }
+  const fetchTransactions = useCallback(async () => {
+    if (!creditAccountId) {
+      setLoading(false);
+      return;
+    }
 
-      try {
-        const response = await fetchPendingTransactions(token, creditAccountId);
-        setTransactions(response || []);
-      } catch (error) {
-        console.error("Error fetching transactions:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchTransactions();
+    try {
+      const response = await fetchPendingTransactions(token, creditAccountId);
+      setTransactions(response || []);
+    } catch (error) {
+      console.error("Error fetching transactions:", error);
+    } finally {
+      setLoading(false);
+    }
   }, [token, creditAccountId]);
 
-  return { transactions, loading };
+  useEffect(() => {
+    fetchTransactions();
+  }, [fetchTransactions]);
+
+  return { transactions, loading, fetchTransactions };
 };
 
 export default useTransactions;

@@ -30,13 +30,17 @@ const apiClient = {
   // Endpoint to fetch documents for a specific credit account
   DOCUMENTS: (creditAccountId: string) => `${BASE_URL}/creditaccount/${creditAccountId}/documents`,
 
-  //Endpoint to fetch top three saved payment methods
+  // Endpoint to fetch top three saved payment methods
   TOP_THREE_SAVED_PAYMENT_METHODS: (customerId: string) =>
     `${BASE_URL}/admin/credit-account/${customerId}/top-three`,
 
-   // Endpoint to delete a payment method
-   DELETE_PAYMENT_METHOD: (methodId: string) =>
+  // Endpoint to delete a payment method
+  DELETE_PAYMENT_METHOD: (methodId: string) =>
     `${BASE_URL}/admin/credit-account/${methodId}/delete-payment-method`,
+
+  // Endpoint to delete a pending transaction
+  DELETE_PENDING_TRANSACTION: (transactionId: string) =>
+    `${BASE_URL}/creditaccount/${transactionId}/pending-transactions`
 };
 
 export default apiClient;

@@ -30,6 +30,13 @@ interface CreditApplication {
   status: CreditApplicationStatus;
 }
 
+interface CreditAccountPaymentSetupDto {
+  isPaymentMethod: boolean;
+  isPaymentSchedule: boolean;
+  isAutoPay: boolean;
+  isProfile: boolean;
+}
+
 const HomeScreen: React.FC = () => {
   const dispatch = useDispatch();
   const { firstName, lastName, token } = useSelector(
@@ -53,6 +60,8 @@ const HomeScreen: React.FC = () => {
   const [last4Digits, setLast4Digits] = useState<string | null>(null);
   const [isCardNumber, setIsCardNumber] = useState<boolean>(false);
   const [transactions, setTransactions] = useState<any[]>([]);
+  const [paymentSetupData, setPaymentSetupData] =
+    useState<CreditAccountPaymentSetupDto | null>(null);
 
   // State variables for customer standing logic
   const [customerStandingDisplayMessage, setCustomerStandingDisplayMessage] =
@@ -66,8 +75,8 @@ const HomeScreen: React.FC = () => {
   const [closedAccount, setClosedAccount] = useState<boolean>(false);
   const [bankruptAccount, setBankruptAccount] = useState<boolean>(false);
   const [isActiveClass, setIsActiveClass] = useState<boolean>(false);
+
   useEffect(() => {
-    // console.log("Token changed, resetting state");
     setUserData(null);
     setCustomerData(null);
     setAccountNumbers([]);
@@ -85,11 +94,33 @@ const HomeScreen: React.FC = () => {
     setSetUpAutopay(false);
     setEnableClick(false);
     setEnableConfigureAutopayText(false);
-
     setClosedAccount(false);
     setBankruptAccount(false);
     setIsActiveClass(false);
   }, [token]);
+
+  const fetchPaymentSetupData = useCallback(
+    async (creditAccountId: string) => {
+      try {
+        const response = await fetch(
+          `https://dev.ivitafi.com/api/admin/credit-account/${creditAccountId}/accountPaymentSetup`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        if (response.ok) {
+          const data = await response.json();
+          setPaymentSetupData(data);
+        }
+      } catch (error) {
+        console.error("Error fetching payment setup data:", error);
+      }
+    },
+    [token]
+  );
+
   const fetchAllData = useCallback(async () => {
     try {
       setLoading(true);
@@ -109,6 +140,7 @@ const HomeScreen: React.FC = () => {
 
         if (creditAccountId) {
           dispatch(setCreditAccountId(creditAccountId));
+          await fetchPaymentSetupData(creditAccountId);
         }
 
         setCreditSummaries(creditSummaries);
@@ -147,7 +179,10 @@ const HomeScreen: React.FC = () => {
           setAutopay(isAutopayEnabled);
           dispatch({ type: "SET_AUTOPLAY_ENABLED", payload: isAutopayEnabled });
 
-          determineCustomerStandingPaymentOptions(validSummary);
+          determineCustomerStandingPaymentOptions(
+            validSummary,
+            paymentSetupData
+          );
         }
       }
 
@@ -164,17 +199,17 @@ const HomeScreen: React.FC = () => {
       setLoading(false);
     }
   }, [token, dispatch, creditAccountId]);
-
-  const determineCustomerStandingPaymentOptions = (validSummary: any) => {
+  const determineCustomerStandingPaymentOptions = (
+    validSummary: any,
+    paymentSetupData: CreditAccountPaymentSetupDto | null
+  ) => {
     const isAccountClosed =
       validSummary.detail?.creditAccount?.creditApplication?.status ===
       CreditApplicationStatus.AccountClosed;
     const isBankrupt = validSummary.isBankrupt;
-    const isAutoPay =
-      validSummary.detail?.creditAccount?.paymentSchedule?.autoPayEnabled;
+    const isAutoPay = paymentSetupData?.isAutoPay;
     const currentAmountDue = validSummary.currentAmountDue;
     const currentBalance = validSummary.currentBalance;
-    const totalAmountDue = validSummary.totalAmountDue;
     const daysDelinquent = validSummary.daysDelinquent;
 
     if (isAccountClosed) {
@@ -212,7 +247,6 @@ const HomeScreen: React.FC = () => {
       setEnableConfigureAutopayText(false);
       setSetUpAutopay(false);
       setEnableClick(true);
-
       setClosedAccount(false);
       setNoAdditionalPayment(false);
     } else {
@@ -225,6 +259,7 @@ const HomeScreen: React.FC = () => {
 
   useFocusEffect(
     useCallback(() => {
+      console.log("useFocusEffect triggered");
       fetchAllData();
     }, [fetchAllData])
   );
@@ -251,6 +286,10 @@ const HomeScreen: React.FC = () => {
 
   const handleMakeAPayment = () => {
     navigation.navigate("MakeAPayment");
+  };
+
+  const handleConfigureAutoPay = () => {
+    navigation.navigate("ConfigureAutopay");
   };
 
   const renderAccountStatus = () => {
@@ -455,21 +494,18 @@ const HomeScreen: React.FC = () => {
         </View>
 
         <View style={styles.buttonContainer}>
-          {noAdditionalPayment === false &&
-            enableConfigureAutopayText === false &&
-            enableClick === true && (
-              <TouchableOpacity
-                style={styles.button}
-                onPress={handleMakeAdditionalPayment}
-              >
-                <Text style={styles.additionalPaymentText}>
-                  Make Additional Payment
-                </Text>
-              </TouchableOpacity>
-            )}
+          {noAdditionalPayment === false && enableClick === true && (
+            <TouchableOpacity
+              style={styles.button}
+              onPress={handleMakeAdditionalPayment}
+            >
+              <Text style={styles.additionalPaymentText}>
+                Make Additional Payment
+              </Text>
+            </TouchableOpacity>
+          )}
 
           {noAdditionalPayment === true &&
-            enableConfigureAutopayText === false &&
             enableClick === true &&
             setUpAutopay === false && (
               <TouchableOpacity
@@ -479,7 +515,31 @@ const HomeScreen: React.FC = () => {
                 <Text style={styles.additionalPaymentText}>Make a Payment</Text>
               </TouchableOpacity>
             )}
+
+          {setUpAutopay === true && (
+            <>
+              <TouchableOpacity
+                style={styles.button}
+                onPress={handleConfigureAutoPay}
+              >
+                <Text style={styles.additionalPaymentText}>
+                  Configure AutoPay
+                </Text>
+              </TouchableOpacity>
+              {noAdditionalPayment === true && (
+                <TouchableOpacity
+                  style={[styles.button, { marginTop: 10 }]} // Add marginTop to create a gap
+                  onPress={handleMakeAPayment}
+                >
+                  <Text style={styles.additionalPaymentText}>
+                    Make a Payment
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </>
+          )}
         </View>
+
         <View style={styles.RecentTransactionsContainer}>
           {creditAccountId ? (
             <RecentTransactions />

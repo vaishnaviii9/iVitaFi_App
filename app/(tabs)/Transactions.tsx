@@ -1,13 +1,13 @@
-import React, { useEffect, useRef } from 'react';
-import { View, Text, Pressable, Animated } from 'react-native';
+import React, { useEffect, useRef,useCallback, useState } from 'react';
+import { View, Text, Pressable, Animated, } from 'react-native';
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "expo-router";
 import { createMaterialTopTabNavigator, MaterialTopTabNavigationOptions } from '@react-navigation/material-top-tabs';
 import Pending from '../../features/transactions/PendingTransactions'; // Import the Pending component
 import Posted from '../../features/transactions/PostedTransactions'; // Import the Posted component
 import styles from '../../components/styles/TransactionStyles';
-
-// Create a material top tab navigator
+import { useFocusEffect } from '@react-navigation/native';
+// Create a material top tab navigatimport { useFocusEffect } 
 const Tab = createMaterialTopTabNavigator();
 
 /**
@@ -83,6 +83,13 @@ function MyTabs() {
  */
 const Transactions = () => {
   const navigation = useNavigation(); // Hook to access navigation
+  const [refresh, setRefresh] = useState(false);
+useFocusEffect(
+    useCallback(() => {
+      // This function will be called whenever the screen comes into focus
+      setRefresh(prev => !prev); // Toggle the refresh state to trigger a re-render
+    }, [])
+  );
 
   return (
     <View style={styles.container}>
@@ -95,7 +102,7 @@ const Transactions = () => {
       </View>
       {/* Container for the tab navigator */}
       <View style={styles.recordsContainer}>
-        <MyTabs />
+       <MyTabs key={refresh.toString()} />
       </View>
     </View>
   );
