@@ -64,7 +64,7 @@ const styles = StyleSheet.create({
     letterSpacing: -0.1,
   },
   scrollView: {
-    maxHeight: hp(22.9),
+    maxHeight: hp(30),
     flexShrink: 1,
   },
   transactionRow: {

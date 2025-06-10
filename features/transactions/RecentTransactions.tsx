@@ -60,14 +60,14 @@ const RecentTransactions = () => {
                 styles.scrollView,
                 {
                   maxHeight: isSmallScreen
-                    ? hp(22.9)
+                    ? hp(27.9)
                     : isMediumScreen
-                    ? hp(25)
+                    ? hp(28)
                     : hp(35),
                 },
               ]}
               nestedScrollEnabled={true}
-              showsVerticalScrollIndicator={true}
+              showsVerticalScrollIndicator={false}
             >
               <TransactionList
                 transactions={transactions}

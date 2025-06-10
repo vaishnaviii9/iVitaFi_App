@@ -1,4 +1,4 @@
-import { StyleSheet, Dimensions } from "react-native";
+import { StyleSheet, Dimensions, Platform } from "react-native";
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
@@ -11,7 +11,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     backgroundColor: "#fff",
-    paddingTop: hp("1%"),
+    // paddingTop: hp("%"),
     paddingBottom: hp("2.5%"),
   },
   headerContainer: {
@@ -19,7 +19,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     width: "100%",
     paddingHorizontal: wp("5%"),
-    marginTop: hp("2.5%"),
+    marginTop: hp("4%"),
   },
   iconAndTextContainer: {
     flexDirection: "row",
@@ -40,10 +40,22 @@ const styles = StyleSheet.create({
     marginRight: wp("2.5%"),
     alignItems: "flex-end",
   },
-  userName: {
-    fontSize: wp("4.5%"),
-    fontWeight: "600",
-  },
+   userName: {
+  fontSize: wp("4.5%"),
+  fontWeight: "600",
+  color: "#000", 
+  flexShrink: 1, 
+  ...Platform.select({
+    ios: {
+        color: "#000", 
+    },
+    android: {
+      
+      color: "#000", 
+    },
+  }),
+},
+ 
   welcomeText: {
     fontSize: wp("4%"),
     color: "#757575",
@@ -160,6 +172,21 @@ const styles = StyleSheet.create({
     fontFamily: "Poppins-Bold",
     textAlign: "right",
   },
+
+  smallButton:{
+    backgroundColor: "#2D4768",
+    paddingVertical: hp("1.5%"),
+    paddingHorizontal: wp("5%"),
+    borderRadius: wp("2.5%"),
+    
+  },
+  twoButtons:{
+    marginTop: hp("1%"),
+    marginBottom: hp("1.5%"),
+  flexDirection: "row",
+    justifyContent: "space-between",
+    gap: wp("2%"),
+  },
   buttonContainer: {
     marginTop: hp("0.1%"),
     alignItems: "center",
@@ -180,13 +207,13 @@ const styles = StyleSheet.create({
     width: wp("90%"),
     height:
       screenHeight < 700
-        ? hp("30%")
+        ? hp("35%")
         : screenHeight > 700 && screenHeight <= 800
-        ? hp("30%")
+        ? hp("35%")
         : hp("37%"),
     borderRadius: wp("4%"),
     overflow: "hidden",
-    marginBottom: hp("2%"), // Add space between Recent Transactions and Bottom Navigation
+    marginBottom: hp("3%"), // Add space between Recent Transactions and Bottom Navigation
   },
 
   BottomNavigationContainer: {
