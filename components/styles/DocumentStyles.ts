@@ -11,7 +11,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: hp('1%'),
+    marginBottom: hp('2%'),
     marginTop: hp('5%'),
   },
   backButton: {
@@ -20,14 +20,14 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   title: {
-    fontSize: wp('8%'),
+    fontSize: wp('7%'),
     fontWeight: "bold",
     color: "black",
     textAlign: "center",
   },
   titleSkeleton: {
     width: wp('30%'),
-    height: wp('8%'),
+    height: hp('3%'),
     marginLeft: wp('25%'),
   },
   recordsContainer: {
@@ -41,13 +41,13 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: hp('0.5%') },
     shadowRadius: wp('1%'),
     marginBottom: hp('5%'),
-    marginTop: hp('5%'),
+    marginTop: hp('2%'),
     width: wp('90%'),
     alignSelf: 'center',
   },
   documentFolder: {
     backgroundColor: "#27446F",
-    borderRadius: wp('2.5%'),
+    borderRadius: wp('3%'),
     paddingVertical: hp('3%'),
     paddingHorizontal: wp('5%'),
     marginBottom: hp('2%'),
@@ -56,7 +56,7 @@ const styles = StyleSheet.create({
   },
   documentFolderDark: {
     backgroundColor: "#1F3644",
-    borderRadius: wp('2.5%'),
+    borderRadius: wp('3%'),
     paddingVertical: hp('3%'),
     paddingHorizontal: wp('5%'),
     marginBottom: hp('2%'),
@@ -64,27 +64,27 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   folderIcon: {
-    marginRight: wp('5%'),
+    marginRight: wp('4%'),
   },
   folderIconSkeleton: {
-    width: wp('10%'),
-    height: wp('10%'),
-    borderRadius: wp('5%'),
+    width: wp('8%'),
+    height: wp('8%'),
+    borderRadius: wp('4%'),
     marginRight: wp('2%'),
   },
   folderText: {
     color: "#FFFFFF",
-    fontSize: wp('4.5%'),
+    fontSize: wp('4%'),
     fontWeight: "bold",
     flex: 1,
     textAlign: 'left',
   },
   folderTextSkeleton: {
     width: wp('50%'),
-    height: wp('5%'),
+    height: hp('2%'),
   },
   documentList: {
-    marginTop: hp('5%'),
+    marginTop: hp('2%'),
   },
   noDocumentsText: {
     fontSize: wp('4%'),

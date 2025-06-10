@@ -17,11 +17,10 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
   },
-    headerTextContainer: {
-    flex: 1, // This will allow the container to take up available space
-    alignItems: 'center', // Center the items horizontally
-    justifyContent: 'center', // Center the items vertically
-
+  headerTextContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
   },
   backButton: {
     padding: 4,
@@ -134,17 +133,17 @@ export const styles = StyleSheet.create({
   },
   centeredView: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginTop: 22,
   },
   modalView: {
     margin: 20,
-    backgroundColor: 'white',
+    backgroundColor: "white",
     borderRadius: 20,
     padding: 35,
-    alignItems: 'center',
-    shadowColor: '#000',
+    alignItems: "center",
+    shadowColor: "#000",
     shadowOffset: {
       width: 0,
       height: 2,
@@ -155,13 +154,13 @@ export const styles = StyleSheet.create({
   },
   modalText: {
     marginBottom: 15,
-    textAlign: 'center',
+    textAlign: "center",
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   modalMessage: {
     marginBottom: 20,
-    textAlign: 'center',
+    textAlign: "center",
     fontSize: 16,
   },
   modalTitle: {
@@ -184,20 +183,17 @@ export const styles = StyleSheet.create({
     padding: 5,
   },
   subHeaderText: {
-    color: '#000000',
+    color: "#000000",
     fontSize: 15,
-    textAlign: 'center',
-    marginTop: 1, // Add some margin to separate the header and subheader
-    marginBottom: 20, // Add some margin at the bottom
-    // other styles for subHeaderText
+    textAlign: "center",
+    marginTop: 1,
+    marginBottom: 20,
   },
   agreementText: {
-  marginTop: 0,
-  textAlign: 'center',
-  color: 'black',
-  fontSize: 14,
-  marginBottom: 20,
-},
-
+    marginTop: 0,
+    textAlign: "center",
+    color: "black",
+    fontSize: 14,
+    marginBottom: 20,
+  },
 });
-

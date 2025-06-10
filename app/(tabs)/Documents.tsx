@@ -120,7 +120,8 @@ const fetchDocumentsData = useCallback(async () => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    
+      <View style={styles.container}>
       <View style={styles.headerContainer}>
         <Pressable
           onPress={() => navigation.goBack()}
@@ -220,7 +221,7 @@ const fetchDocumentsData = useCallback(async () => {
           </View>
         </View>
       </Modal>
-    </SafeAreaView>
+      </View>
   );
 };
 

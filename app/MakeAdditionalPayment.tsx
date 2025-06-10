@@ -23,6 +23,8 @@ import Toast from "react-native-toast-message";
 import { styles } from "../components/styles/MakeAdditionalPaymentStyles";
 import { postCreditAccountTransactionsNew } from "./services/postCreditAccountTransactionsNew";
 import { setCreditSummaries } from "../features/creditAccount/creditAccountSlice";
+import SkeletonLoader from "../components/SkeletonLoader";
+
 interface PaymentMethod {
   id: string;
   expirationDate: string | number | Date;
@@ -50,9 +52,7 @@ const MakeAdditionalPayment = () => {
   const [expirationYear, setExpirationYear] = useState("");
   const [routingNumber, setRoutingNumber] = useState("");
   const [accountNumber, setAccountNumber] = useState("");
-  const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState<
-    string | null
-  >(null);
+  const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [creditAccountId, setCreditAccountId] = useState<string | null>(null);
@@ -75,6 +75,7 @@ const MakeAdditionalPayment = () => {
 
   const token = useSelector((state: any) => state.auth.token);
   const dispatch = useDispatch();
+
   const formatPaymentAmount = (amount: number) => {
     return `$${amount.toFixed(2)}`;
   };
@@ -289,8 +290,7 @@ const MakeAdditionalPayment = () => {
       const selectedMethodId = savedMethods.find(
         (method) =>
           (method.cardNumber && value.endsWith(method.cardNumber.slice(-4))) ||
-          (method.accountNumber &&
-            value.endsWith(method.accountNumber.slice(-4)))
+          (method.accountNumber && value.endsWith(method.accountNumber.slice(-4)))
       )?.id;
       setSelectedPaymentMethodId(selectedMethodId ?? null);
     }
@@ -481,35 +481,95 @@ const MakeAdditionalPayment = () => {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-          <Text style={styles.subHeaderText}>
-            You can make an additional payment at any time.
-          </Text>
-        <View style={styles.content}>
-          <View style={styles.formContainer}>
-            <Text style={styles.helpText}>Payment Method</Text>
-            {Platform.OS === "ios" ? (
-              <>
-                <Pressable onPress={openPaymentMethodPicker}>
+        {isLoading ? (
+          <>
+            <SkeletonLoader style={styles.helpText} type="text" />
+            <SkeletonLoader style={styles.specificInput} type="input" />
+            <SkeletonLoader style={styles.helpText} type="text" />
+            <SkeletonLoader style={styles.specificInput} type="input" />
+            <SkeletonLoader style={styles.helpText} type="text" />
+            <SkeletonLoader style={styles.specificInput} type="input" />
+            <SkeletonLoader style={styles.helpText} type="text" />
+            <SkeletonLoader style={styles.specificInput} type="input" />
+            <SkeletonLoader style={styles.helpText} type="text" />
+            <SkeletonLoader style={styles.datePickerButton} type="input" />
+            <SkeletonLoader style={styles.agreementText} type="text" />
+            <SkeletonLoader style={styles.submitButton} type="input" />
+          </>
+        ) : (
+          <>
+            <Text style={styles.subHeaderText}>
+              You can make an additional payment at any time.
+            </Text>
+            <View style={styles.content}>
+              <View style={styles.formContainer}>
+                <Text style={styles.helpText}>Payment Method</Text>
+                {Platform.OS === "ios" ? (
+                  <>
+                    <Pressable onPress={openPaymentMethodPicker}>
+                      <View style={styles.pickerWrapper}>
+                        <View style={styles.pickerDisplayContainer}>
+                          <Text style={styles.pickerDisplayText}>
+                            {paymentMethod || "Select a payment method"}
+                          </Text>
+                          <FontAwesome
+                            name="chevron-down"
+                            size={14}
+                            color="#27446F"
+                          />
+                        </View>
+                      </View>
+                    </Pressable>
+                    {showPaymentMethodPicker && (
+                      <View style={{ zIndex: 1000, position: "relative" }}>
+                        <Picker
+                          selectedValue={paymentMethod}
+                          onValueChange={handlePaymentMethodChange}
+                          style={styles.iosPicker}
+                          itemStyle={{ color: "black" }}
+                        >
+                          <Picker.Item
+                            label="Add Debit Card"
+                            value="Add Debit Card"
+                          />
+                          <Picker.Item
+                            label="Add Checking Account"
+                            value="Add Checking Account"
+                          />
+                          {savedMethods.map((method, index) => (
+                            <Picker.Item
+                              key={index}
+                              label={
+                                method.cardNumber
+                                  ? `Debit Card - ${method.cardNumber.slice(
+                                      -4
+                                    )}`
+                                  : `Checking Account - ${method.accountNumber?.slice(
+                                      -4
+                                    )}`
+                              }
+                              value={
+                                method.cardNumber
+                                  ? `Debit Card - ${method.cardNumber.slice(
+                                      -4
+                                    )}`
+                                  : `Checking Account - ${method.accountNumber?.slice(
+                                      -4
+                                    )}`
+                              }
+                            />
+                          ))}
+                        </Picker>
+                      </View>
+                    )}
+                  </>
+                ) : (
                   <View style={styles.pickerWrapper}>
-                    <View style={styles.pickerDisplayContainer}>
-                      <Text style={styles.pickerDisplayText}>
-                        {paymentMethod || "Select a payment method"}
-                      </Text>
-                      <FontAwesome
-                        name="chevron-down"
-                        size={14}
-                        color="#27446F"
-                      />
-                    </View>
-                  </View>
-                </Pressable>
-                {showPaymentMethodPicker && (
-                  <View style={{ zIndex: 1000, position: "relative" }}>
                     <Picker
                       selectedValue={paymentMethod}
                       onValueChange={handlePaymentMethodChange}
-                      style={styles.iosPicker}
-                      itemStyle={{ color: "black" }}
+                      style={styles.androidPicker}
+                      dropdownIconColor="#000000"
                     >
                       <Picker.Item
                         label="Add Debit Card"
@@ -541,155 +601,125 @@ const MakeAdditionalPayment = () => {
                     </Picker>
                   </View>
                 )}
-              </>
-            ) : (
-              <View style={styles.pickerWrapper}>
-                <Picker
-                  selectedValue={paymentMethod}
-                  onValueChange={handlePaymentMethodChange}
-                  style={styles.androidPicker}
-                  dropdownIconColor="#000000"
-                >
-                  <Picker.Item label="Add Debit Card" value="Add Debit Card" />
-                  <Picker.Item
-                    label="Add Checking Account"
-                    value="Add Checking Account"
+
+                {paymentMethod &&
+                  paymentMethod.startsWith("Debit Card -") && (
+                    <>
+                      <Text style={styles.helpText}>Card Number</Text>
+                      <TextInput
+                        style={styles.specificInput}
+                        placeholder="Enter card number"
+                        placeholderTextColor="black"
+                        value={cardNumber}
+                        onChangeText={setCardNumber}
+                        keyboardType="numeric"
+                        editable={paymentMethod === "Add Debit Card"}
+                      />
+
+                      <Text style={styles.helpText}>Expiration Month</Text>
+                      <TextInput
+                        style={styles.specificInput}
+                        placeholder="Enter expiration month"
+                        placeholderTextColor="black"
+                        value={expirationMonth}
+                        onChangeText={setExpirationMonth}
+                        keyboardType="numeric"
+                        editable={paymentMethod === "Add Debit Card"}
+                      />
+
+                      <Text style={styles.helpText}>Expiration Year</Text>
+                      <TextInput
+                        style={styles.specificInput}
+                        placeholder="Enter expiration year"
+                        placeholderTextColor="black"
+                        value={expirationYear}
+                        onChangeText={setExpirationYear}
+                        keyboardType="numeric"
+                        editable={paymentMethod === "Add Debit Card"}
+                      />
+                    </>
+                  )}
+
+                {paymentMethod &&
+                  !paymentMethod.startsWith("Debit Card -") && (
+                    <>
+                      <Text style={styles.helpText}>Routing Number</Text>
+                      <TextInput
+                        style={styles.specificInput}
+                        placeholder="Enter routing number"
+                        placeholderTextColor="black"
+                        value={routingNumber}
+                        onChangeText={setRoutingNumber}
+                        keyboardType="numeric"
+                        editable={paymentMethod === "Add Checking Account"}
+                      />
+
+                      <Text style={styles.helpText}>Account Number</Text>
+                      <TextInput
+                        style={styles.specificInput}
+                        placeholder="Enter account number"
+                        placeholderTextColor="black"
+                        value={accountNumber}
+                        onChangeText={setAccountNumber}
+                        keyboardType="numeric"
+                        editable={paymentMethod === "Add Checking Account"}
+                      />
+                    </>
+                  )}
+
+                <Text style={styles.helpText}>Payment Amount</Text>
+                <TextInput
+                  style={styles.specificInput}
+                  placeholder="Enter payment amount"
+                  placeholderTextColor="black"
+                  value={paymentAmount}
+                  onChangeText={setPaymentAmount}
+                  keyboardType="numeric"
+                />
+
+                <Text style={styles.helpText}>Payment Start Date</Text>
+                <Pressable onPress={toggleDatePicker}>
+                  <View style={styles.datePickerButton}>
+                    <Text style={styles.dateText}>
+                      {date ? formatDate(date) : "MM/DD/YYYY"}
+                    </Text>
+                    <FontAwesome name="calendar" size={16} color="#27446F" />
+                  </View>
+                </Pressable>
+                {showDatePicker && (
+                  <DateTimePicker
+                    mode="date"
+                    display={Platform.OS === "ios" ? "spinner" : "default"}
+                    value={date}
+                    onChange={onChange}
+                    textColor="black"
                   />
-                  {savedMethods.map((method, index) => (
-                    <Picker.Item
-                      key={index}
-                      label={
-                        method.cardNumber
-                          ? `Debit Card - ${method.cardNumber.slice(-4)}`
-                          : `Checking Account - ${method.accountNumber?.slice(
-                              -4
-                            )}`
-                      }
-                      value={
-                        method.cardNumber
-                          ? `Debit Card - ${method.cardNumber.slice(-4)}`
-                          : `Checking Account - ${method.accountNumber?.slice(
-                              -4
-                            )}`
-                      }
-                    />
-                  ))}
-                </Picker>
+                )}
               </View>
-            )}
-
-            {paymentMethod && paymentMethod.startsWith("Debit Card -") ? (
-              <>
-                <Text style={styles.helpText}>Card Number</Text>
-                <TextInput
-                  style={styles.specificInput}
-                  placeholder="Enter card number"
-                  placeholderTextColor="black"
-                  value={cardNumber}
-                  onChangeText={setCardNumber}
-                  keyboardType="numeric"
-                  editable={paymentMethod === "Add Debit Card"}
-                />
-
-                <Text style={styles.helpText}>Expiration Month</Text>
-                <TextInput
-                  style={styles.specificInput}
-                  placeholder="Enter expiration month"
-                  placeholderTextColor="black"
-                  value={expirationMonth}
-                  onChangeText={setExpirationMonth}
-                  keyboardType="numeric"
-                  editable={paymentMethod === "Add Debit Card"}
-                />
-
-                <Text style={styles.helpText}>Expiration Year</Text>
-                <TextInput
-                  style={styles.specificInput}
-                  placeholder="Enter expiration year"
-                  placeholderTextColor="black"
-                  value={expirationYear}
-                  onChangeText={setExpirationYear}
-                  keyboardType="numeric"
-                  editable={paymentMethod === "Add Debit Card"}
-                />
-              </>
-            ) : (
-              <>
-                <Text style={styles.helpText}>Routing Number</Text>
-                <TextInput
-                  style={styles.specificInput}
-                  placeholder="Enter routing number"
-                  placeholderTextColor="black"
-                  value={routingNumber}
-                  onChangeText={setRoutingNumber}
-                  keyboardType="numeric"
-                  editable={paymentMethod === "Add Checking Account"}
-                />
-
-                <Text style={styles.helpText}>Account Number</Text>
-                <TextInput
-                  style={styles.specificInput}
-                  placeholder="Enter account number"
-                  placeholderTextColor="black"
-                  value={accountNumber}
-                  onChangeText={setAccountNumber}
-                  keyboardType="numeric"
-                  editable={paymentMethod === "Add Checking Account"}
-                />
-              </>
-            )}
-
-            <Text style={styles.helpText}>Payment Amount</Text>
-            <TextInput
-              style={styles.specificInput}
-              placeholder="Enter payment amount"
-              placeholderTextColor="black"
-              value={paymentAmount}
-              onChangeText={setPaymentAmount}
-              keyboardType="numeric"
-            />
-
-            <Text style={styles.helpText}>Payment Start Date</Text>
-            <Pressable onPress={toggleDatePicker}>
-              <View style={styles.datePickerButton}>
-                <Text style={styles.dateText}>
-                  {date ? formatDate(date) : "MM/DD/YYYY"}
+              {paymentMethod && (
+                <Text style={styles.agreementText}>
+                  {paymentMethod.startsWith("Debit Card -")
+                    ? `You agree to pay a one-time payment of ${paymentAmount} on ${formatDate(
+                        date
+                      )} using your Debit Card.`
+                    : `You agree to pay a one-time payment of ${paymentAmount} on ${formatDate(
+                        date
+                      )} from your Checking Account.`}
                 </Text>
-                <FontAwesome name="calendar" size={16} color="#27446F" />
-              </View>
-            </Pressable>
-            {showDatePicker && (
-              <DateTimePicker
-                mode="date"
-                display={Platform.OS === "ios" ? "spinner" : "default"}
-                value={date}
-                onChange={onChange}
-                textColor="black"
-              />
-            )}
-          </View>
-          {paymentMethod && (
-            <Text style={styles.agreementText}>
-              {paymentMethod.startsWith("Debit Card -")
-                ? `You agree to pay a one-time payment of ${paymentAmount} on ${formatDate(
-                    date
-                  )} using your Debit Card.`
-                : `You agree to pay a one-time payment of ${paymentAmount} on ${formatDate(
-                    date
-                  )} from your Checking Account.`}
-            </Text>
-          )}
+              )}
 
-          <TouchableOpacity
-            style={styles.submitButton}
-            onPress={handleSubmit}
-            disabled={isSubmitting}
-          >
-            <Text style={styles.submitButtonText}>
-              {isSubmitting ? "Submitting..." : "SUBMIT"}
-            </Text>
-          </TouchableOpacity>
-        </View>
+              <TouchableOpacity
+                style={styles.submitButton}
+                onPress={handleSubmit}
+                disabled={isSubmitting}
+              >
+                <Text style={styles.submitButtonText}>
+                  {isSubmitting ? "Submitting..." : "SUBMIT"}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </>
+        )}
       </ScrollView>
       <Toast />
 
@@ -730,12 +760,7 @@ const MakeAdditionalPayment = () => {
                 router.push("/(tabs)/Home");
               }}
             >
-              <TouchableOpacity
-                style={styles.modalButton}
-                onPress={handleOKPress}
-              >
-                <Text>Done</Text>
-              </TouchableOpacity>
+              <Text style={styles.modalButtonText}>Done</Text>
             </TouchableOpacity>
           </View>
         </View>

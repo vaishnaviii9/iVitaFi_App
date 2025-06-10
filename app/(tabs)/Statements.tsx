@@ -8,7 +8,6 @@ import { useSelector } from "react-redux";
 import { format } from "date-fns";
 import * as FileSystem from 'expo-file-system';
 import { WebView } from 'react-native-webview';
-import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import SkeletonLoader from '../../components/SkeletonLoader';
 
 const Statements: React.FC = () => {
@@ -149,10 +148,10 @@ const Statements: React.FC = () => {
                 </Text>
                 <View style={styles.actions}>
                   <Pressable style={styles.actionButton} onPress={() => handleViewPress(item)}>
-                    <Ionicons name="eye-outline" size={wp('6%')} color="#FFFFFF" />
+                    <Ionicons name="eye-outline" size={24} color="#FFFFFF" />
                   </Pressable>
                   <Pressable style={styles.actionButton} onPress={() => handleDownloadPress(item)}>
-                    <FontAwesome name="download" size={wp('6%')} color="#FFFFFF" />
+                    <FontAwesome name="download" size={24} color="#FFFFFF" />
                   </Pressable>
                 </View>
               </View>

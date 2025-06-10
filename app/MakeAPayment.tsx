@@ -23,6 +23,8 @@ import Toast from "react-native-toast-message";
 import { styles } from "../components/styles/MakeAPaymentStyles";
 import { postCreditAccountTransactionsNew } from "./services/postCreditAccountTransactionsNew";
 import { setCreditSummaries } from "../features/creditAccount/creditAccountSlice";
+import SkeletonLoader from "../components/SkeletonLoader";
+
 interface PaymentMethod {
   id: string;
   expirationDate: string | number | Date;
@@ -30,11 +32,13 @@ interface PaymentMethod {
   accountNumber: string | null;
   routingNumber: string | null;
 }
+
 interface ValidSummary {
   paymentMethod: {
     autoPayEnabled: boolean;
   };
 }
+
 const handleBackPress = () => {
   router.push("/(tabs)/Home");
 };
@@ -48,9 +52,7 @@ const MakeAPayment = () => {
   const [expirationYear, setExpirationYear] = useState("");
   const [routingNumber, setRoutingNumber] = useState("");
   const [accountNumber, setAccountNumber] = useState("");
-  const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState<
-    string | null
-  >(null);
+  const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [creditAccountId, setCreditAccountId] = useState<string | null>(null);
@@ -73,6 +75,7 @@ const MakeAPayment = () => {
 
   const token = useSelector((state: any) => state.auth.token);
   const dispatch = useDispatch();
+
   const formatPaymentAmount = (amount: number) => {
     return `$${amount.toFixed(2)}`;
   };
@@ -90,27 +93,20 @@ const MakeAPayment = () => {
             );
             dispatch(setCreditSummaries(creditSummaries));
             if (creditSummaries && creditSummaries.length > 0) {
-              const customerId =
-                creditSummaries[0]?.detail?.creditAccount?.customerId;
-              const creditAccountId =
-                creditSummaries[0]?.detail?.creditAccountId;
+              const customerId = creditSummaries[0]?.detail?.creditAccount?.customerId;
+              const creditAccountId = creditSummaries[0]?.detail?.creditAccountId;
               setCreditAccountId(creditAccountId);
 
               if (customerId) {
-                const methods = await fetchSavedPaymentMethods(
-                  token,
-                  customerId
-                );
+                const methods = await fetchSavedPaymentMethods(token, customerId);
                 if (methods && methods.length > 0) {
                   const validMethods = methods.filter(
                     (method: PaymentMethod) =>
-                      method.cardNumber !== null ||
-                      method.accountNumber !== null
+                      method.cardNumber !== null || method.accountNumber !== null
                   );
                   setSavedMethods(validMethods);
 
-                  const defaultPaymentMethod =
-                    creditSummaries[0]?.paymentMethod;
+                  const defaultPaymentMethod = creditSummaries[0]?.paymentMethod;
                   if (defaultPaymentMethod) {
                     if (defaultPaymentMethod.cardNumber) {
                       const formattedCardNumber =
@@ -118,14 +114,10 @@ const MakeAPayment = () => {
                         defaultPaymentMethod.cardNumber.slice(-4);
                       setCardNumber(formattedCardNumber);
                       setPaymentMethod(
-                        `Debit Card - ${defaultPaymentMethod.cardNumber.slice(
-                          -4
-                        )}`
+                        `Debit Card - ${defaultPaymentMethod.cardNumber.slice(-4)}`
                       );
 
-                      const expirationDate = new Date(
-                        defaultPaymentMethod.expirationDate
-                      );
+                      const expirationDate = new Date(defaultPaymentMethod.expirationDate);
                       const expirationMonth = expirationDate.getMonth() + 1;
                       const expirationYear = expirationDate.getFullYear();
 
@@ -145,36 +137,28 @@ const MakeAPayment = () => {
                       ];
                       const formattedExpirationMonth = `${expirationMonth
                         .toString()
-                        .padStart(2, "0")} - ${
-                        monthNames[expirationMonth - 1]
-                      }`;
+                        .padStart(2, "0")} - ${monthNames[expirationMonth - 1]}`;
 
                       setExpirationMonth(formattedExpirationMonth);
                       setExpirationYear(expirationYear.toString());
                     } else if (defaultPaymentMethod.accountNumber) {
                       setAccountNumber(defaultPaymentMethod.accountNumber);
-                      setRoutingNumber(
-                        defaultPaymentMethod.routingNumber || ""
-                      );
+                      setRoutingNumber(defaultPaymentMethod.routingNumber || "");
                       setPaymentMethod(
-                        `Checking Account - ${defaultPaymentMethod.accountNumber.slice(
-                          -4
-                        )}`
+                        `Checking Account - ${defaultPaymentMethod.accountNumber.slice(-4)}`
                       );
                     }
                   }
                 }
               }
-              const summary = creditSummaries[0]?.detail
-                ?.validSummary as ValidSummary;
+
+              const summary = creditSummaries[0]?.detail?.validSummary as ValidSummary;
               setValidSummary(summary);
-              const paymentSchedule =
-                creditSummaries[0]?.detail?.creditAccount?.paymentSchedule;
+
+              const paymentSchedule = creditSummaries[0]?.detail?.creditAccount?.paymentSchedule;
               if (paymentSchedule) {
                 setPaymentSchedule(paymentSchedule);
-                setPaymentAmount(
-                  formatPaymentAmount(paymentSchedule.paymentAmount)
-                );
+                setPaymentAmount(formatPaymentAmount(paymentSchedule.paymentAmount));
               }
             }
           }
@@ -205,14 +189,12 @@ const MakeAPayment = () => {
     if (value.startsWith("Debit Card -")) {
       const cardNumberFromValue = value.split(" - ")[1];
       const selectedMethod = savedMethods.find(
-        (method) =>
-          method.cardNumber && method.cardNumber.endsWith(cardNumberFromValue)
+        (method) => method.cardNumber && method.cardNumber.endsWith(cardNumberFromValue)
       );
 
       if (selectedMethod && selectedMethod.cardNumber) {
         const formattedCardNumber =
-          "x".repeat(selectedMethod.cardNumber.length - 4) +
-          selectedMethod.cardNumber.slice(-4);
+          "x".repeat(selectedMethod.cardNumber.length - 4) + selectedMethod.cardNumber.slice(-4);
         setCardNumber(formattedCardNumber);
 
         const expirationDate = new Date(selectedMethod.expirationDate);
@@ -240,7 +222,6 @@ const MakeAPayment = () => {
         setExpirationMonth(formattedExpirationMonth);
         setExpirationYear(expirationYear.toString());
 
-        // Create obj2 for debit card
         obj2Ref.current = {
           firstName: firstNameOnCard,
           lastName: lastNameOnCard,
@@ -259,16 +240,13 @@ const MakeAPayment = () => {
     } else if (value.startsWith("Checking Account -")) {
       const accountNumberFromValue = value.split(" - ")[1];
       const selectedMethod = savedMethods.find(
-        (method) =>
-          method.accountNumber &&
-          method.accountNumber.endsWith(accountNumberFromValue)
+        (method) => method.accountNumber && method.accountNumber.endsWith(accountNumberFromValue)
       );
 
       if (selectedMethod) {
         setAccountNumber(selectedMethod.accountNumber || "");
         setRoutingNumber(selectedMethod.routingNumber || "");
 
-        // Create obj2 for checking account
         obj2Ref.current = {
           accountNumber: selectedMethod.accountNumber,
           routingNumber: selectedMethod.routingNumber,
@@ -287,10 +265,8 @@ const MakeAPayment = () => {
       const selectedMethodId = savedMethods.find(
         (method) =>
           (method.cardNumber && value.endsWith(method.cardNumber.slice(-4))) ||
-          (method.accountNumber &&
-            value.endsWith(method.accountNumber.slice(-4)))
+          (method.accountNumber && value.endsWith(method.accountNumber.slice(-4)))
       )?.id;
-
       setSelectedPaymentMethodId(selectedMethodId ?? null);
     }
 
@@ -353,8 +329,7 @@ const MakeAPayment = () => {
         Toast.show({
           type: "error",
           text1: "Card Expired",
-          text2:
-            "The debit card you entered has expired. Please update your payment details.",
+          text2: "The debit card you entered has expired. Please update your payment details.",
           visibilityTime: 3000,
           autoHide: true,
           topOffset: 60,
@@ -365,15 +340,10 @@ const MakeAPayment = () => {
       }
     }
 
-    const formattedExpirationDate = new Date(
-      convertedYear,
-      convertedMonth
-    ).toISOString();
+    const formattedExpirationDate = new Date(convertedYear, convertedMonth).toISOString();
     const formattedTransactionDate = date.toISOString();
 
-    const enableAutoPay = validSummary?.paymentMethod
-      ? validSummary.paymentMethod.autoPayEnabled
-      : false;
+    const enableAutoPay = validSummary?.paymentMethod ? validSummary.paymentMethod.autoPayEnabled : false;
 
     const transactionPost = {
       transactionAmount: Number(paymentAmount.replace(/[^0-9.-]+/g, "")),
@@ -381,9 +351,7 @@ const MakeAPayment = () => {
       customAmount: null,
       useSavedPaymentMethod: true,
       enableAutoPay: enableAutoPay,
-      paymentMethodType: obj2Ref.current
-        ? obj2Ref.current.paymentMethodType
-        : null,
+      paymentMethodType: obj2Ref.current ? obj2Ref.current.paymentMethodType : null,
     };
 
     if (!obj2Ref.current || !creditAccountId || !selectedPaymentMethodId) {
@@ -456,9 +424,11 @@ const MakeAPayment = () => {
       setIsSubmitting(false);
     }
   };
+
   const handleOKPress = () => {
     setIsModalVisible(false);
   };
+
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -477,219 +447,209 @@ const MakeAPayment = () => {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-          <View style={styles.content}>
-            <View style={styles.formContainer}>
-              <Text style={styles.helpText}>Payment Method</Text>
-              {Platform.OS === "ios" ? (
-                <>
-                  <Pressable onPress={openPaymentMethodPicker}>
-                    <View style={styles.pickerWrapper}>
-                      <View style={styles.pickerDisplayContainer}>
-                        <Text style={styles.pickerDisplayText}>
-                          {paymentMethod || "Select a payment method"}
-                        </Text>
-                        <FontAwesome
-                          name="chevron-down"
-                          size={14}
-                          color="#27446F"
-                        />
+          {isLoading ? (
+            <>
+              <SkeletonLoader style={styles.helpText} type="text" />
+              <SkeletonLoader style={styles.pickerWrapper} type="input" />
+              <SkeletonLoader style={styles.helpText} type="text" />
+              <SkeletonLoader style={styles.specificInput} type="input" />
+              <SkeletonLoader style={styles.helpText} type="text" />
+              <SkeletonLoader style={styles.specificInput} type="input" />
+              <SkeletonLoader style={styles.helpText} type="text" />
+              <SkeletonLoader style={styles.specificInput} type="input" />
+              <SkeletonLoader style={styles.helpText} type="text" />
+              <SkeletonLoader style={styles.specificInput} type="input" />
+              <SkeletonLoader style={styles.helpText} type="text" />
+              <SkeletonLoader style={styles.datePickerButton} type="input" />
+              <SkeletonLoader style={styles.agreementText} type="text" />
+              <SkeletonLoader style={styles.submitButton} type="input" />
+            </>
+          ) : (
+            <View style={styles.content}>
+              <View style={styles.formContainer}>
+                <Text style={styles.helpText}>Payment Method</Text>
+                {Platform.OS === "ios" ? (
+                  <>
+                    <Pressable onPress={openPaymentMethodPicker}>
+                      <View style={styles.pickerWrapper}>
+                        <View style={styles.pickerDisplayContainer}>
+                          <Text style={styles.pickerDisplayText}>
+                            {paymentMethod || "Select a payment method"}
+                          </Text>
+                          <FontAwesome name="chevron-down" size={14} color="#27446F" />
+                        </View>
                       </View>
-                    </View>
-                  </Pressable>
-                  {showPaymentMethodPicker && (
-                    <View style={{ zIndex: 1000, position: "relative" }}>
-                      <Picker
-                        selectedValue={paymentMethod}
-                        onValueChange={handlePaymentMethodChange}
-                        style={styles.iosPicker}
-                        itemStyle={{ color: "black" }}
-                      >
+                    </Pressable>
+                    {showPaymentMethodPicker && (
+                      <View style={{ zIndex: 1000, position: "relative" }}>
+                        <Picker
+                          selectedValue={paymentMethod}
+                          onValueChange={handlePaymentMethodChange}
+                          style={styles.iosPicker}
+                          itemStyle={{ color: "black" }}
+                        >
+                          <Picker.Item label="Add Debit Card" value="Add Debit Card" />
+                          <Picker.Item label="Add Checking Account" value="Add Checking Account" />
+                          {savedMethods.map((method, index) => (
+                            <Picker.Item
+                              key={index}
+                              label={
+                                method.cardNumber
+                                  ? `Debit Card - ${method.cardNumber.slice(-4)}`
+                                  : `Checking Account - ${method.accountNumber?.slice(-4)}`
+                              }
+                              value={
+                                method.cardNumber
+                                  ? `Debit Card - ${method.cardNumber.slice(-4)}`
+                                  : `Checking Account - ${method.accountNumber?.slice(-4)}`
+                              }
+                            />
+                          ))}
+                        </Picker>
+                      </View>
+                    )}
+                  </>
+                ) : (
+                  <View style={styles.pickerWrapper}>
+                    <Picker
+                      selectedValue={paymentMethod}
+                      onValueChange={handlePaymentMethodChange}
+                      style={styles.androidPicker}
+                      dropdownIconColor="#000000"
+                    >
+                      <Picker.Item label="Add Debit Card" value="Add Debit Card" />
+                      <Picker.Item label="Add Checking Account" value="Add Checking Account" />
+                      {savedMethods.map((method, index) => (
                         <Picker.Item
-                          label="Add Debit Card"
-                          value="Add Debit Card"
+                          key={index}
+                          label={
+                            method.cardNumber
+                              ? `Debit Card - ${method.cardNumber.slice(-4)}`
+                              : `Checking Account - ${method.accountNumber?.slice(-4)}`
+                          }
+                          value={
+                            method.cardNumber
+                              ? `Debit Card - ${method.cardNumber.slice(-4)}`
+                              : `Checking Account - ${method.accountNumber?.slice(-4)}`
+                          }
                         />
-                        <Picker.Item
-                          label="Add Checking Account"
-                          value="Add Checking Account"
-                        />
-                        {savedMethods.map((method, index) => (
-                          <Picker.Item
-                            key={index}
-                            label={
-                              method.cardNumber
-                                ? `Debit Card - ${method.cardNumber.slice(-4)}`
-                                : `Checking Account - ${method.accountNumber?.slice(
-                                    -4
-                                  )}`
-                            }
-                            value={
-                              method.cardNumber
-                                ? `Debit Card - ${method.cardNumber.slice(-4)}`
-                                : `Checking Account - ${method.accountNumber?.slice(
-                                    -4
-                                  )}`
-                            }
-                          />
-                        ))}
-                      </Picker>
-                    </View>
-                  )}
-                </>
-              ) : (
-                <View style={styles.pickerWrapper}>
-                  <Picker
-                    selectedValue={paymentMethod}
-                    onValueChange={handlePaymentMethodChange}
-                    style={styles.androidPicker}
-                    dropdownIconColor="#000000"
-                  >
-                    <Picker.Item
-                      label="Add Debit Card"
-                      value="Add Debit Card"
+                      ))}
+                    </Picker>
+                  </View>
+                )}
+
+                {paymentMethod && paymentMethod.startsWith("Debit Card -") ? (
+                  <>
+                    <Text style={styles.helpText}>Card Number</Text>
+                    <TextInput
+                      style={styles.specificInput}
+                      placeholder="Enter card number"
+                      placeholderTextColor="black"
+                      value={cardNumber}
+                      onChangeText={setCardNumber}
+                      keyboardType="numeric"
+                      editable={paymentMethod === "Add Debit Card"}
                     />
-                    <Picker.Item
-                      label="Add Checking Account"
-                      value="Add Checking Account"
+
+                    <Text style={styles.helpText}>Expiration Month</Text>
+                    <TextInput
+                      style={styles.specificInput}
+                      placeholder="Enter expiration month"
+                      placeholderTextColor="black"
+                      value={expirationMonth}
+                      onChangeText={setExpirationMonth}
+                      keyboardType="numeric"
+                      editable={paymentMethod === "Add Debit Card"}
                     />
-                    {savedMethods.map((method, index) => (
-                      <Picker.Item
-                        key={index}
-                        label={
-                          method.cardNumber
-                            ? `Debit Card - ${method.cardNumber.slice(-4)}`
-                            : `Checking Account - ${method.accountNumber?.slice(
-                                -4
-                              )}`
-                        }
-                        value={
-                          method.cardNumber
-                            ? `Debit Card - ${method.cardNumber.slice(-4)}`
-                            : `Checking Account - ${method.accountNumber?.slice(
-                                -4
-                              )}`
-                        }
-                      />
-                    ))}
-                  </Picker>
-                </View>
-              )}
 
-              {paymentMethod && paymentMethod.startsWith("Debit Card -") ? (
-                <>
-                  <Text style={styles.helpText}>Card Number</Text>
-                  <TextInput
-                    style={styles.specificInput}
-                    placeholder="Enter card number"
-                    placeholderTextColor="black"
-                    value={cardNumber}
-                    onChangeText={setCardNumber}
-                    keyboardType="numeric"
-                    editable={paymentMethod === "Add Debit Card"}
-                  />
+                    <Text style={styles.helpText}>Expiration Year</Text>
+                    <TextInput
+                      style={styles.specificInput}
+                      placeholder="Enter expiration year"
+                      placeholderTextColor="black"
+                      value={expirationYear}
+                      onChangeText={setExpirationYear}
+                      keyboardType="numeric"
+                      editable={paymentMethod === "Add Debit Card"}
+                    />
+                  </>
+                ) : (
+                  <>
+                    <Text style={styles.helpText}>Routing Number</Text>
+                    <TextInput
+                      style={styles.specificInput}
+                      placeholder="Enter routing number"
+                      placeholderTextColor="black"
+                      value={routingNumber}
+                      onChangeText={setRoutingNumber}
+                      keyboardType="numeric"
+                      editable={paymentMethod === "Add Checking Account"}
+                    />
 
-                  <Text style={styles.helpText}>Expiration Month</Text>
-                  <TextInput
-                    style={styles.specificInput}
-                    placeholder="Enter expiration month"
-                    placeholderTextColor="black"
-                    value={expirationMonth}
-                    onChangeText={setExpirationMonth}
-                    keyboardType="numeric"
-                    editable={paymentMethod === "Add Debit Card"}
-                  />
+                    <Text style={styles.helpText}>Account Number</Text>
+                    <TextInput
+                      style={styles.specificInput}
+                      placeholder="Enter account number"
+                      placeholderTextColor="black"
+                      value={accountNumber}
+                      onChangeText={setAccountNumber}
+                      keyboardType="numeric"
+                      editable={paymentMethod === "Add Checking Account"}
+                    />
+                  </>
+                )}
 
-                  <Text style={styles.helpText}>Expiration Year</Text>
-                  <TextInput
-                    style={styles.specificInput}
-                    placeholder="Enter expiration year"
-                    placeholderTextColor="black"
-                    value={expirationYear}
-                    onChangeText={setExpirationYear}
-                    keyboardType="numeric"
-                    editable={paymentMethod === "Add Debit Card"}
-                  />
-                </>
-              ) : (
-                <>
-                  <Text style={styles.helpText}>Routing Number</Text>
-                  <TextInput
-                    style={styles.specificInput}
-                    placeholder="Enter routing number"
-                    placeholderTextColor="black"
-                    value={routingNumber}
-                    onChangeText={setRoutingNumber}
-                    keyboardType="numeric"
-                    editable={paymentMethod === "Add Checking Account"}
-                  />
-
-                  <Text style={styles.helpText}>Account Number</Text>
-                  <TextInput
-                    style={styles.specificInput}
-                    placeholder="Enter account number"
-                    placeholderTextColor="black"
-                    value={accountNumber}
-                    onChangeText={setAccountNumber}
-                    keyboardType="numeric"
-                    editable={paymentMethod === "Add Checking Account"}
-                  />
-                </>
-              )}
-
-              <Text style={styles.helpText}>Payment Amount</Text>
-              <TextInput
-                style={styles.specificInput}
-                placeholder="Enter payment amount"
-                placeholderTextColor="black"
-                value={paymentAmount}
-                onChangeText={setPaymentAmount}
-                keyboardType="numeric"
-              />
-
-              <Text style={styles.helpText}>Payment Start Date</Text>
-              <Pressable onPress={toggleDatePicker}>
-                <View style={styles.datePickerButton}>
-                  <Text style={styles.dateText}>
-                    {date ? formatDate(date) : "MM/DD/YYYY"}
-                  </Text>
-                  <FontAwesome name="calendar" size={16} color="#27446F" />
-                </View>
-              </Pressable>
-              {showDatePicker && (
-                <DateTimePicker
-                  mode="date"
-                  display={Platform.OS === "ios" ? "spinner" : "default"}
-                  value={date}
-                  onChange={onChange}
-                  textColor="black"
+                <Text style={styles.helpText}>Payment Amount</Text>
+                <TextInput
+                  style={styles.specificInput}
+                  placeholder="Enter payment amount"
+                  placeholderTextColor="black"
+                  value={paymentAmount}
+                  onChangeText={setPaymentAmount}
+                  keyboardType="numeric"
                 />
-              )}
-            </View>
-            {paymentMethod && (
-              <Text style={styles.agreementText}>
-                {paymentMethod.startsWith("Debit Card -")
-                  ? `You agree to pay a one-time payment of ${paymentAmount} on ${formatDate(
-                      date
-                    )} using your Debit Card.`
-                  : `You agree to pay a one-time payment of ${paymentAmount} on ${formatDate(
-                      date
-                    )} from your Checking Account.`}
-              </Text>
-            )}
 
-            <TouchableOpacity
-              style={styles.submitButton}
-              onPress={handleSubmit}
-              disabled={isSubmitting}
-            >
-              <Text style={styles.submitButtonText}>
-                {isSubmitting ? "Submitting..." : "SUBMIT"}
-              </Text>
-            </TouchableOpacity>
-          </View>
+                <Text style={styles.helpText}>Payment Start Date</Text>
+                <Pressable onPress={toggleDatePicker}>
+                  <View style={styles.datePickerButton}>
+                    <Text style={styles.dateText}>
+                      {date ? formatDate(date) : "MM/DD/YYYY"}
+                    </Text>
+                    <FontAwesome name="calendar" size={16} color="#27446F" />
+                  </View>
+                </Pressable>
+                {showDatePicker && (
+                  <DateTimePicker
+                    mode="date"
+                    display={Platform.OS === "ios" ? "spinner" : "default"}
+                    value={date}
+                    onChange={onChange}
+                    textColor="black"
+                  />
+                )}
+              </View>
+              {paymentMethod && (
+                <Text style={styles.agreementText}>
+                  {paymentMethod.startsWith("Debit Card -")
+                    ? `You agree to pay a one-time payment of ${paymentAmount} on ${formatDate(date)} using your Debit Card.`
+                    : `You agree to pay a one-time payment of ${paymentAmount} on ${formatDate(date)} from your Checking Account.`}
+                </Text>
+              )}
+
+              <TouchableOpacity
+                style={styles.submitButton}
+                onPress={handleSubmit}
+                disabled={isSubmitting}
+              >
+                <Text style={styles.submitButtonText}>
+                  {isSubmitting ? "Submitting..." : "SUBMIT"}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </ScrollView>
         <Toast />
 
-        {/* Modal for successful payment */}
         <Modal
           animationType="slide"
           transparent={true}
@@ -727,12 +687,7 @@ const MakeAPayment = () => {
                   router.push("/(tabs)/Home");
                 }}
               >
-                <TouchableOpacity
-                  style={styles.modalButton}
-                  onPress={handleOKPress}
-                >
-                  <Text>Done</Text>
-                </TouchableOpacity>
+                <Text style={styles.modalButtonText}>Done</Text>
               </TouchableOpacity>
             </View>
           </View>

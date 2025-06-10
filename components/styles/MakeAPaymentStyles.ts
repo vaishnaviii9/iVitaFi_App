@@ -128,17 +128,17 @@ export const styles = StyleSheet.create({
   },
   centeredView: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginTop: 22,
   },
   modalView: {
     margin: 20,
-    backgroundColor: 'white',
+    backgroundColor: "white",
     borderRadius: 20,
     padding: 35,
-    alignItems: 'center',
-    shadowColor: '#000',
+    alignItems: "center",
+    shadowColor: "#000",
     shadowOffset: {
       width: 0,
       height: 2,
@@ -149,13 +149,13 @@ export const styles = StyleSheet.create({
   },
   modalText: {
     marginBottom: 15,
-    textAlign: 'center',
+    textAlign: "center",
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   modalMessage: {
     marginBottom: 20,
-    textAlign: 'center',
+    textAlign: "center",
     fontSize: 16,
   },
   modalTitle: {
@@ -178,12 +178,10 @@ export const styles = StyleSheet.create({
     padding: 5,
   },
   agreementText: {
-  marginTop: 20,
-  textAlign: 'center',
-  color: 'black',
-  fontSize: 14,
-  marginBottom: 20,
-},
-
+    marginTop: 20,
+    textAlign: "center",
+    color: "black",
+    fontSize: 14,
+    marginBottom: 20,
+  },
 });
-
