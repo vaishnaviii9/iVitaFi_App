@@ -199,6 +199,7 @@ const HomeScreen: React.FC = () => {
       setLoading(false);
     }
   }, [token, dispatch, creditAccountId]);
+
   const determineCustomerStandingPaymentOptions = (
     validSummary: any,
     paymentSetupData: CreditAccountPaymentSetupDto | null
@@ -211,6 +212,7 @@ const HomeScreen: React.FC = () => {
     const currentAmountDue = validSummary.currentAmountDue;
     const currentBalance = validSummary.currentBalance;
     const daysDelinquent = validSummary.daysDelinquent;
+    const totalAmountDue = validSummary.totalAmountDue;
 
     if (isAccountClosed) {
       setCustomerStandingDisplayMessage("ACCOUNT IS CLOSED");
@@ -225,16 +227,7 @@ const HomeScreen: React.FC = () => {
       setSetUpAutopay(false);
       setNoAdditionalPayment(true);
       setBankruptAccount(true);
-    } else if (daysDelinquent > 0) {
-      setCustomerStandingDisplayMessage("THIS ACCOUNT IS PAST DUE");
-      setIsActiveClass(true);
-      setEnableClick(true);
-      setNoAdditionalPayment(false);
-    } else if (
-      isAutoPay === false &&
-      isBankrupt === false &&
-      !isAccountClosed
-    ) {
+    } else if (isAutoPay === false && !isBankrupt && !isAccountClosed) {
       setEnableConfigureAutopayText(false);
       setSetUpAutopay(true);
       setNoAdditionalPayment(true);
@@ -249,11 +242,22 @@ const HomeScreen: React.FC = () => {
       setEnableClick(true);
       setClosedAccount(false);
       setNoAdditionalPayment(false);
+    } else if (
+      (currentAmountDue === 0 && isAutoPay === false && currentBalance > 0) ||
+      (currentAmountDue > 0 && totalAmountDue - currentAmountDue === 0) ||
+      (totalAmountDue - currentAmountDue > 0 && daysDelinquent <= 60) ||
+      (totalAmountDue - currentAmountDue > 0 && daysDelinquent > 60)
+    ) {
+      if (isAutoPay === false && !isBankrupt && !isAccountClosed) {
+        setSetUpAutopay(true);
+      } else {
+        setSetUpAutopay(false);
+        setEnableClick(true);
+        setNoAdditionalPayment(true);
+      }
     } else {
-      setEnableConfigureAutopayText(false);
-      setSetUpAutopay(false);
+      // Handle any other cases if necessary
       setEnableClick(true);
-      setNoAdditionalPayment(true);
     }
   };
 
@@ -261,7 +265,7 @@ const HomeScreen: React.FC = () => {
     useCallback(() => {
       console.log("useFocusEffect triggered");
       fetchAllData();
-    }, [fetchAllData])
+    }, [fetchAllData,token])
   );
 
   const isLoggedOut = useSelector((state: any) => !state.auth.token);
@@ -493,52 +497,50 @@ const HomeScreen: React.FC = () => {
           </View>
         </View>
 
-        <View style={styles.buttonContainer}>
-          {noAdditionalPayment === false && enableClick === true && (
-            <TouchableOpacity
-              style={styles.button}
-              onPress={handleMakeAdditionalPayment}
-            >
-              <Text style={styles.additionalPaymentText}>
-                Make Additional Payment
-              </Text>
-            </TouchableOpacity>
-          )}
+      <View style={styles.buttonContainer}>
+  {noAdditionalPayment === false && enableClick === true && (
+    <TouchableOpacity
+      style={styles.button}
+      onPress={handleMakeAdditionalPayment}
+    >
+      <Text style={styles.additionalPaymentText}>
+        Make Additional Payment
+      </Text>
+    </TouchableOpacity>
+  )}
 
-          {noAdditionalPayment === true &&
-            enableClick === true &&
-            setUpAutopay === false && (
-              <TouchableOpacity
-                style={styles.button}
-                onPress={handleMakeAPayment}
-              >
-                <Text style={styles.additionalPaymentText}>Make a Payment</Text>
-              </TouchableOpacity>
-            )}
-
-          {setUpAutopay === true && (
-            <>
-              <TouchableOpacity
-                style={styles.button}
-                onPress={handleConfigureAutoPay}
-              >
-                <Text style={styles.additionalPaymentText}>
-                  Configure AutoPay
-                </Text>
-              </TouchableOpacity>
-              {noAdditionalPayment === true && (
-                <TouchableOpacity
-                  style={[styles.button, { marginTop: 10 }]} // Add marginTop to create a gap
-                  onPress={handleMakeAPayment}
-                >
-                  <Text style={styles.additionalPaymentText}>
-                    Make a Payment
-                  </Text>
-                </TouchableOpacity>
-              )}
-            </>
-          )}
-        </View>
+  {setUpAutopay === true ? (
+    <>
+      <TouchableOpacity
+        style={styles.button}
+        onPress={handleConfigureAutoPay}
+      >
+        <Text style={styles.additionalPaymentText}>
+          Configure AutoPay
+        </Text>
+      </TouchableOpacity>
+      {noAdditionalPayment === true && (
+        <TouchableOpacity
+          style={[styles.button, { marginTop: 10 }]}
+          onPress={handleMakeAPayment}
+        >
+          <Text style={styles.additionalPaymentText}>
+            Make a Payment
+          </Text>
+        </TouchableOpacity>
+      )}
+    </>
+  ) : (
+    noAdditionalPayment === true && enableClick === true && (
+      <TouchableOpacity
+        style={styles.button}
+        onPress={handleMakeAPayment}
+      >
+        <Text style={styles.additionalPaymentText}>Make a Payment</Text>
+      </TouchableOpacity>
+    )
+  )}
+</View>
 
         <View style={styles.RecentTransactionsContainer}>
           {creditAccountId ? (
