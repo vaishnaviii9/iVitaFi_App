@@ -76,7 +76,7 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
   },
   dateText: {
-    fontSize: wp('4.4%'),
+    fontSize: wp('3.9%'),
     color: "#333333",
   },
   dateTextSkeleton: {

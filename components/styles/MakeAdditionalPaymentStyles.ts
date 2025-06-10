@@ -33,14 +33,14 @@ export const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    padding: 20,
+    padding: 15,
   },
   content: {
     flex: 1,
     paddingBottom: 25,
   },
   formContainer: {
-    marginTop: 20,
+    marginTop: 0.1,
   },
   pickerWrapper: {
     borderWidth: 1,
@@ -125,7 +125,7 @@ export const styles = StyleSheet.create({
     padding: 15,
     borderRadius: 20,
     alignItems: "center",
-    marginTop: 20,
+    marginTop: 0,
   },
   submitButtonText: {
     color: "#FFFFFF",
@@ -184,14 +184,15 @@ export const styles = StyleSheet.create({
     padding: 5,
   },
   subHeaderText: {
-    color: '#FFFFFF',
-    fontSize: 14,
+    color: '#000000',
+    fontSize: 15,
     textAlign: 'center',
-    marginTop: 5, // Add some margin to separate the header and subheader
+    marginTop: 1, // Add some margin to separate the header and subheader
+    marginBottom: 20, // Add some margin at the bottom
     // other styles for subHeaderText
   },
   agreementText: {
-  marginTop: 20,
+  marginTop: 0,
   textAlign: 'center',
   color: 'black',
   fontSize: 14,

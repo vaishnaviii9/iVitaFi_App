@@ -473,9 +473,6 @@ const MakeAdditionalPayment = () => {
         </TouchableOpacity>
         <View style={styles.headerTextContainer}>
           <Text style={styles.headerText}>Make Additional Payment</Text>
-          <Text style={styles.subHeaderText}>
-            You can make an additional payment at any time.
-          </Text>
         </View>
         <View style={{ width: 24 }} />
       </View>
@@ -484,6 +481,9 @@ const MakeAdditionalPayment = () => {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
+          <Text style={styles.subHeaderText}>
+            You can make an additional payment at any time.
+          </Text>
         <View style={styles.content}>
           <View style={styles.formContainer}>
             <Text style={styles.helpText}>Payment Method</Text>

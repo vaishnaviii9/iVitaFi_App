@@ -63,7 +63,7 @@ const RecentTransactions = () => {
                     ? hp(27.9)
                     : isMediumScreen
                     ? hp(28)
-                    : hp(35),
+                    : hp(37),
                 },
               ]}
               nestedScrollEnabled={true}

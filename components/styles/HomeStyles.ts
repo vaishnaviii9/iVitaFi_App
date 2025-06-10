@@ -176,14 +176,14 @@ const styles = StyleSheet.create({
   smallButton:{
     backgroundColor: "#2D4768",
     paddingVertical: hp("1.5%"),
-    paddingHorizontal: wp("5%"),
+    paddingHorizontal: wp("3%"),
     borderRadius: wp("2.5%"),
     
   },
   twoButtons:{
-    marginTop: hp("1%"),
-    marginBottom: hp("1.5%"),
-  flexDirection: "row",
+    marginTop: hp("0.3%"),
+    marginBottom: hp("0.3%"),
+   flexDirection: "row",
     justifyContent: "space-between",
     gap: wp("2%"),
   },
