@@ -37,6 +37,7 @@ interface PaymentMethod {
   zipCode: string | null;
   hasPaymentToken: boolean;
   isDisabled: boolean;
+  default: boolean;
 }
 
 interface DebitCardInfoDto {
@@ -53,6 +54,168 @@ interface DebitCardInfoDto {
   email?: string | null;
   phone?: string | null;
   state?: string | null;
+}
+interface CreditSummary {
+  availableCredit: number;
+  displayAvailableCredit: number;
+  creditLimit: number;
+  currentBalance: number;
+  lastPaymentAmount: number;
+  lastPaymentDate: string;
+  daysSinceLastPayment: number;
+  isInBadStanding: boolean;
+  currentAmountDue: number;
+  totalAmountDue: number;
+  nextPaymentDate: string;
+  autoGeneratePayments: boolean;
+  daysDelinquent: number;
+  nextBillingDate: string;
+  lastBillingDate: string;
+  paymentDueDate: string;
+  paymentMethod: {
+    paymentMethodType: number;
+    autoPayEnabled: boolean;
+    cardNumber: string | null;
+    securityCode: string | null;
+    accountNumber: string | null;
+    routingNumber: string | null;
+    expirationDate: string;
+    truncatedCardNumber: string | null;
+    truncatedAccountNumber: string | null;
+    truncatedRoutingNumber: string | null;
+    startDate: string;
+    cardCategory: string;
+    verifyType: string;
+    network: string;
+    issuer: string;
+  };
+  detail: {
+    dischargeDate: string | null;
+    payorClass: number;
+    creditAccountId: number;
+    selectedLoanTerm: number | null;
+    originationFee: number | null;
+    apr: number | null;
+    creditAccount: {
+      dateOpened: string;
+      status: number;
+      accountNumber: number;
+      vendorNumber: number;
+      customerNumber: number;
+      creditLimit: number;
+      amountDueMonthly: number;
+      customerId: number;
+      customer: any | null; // Replace `any` with a more specific type if possible
+      fundingSourceId: number;
+      fundingSource: any | null; // Replace `any` with a more specific type if possible
+      creditApplicationId: number;
+      creditApplication: {
+        requestedAmount: number;
+        approvedAmount: number;
+        creditLimit: number;
+        paymentAmount: number;
+        status: number;
+        expirationDate: string;
+        customerId: number;
+        customer: any | null; // Replace `any` with a more specific type if possible
+        fundingSourceId: number;
+        fundingSource: any | null; // Replace `any` with a more specific type if possible
+        createdBySelfService: any | null; // Replace `any` with a more specific type if possible
+        expirationExtensionDate: string | null;
+        numberOfCalls: number;
+        bypassTUChecks: any | null; // Replace `any` with a more specific type if possible
+        guarantor: any | null; // Replace `any` with a more specific type if possible
+        patientEpisodes: any | null; // Replace `any` with a more specific type if possible
+        income: any | null; // Replace `any` with a more specific type if possible
+        paymentMethod: any | null; // Replace `any` with a more specific type if possible
+        denials: any | null; // Replace `any` with a more specific type if possible
+        notes: any | null; // Replace `any` with a more specific type if possible
+        statusHistory: any | null; // Replace `any` with a more specific type if possible
+        registration: any | null; // Replace `any` with a more specific type if possible
+        detail: any | null; // Replace `any` with a more specific type if possible
+        underwritingResults: any | null; // Replace `any` with a more specific type if possible
+        account: any | null; // Replace `any` with a more specific type if possible
+        paymentMethodVerifications: any | null; // Replace `any` with a more specific type if possible
+        scoreRecords: any | null; // Replace `any` with a more specific type if possible
+        customerFlags: any | null; // Replace `any` with a more specific type if possible
+        paymentSchedule: any | null; // Replace `any` with a more specific type if possible
+        ruleApplied: any | null; // Replace `any` with a more specific type if possible
+        id: number;
+        surrogateId: string;
+        createdOn: string;
+      };
+      transactions: any | null; // Replace `any` with a more specific type if possible
+      pendingTransactions: any | null; // Replace `any` with a more specific type if possible
+      paymentMethod: {
+        customerPaymentMethodId: number;
+        customerPaymentMethod: {
+          firstName: string | null;
+          lastName: string | null;
+          paymentMethodType: number;
+          isDisabled: boolean;
+          routingNumber: string | null;
+          accountNumber: string | null;
+          cardNumber: string | null;
+          expirationDate: string;
+          hasMadeFirstPayment: boolean;
+          securityCode: string | null;
+          zipCode: string | null;
+          hasPaymentToken: boolean;
+          customerId: number;
+          cardCategory: string;
+          verifyType: string;
+          network: string;
+          issuer: string;
+          debitCardPaymentToken: string;
+          id: number;
+          surrogateId: string;
+          createdOn: string;
+        };
+        firstMonthlyDueDay: number;
+        secondMonthlyDueDay: number | null;
+        autoPayEnabled: boolean;
+        creditAccountId: number;
+        id: number;
+        surrogateId: string;
+        createdOn: string;
+      };
+      messages: any | null; // Replace `any` with a more specific type if possible
+      patientEpisodes: any | null; // Replace `any` with a more specific type if possible
+      configuration: any | null; // Replace `any` with a more specific type if possible
+      paymentSchedule: {
+        autoPayEnabled: boolean;
+        paymentFrequency: number;
+        paymentSubFrequency: number;
+        paymentDayOne: number;
+        paymentDayTwo: number | null;
+        paymentWeekOne: number | null;
+        paymentWeekTwo: number | null;
+        paymentAmount: number;
+        initialPaymentDate: string;
+        creditAccountId: number;
+        nextSchedulePaymentDate: string;
+        startDate: string;
+        isReducedPayment: boolean | null;
+        id: number;
+        surrogateId: string;
+        createdOn: string;
+      };
+      bankruptcy: any | null; // Replace `any` with a more specific type if possible
+      originationDate: string;
+      id: number;
+      surrogateId: string;
+      createdOn: string;
+    };
+    id: number;
+    surrogateId: string;
+    createdOn: string;
+  };
+  isBankrupt: boolean;
+  alternativePaymentPlanFlag: boolean;
+  customerRehabPlanFlag: boolean;
+  isInDeferral: boolean;
+  patientResponsibility: number;
+  originalFundedDate: string;
 }
 
 const ManagePayments = () => {
@@ -83,7 +246,11 @@ const ManagePayments = () => {
     zip: "",
   });
 
-  const [isDefault, setIsDefault] = useState(false);
+    const [isDefault, setIsDefault] = useState(false);
+  const [isDefaultMethod, setIsDefaultMethod] = useState<boolean>(false);
+  const [accountSummary, setAccountSummary] = useState<CreditSummary | null>(
+    null
+  );
   const [isModalVisible, setModalVisible] = useState(false);
   const [savedMethods, setSavedMethods] = useState<PaymentMethod[]>([]);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -150,6 +317,7 @@ const ManagePayments = () => {
           token
         );
         if (creditSummaries && creditSummaries.length > 0) {
+          setAccountSummary(creditSummaries[0]);
           const customerId =
             creditSummaries[0]?.detail?.creditAccount?.customerId;
           if (customerId) {
@@ -162,7 +330,16 @@ const ManagePayments = () => {
                 }) =>
                   method.cardNumber !== null || method.accountNumber !== null
               );
-              setSavedMethods(validMethods);
+              // Transform the methods to include the default property
+              const methodsWithDefault = validMethods.map(
+                (method: { id: number | undefined }) => ({
+                  ...method,
+                  default:
+                    accountSummary?.detail?.creditAccount?.paymentMethod
+                      ?.customerPaymentMethodId === method.id,
+                })
+              );
+              setSavedMethods(methodsWithDefault);
             } else {
               setErrorMessage("No saved payment methods found.");
             }
@@ -176,7 +353,6 @@ const ManagePayments = () => {
         setErrorMessage("No customer response found.");
       }
     } catch (error) {
-    
       setErrorMessage("Failed to fetch data.");
     } finally {
       setIsLoading(false);
@@ -185,7 +361,7 @@ const ManagePayments = () => {
 
   useEffect(() => {
     fetchData();
-  }, [token]);
+  }, [accountSummary, savedMethods,token]);
 
   useFocusEffect(
     useCallback(() => {
@@ -568,8 +744,7 @@ const ManagePayments = () => {
 
       return data;
     } catch (error) {
-           return { type: "error", error: { errorCode: ErrorCode.Unknown } };
-
+      return { type: "error", error: { errorCode: ErrorCode.Unknown } };
     }
   };
 
@@ -664,7 +839,6 @@ const ManagePayments = () => {
 
       return { type: "data", data };
     } catch (error) {
-      
       return { type: "error", error: { errorCode: ErrorCode.Unknown } };
     }
   };
@@ -767,7 +941,6 @@ const ManagePayments = () => {
           });
         }
       } catch (error) {
-        
         Toast.show({
           type: "error",
           text1: "Error",
@@ -1126,7 +1299,7 @@ const ManagePayments = () => {
           ) : errorMessage ? (
             <Text style={styles.errorMessage}>{errorMessage}</Text>
           ) : (
-            savedMethods.map((method, index) => (
+            savedMethods.map((method) => (
               <View key={method.id} style={styles.savedMethodContainer}>
                 <FontAwesome
                   name="credit-card"
@@ -1135,23 +1308,17 @@ const ManagePayments = () => {
                   style={styles.savedMethodImage}
                 />
                 <View style={styles.savedMethodTextContainer}>
-                  {index === 0 && (
+                  {method.default && (
                     <View style={styles.defaultLabelContainer}>
                       <Text style={styles.defaultLabel}>Default</Text>
                     </View>
                   )}
                   <Text style={styles.savedMethodLabel}>
-                    {method.cardNumber && (
-                      <Text style={styles.savedMethodLabel}>
-                        Debit Card - {getLast4Digits(method.cardNumber)}
-                      </Text>
-                    )}
-                    {!method.cardNumber && method.accountNumber && (
-                      <Text style={styles.savedMethodLabel}>
-                        Checking Account -{" "}
-                        {getLast4Digits(method.accountNumber)}
-                      </Text>
-                    )}
+                    {method.cardNumber
+                      ? `Debit Card - ${getLast4Digits(method.cardNumber)}`
+                      : `Checking Account - ${getLast4Digits(
+                          method.accountNumber
+                        )}`}
                   </Text>
                   {method.cardNumber && method.expirationDate && (
                     <Text style={styles.expirationLabel}>
@@ -1452,11 +1619,13 @@ const ManagePayments = () => {
           )}
 
           <View style={styles.defaultPaymentMethodContainer}>
-            <TouchableOpacity onPress={() => setIsDefault(!isDefault)}>
+            <TouchableOpacity
+              onPress={() => setIsDefaultMethod(!isDefaultMethod)}
+            >
               <Ionicons
-                name={isDefault ? "checkmark-circle" : "ellipse-outline"}
+                name={isDefaultMethod ? "checkmark-circle" : "ellipse-outline"}
                 size={24}
-                color={isDefault ? "#27446F" : "#CCC"}
+                color={isDefaultMethod ? "#27446F" : "#CCC"}
               />
             </TouchableOpacity>
             <Text style={styles.defaultPaymentMethodText}>
