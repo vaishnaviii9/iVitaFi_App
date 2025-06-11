@@ -42,7 +42,6 @@ export const fetchCreditSummariesWithId = async (
       creditAccountId, // Return the extracted ID
     };
   } catch (error) {
-    console.error("Error fetching credit account summaries:", error);
     return { creditSummaries: [], creditAccountId: null };
   }
 };

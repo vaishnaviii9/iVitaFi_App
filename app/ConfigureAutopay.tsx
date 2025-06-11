@@ -636,7 +636,8 @@ const ConfigureAutopay = () => {
             }
           }
         } catch (error) {
-          console.error("Error fetching data:", error);
+               return { type: "error", error: { errorCode: ErrorCode.Unknown } };
+
         } finally {
           setIsLoading(false); // Set loading to false after data is fetched
         }

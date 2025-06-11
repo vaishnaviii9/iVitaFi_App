@@ -94,7 +94,6 @@ const TransactionList: React.FC<TransactionListProps> = ({
 
   const handleTrashIconPress = (id: string, disable: boolean) => {
     if (disable) {
-      console.log("Trash icon is disabled");
       return;
     }
     setSelectedTransactionId(id);
@@ -102,26 +101,24 @@ const TransactionList: React.FC<TransactionListProps> = ({
   };
 
   const handleCheckIconPress = (id: string) => {
-    console.log("Check icon pressed for ID:", id);
     approvalFunction(id, true);
   };
 
   const handleXIconPress = (id: string) => {
-    console.log("X icon pressed for ID:", id);
     approvalFunction(id, false);
   };
 
   const handleDeleteConfirmation = async (confirm: boolean) => {
     setModalVisible(false);
     if (confirm && selectedTransactionId) {
-      console.log(
-        "Attempting to delete transaction with ID:",
-        selectedTransactionId
-      );
+      // console.log(
+      //   "Attempting to delete transaction with ID:",
+      //   selectedTransactionId
+      // );
       try {
         const response = await deleteTransaction(selectedTransactionId, token);
         if (response.status === 200) {
-          console.log("Transaction successfully deleted");
+          // console.log("Transaction successfully deleted");
           Toast.show({
             type: "success",
             text1: "Success",
@@ -135,7 +132,6 @@ const TransactionList: React.FC<TransactionListProps> = ({
             fetchTransactions();
           }
         } else {
-          console.error("Failed to delete the transaction");
           Toast.show({
             type: "error",
             text1: "Error",
@@ -147,7 +143,6 @@ const TransactionList: React.FC<TransactionListProps> = ({
           });
         }
       } catch (error) {
-        console.error("Error deleting transaction:", error);
         Toast.show({
           type: "error",
           text1: "Error",

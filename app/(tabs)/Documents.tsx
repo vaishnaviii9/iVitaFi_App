@@ -22,6 +22,7 @@ import styles from "../../components/styles/DocumentStyles";
 import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
 import { fetchCustomerData } from "../services/customerService";
+import { ErrorCode } from "../../utils/ErrorCodeUtil";
 
 const Documents: React.FC = () => {
   const navigation = useNavigation();
@@ -49,45 +50,45 @@ const Documents: React.FC = () => {
     (state: any) => state.creditAccount.creditAccountId
   );
 
-const fetchDocumentsData = useCallback(async () => {
-  try {
-    // console.log("Credit account id", creditAccountId);
+  const fetchDocumentsData = useCallback(async () => {
+    try {
+      // console.log("Credit account id", creditAccountId);
 
-    if (!creditAccountId || !token) return;
+      if (!creditAccountId || !token) return;
 
-    setIsLoading(true);
+      setIsLoading(true);
 
-    const customerResponse = await fetchCustomerData(token, () => {});
-    if (customerResponse) {
-      const { creditSummaries } = await fetchCreditSummariesWithId(
-        customerResponse,
-        token
-      );
+      const customerResponse = await fetchCustomerData(token, () => {});
+      if (customerResponse) {
+        const { creditSummaries } = await fetchCreditSummariesWithId(
+          customerResponse,
+          token
+        );
 
-      // console.log("Credit Summaries:", creditSummaries);
-      dispatch(setCreditSummaries(creditSummaries));
+        // console.log("Credit Summaries:", creditSummaries);
+        dispatch(setCreditSummaries(creditSummaries));
+      }
+
+      const data = await fetchDocuments(creditAccountId, token);
+      // console.log("Fetched Documents Data:", data);
+
+      if (data?.accountSummary?.isBankrupt) {
+        setBankruptcyMessage("ACCOUNT IN BANKRUPTCY");
+      } else {
+        setBankruptcyMessage(null);
+      }
+
+      // Ensure data is an array before filtering
+      const validDocuments = Array.isArray(data)
+        ? data.filter((doc: { documentContent: any }) => doc.documentContent)
+        : [];
+      setDocuments(validDocuments);
+    } catch (error) {
+      return { type: "error", error: { errorCode: ErrorCode.Unknown } };
+    } finally {
+      setIsLoading(false);
     }
-
-    const data = await fetchDocuments(creditAccountId, token);
-    // console.log("Fetched Documents Data:", data);
-
-    if (data?.accountSummary?.isBankrupt) {
-      setBankruptcyMessage("ACCOUNT IN BANKRUPTCY");
-    } else {
-      setBankruptcyMessage(null);
-    }
-
-    // Ensure data is an array before filtering
-    const validDocuments = Array.isArray(data) ? data.filter(
-      (doc: { documentContent: any }) => doc.documentContent
-    ) : [];
-    setDocuments(validDocuments);
-  } catch (error) {
-    console.error("Error fetching documents:", error);
-  } finally {
-    setIsLoading(false);
-  }
-}, [creditAccountId, token, dispatch]);
+  }, [creditAccountId, token, dispatch]);
 
   useFocusEffect(
     useCallback(() => {
@@ -115,13 +116,13 @@ const fetchDocumentsData = useCallback(async () => {
 
       await Sharing.shareAsync(uri);
     } catch (error) {
-      console.log("Error while generating PDF:", error);
+      
+      return { type: "error", error: { errorCode: ErrorCode.Unknown } };
     }
   };
 
   return (
-    
-      <View style={styles.container}>
+    <View style={styles.container}>
       <View style={styles.headerContainer}>
         <Pressable
           onPress={() => navigation.goBack()}
@@ -221,7 +222,7 @@ const fetchDocumentsData = useCallback(async () => {
           </View>
         </View>
       </Modal>
-      </View>
+    </View>
   );
 };
 

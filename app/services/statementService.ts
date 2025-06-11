@@ -21,7 +21,6 @@ export const fetchStatements = async (
 
     return statements || [];
   } catch (error) {
-    console.error("Error fetching statements:", error);
     return [];
   }
 };

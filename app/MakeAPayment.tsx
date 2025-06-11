@@ -52,7 +52,9 @@ const MakeAPayment = () => {
   const [expirationYear, setExpirationYear] = useState("");
   const [routingNumber, setRoutingNumber] = useState("");
   const [accountNumber, setAccountNumber] = useState("");
-  const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState<string | null>(null);
+  const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState<
+    string | null
+  >(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [creditAccountId, setCreditAccountId] = useState<string | null>(null);
@@ -97,20 +99,27 @@ const MakeAPayment = () => {
             );
             dispatch(setCreditSummaries(creditSummaries));
             if (creditSummaries && creditSummaries.length > 0) {
-              const customerId = creditSummaries[0]?.detail?.creditAccount?.customerId;
-              const creditAccountId = creditSummaries[0]?.detail?.creditAccountId;
+              const customerId =
+                creditSummaries[0]?.detail?.creditAccount?.customerId;
+              const creditAccountId =
+                creditSummaries[0]?.detail?.creditAccountId;
               setCreditAccountId(creditAccountId);
 
               if (customerId) {
-                const methods = await fetchSavedPaymentMethods(token, customerId);
+                const methods = await fetchSavedPaymentMethods(
+                  token,
+                  customerId
+                );
                 if (methods && methods.length > 0) {
                   const validMethods = methods.filter(
                     (method: PaymentMethod) =>
-                      method.cardNumber !== null || method.accountNumber !== null
+                      method.cardNumber !== null ||
+                      method.accountNumber !== null
                   );
                   setSavedMethods(validMethods);
 
-                  const defaultPaymentMethod = creditSummaries[0]?.paymentMethod;
+                  const defaultPaymentMethod =
+                    creditSummaries[0]?.paymentMethod;
                   if (defaultPaymentMethod) {
                     if (defaultPaymentMethod.cardNumber) {
                       const formattedCardNumber =
@@ -118,7 +127,9 @@ const MakeAPayment = () => {
                         defaultPaymentMethod.cardNumber.slice(-4);
                       setCardNumber(formattedCardNumber);
                       setPaymentMethod(
-                        `Debit Card - ${defaultPaymentMethod.cardNumber.slice(-4)}`
+                        `Debit Card - ${defaultPaymentMethod.cardNumber.slice(
+                          -4
+                        )}`
                       );
 
                       const expirationDate = new Date(
@@ -151,7 +162,9 @@ const MakeAPayment = () => {
                       setExpirationYear(expirationYear.toString());
                     } else if (defaultPaymentMethod.accountNumber) {
                       setAccountNumber(defaultPaymentMethod.accountNumber);
-                      setRoutingNumber(defaultPaymentMethod.routingNumber || "");
+                      setRoutingNumber(
+                        defaultPaymentMethod.routingNumber || ""
+                      );
                       setPaymentMethod(
                         `Checking Account - ${defaultPaymentMethod.accountNumber.slice(
                           -4
@@ -177,7 +190,8 @@ const MakeAPayment = () => {
             }
           }
         } catch (error) {
-          console.log("Error fetching data:", error);
+          
+          return { type: "error", error: { errorCode: ErrorCode.Unknown } };
         } finally {
           setIsLoading(false);
         }
@@ -283,7 +297,8 @@ const MakeAPayment = () => {
       const selectedMethodId = savedMethods.find(
         (method) =>
           (method.cardNumber && value.endsWith(method.cardNumber.slice(-4))) ||
-          (method.accountNumber && value.endsWith(method.accountNumber.slice(-4)))
+          (method.accountNumber &&
+            value.endsWith(method.accountNumber.slice(-4)))
       )?.id;
       setSelectedPaymentMethodId(selectedMethodId ?? null);
     }
@@ -381,11 +396,7 @@ const MakeAPayment = () => {
     };
 
     if (!obj2Ref.current || !creditAccountId || !selectedPaymentMethodId) {
-      console.log("Missing required data:", {
-        obj2Ref: obj2Ref.current,
-        creditAccountId,
-        selectedPaymentMethodId,
-      });
+     
       Toast.show({
         type: "error",
         text1: "Submission Error",
@@ -404,7 +415,7 @@ const MakeAPayment = () => {
       expirationDate: formattedExpirationDate,
     };
 
-    console.log("Payload", payload);
+   
 
     try {
       const result = await postCreditAccountTransactionsNew(
@@ -590,70 +601,68 @@ const MakeAPayment = () => {
                   </View>
                 )}
 
-                {paymentMethod &&
-                  paymentMethod.startsWith("Debit Card -") && (
-                    <>
-                      <Text style={styles.helpText}>Card Number</Text>
-                      <TextInput
-                        style={styles.specificInput}
-                        placeholder="Enter card number"
-                        placeholderTextColor="black"
-                        value={cardNumber}
-                        onChangeText={setCardNumber}
-                        keyboardType="numeric"
-                        editable={paymentMethod === "Add Debit Card"}
-                      />
+                {paymentMethod && paymentMethod.startsWith("Debit Card -") && (
+                  <>
+                    <Text style={styles.helpText}>Card Number</Text>
+                    <TextInput
+                      style={styles.specificInput}
+                      placeholder="Enter card number"
+                      placeholderTextColor="black"
+                      value={cardNumber}
+                      onChangeText={setCardNumber}
+                      keyboardType="numeric"
+                      editable={paymentMethod === "Add Debit Card"}
+                    />
 
-                      <Text style={styles.helpText}>Expiration Month</Text>
-                      <TextInput
-                        style={styles.specificInput}
-                        placeholder="Enter expiration month"
-                        placeholderTextColor="black"
-                        value={expirationMonth}
-                        onChangeText={setExpirationMonth}
-                        keyboardType="numeric"
-                        editable={paymentMethod === "Add Debit Card"}
-                      />
+                    <Text style={styles.helpText}>Expiration Month</Text>
+                    <TextInput
+                      style={styles.specificInput}
+                      placeholder="Enter expiration month"
+                      placeholderTextColor="black"
+                      value={expirationMonth}
+                      onChangeText={setExpirationMonth}
+                      keyboardType="numeric"
+                      editable={paymentMethod === "Add Debit Card"}
+                    />
 
-                      <Text style={styles.helpText}>Expiration Year</Text>
-                      <TextInput
-                        style={styles.specificInput}
-                        placeholder="Enter expiration year"
-                        placeholderTextColor="black"
-                        value={expirationYear}
-                        onChangeText={setExpirationYear}
-                        keyboardType="numeric"
-                        editable={paymentMethod === "Add Debit Card"}
-                      />
-                    </>
-                  )}
+                    <Text style={styles.helpText}>Expiration Year</Text>
+                    <TextInput
+                      style={styles.specificInput}
+                      placeholder="Enter expiration year"
+                      placeholderTextColor="black"
+                      value={expirationYear}
+                      onChangeText={setExpirationYear}
+                      keyboardType="numeric"
+                      editable={paymentMethod === "Add Debit Card"}
+                    />
+                  </>
+                )}
 
-                {paymentMethod &&
-                  !paymentMethod.startsWith("Debit Card -") && (
-                    <>
-                      <Text style={styles.helpText}>Routing Number</Text>
-                      <TextInput
-                        style={styles.specificInput}
-                        placeholder="Enter routing number"
-                        placeholderTextColor="black"
-                        value={routingNumber}
-                        onChangeText={setRoutingNumber}
-                        keyboardType="numeric"
-                        editable={paymentMethod === "Add Checking Account"}
-                      />
+                {paymentMethod && !paymentMethod.startsWith("Debit Card -") && (
+                  <>
+                    <Text style={styles.helpText}>Routing Number</Text>
+                    <TextInput
+                      style={styles.specificInput}
+                      placeholder="Enter routing number"
+                      placeholderTextColor="black"
+                      value={routingNumber}
+                      onChangeText={setRoutingNumber}
+                      keyboardType="numeric"
+                      editable={paymentMethod === "Add Checking Account"}
+                    />
 
-                      <Text style={styles.helpText}>Account Number</Text>
-                      <TextInput
-                        style={styles.specificInput}
-                        placeholder="Enter account number"
-                        placeholderTextColor="black"
-                        value={accountNumber}
-                        onChangeText={setAccountNumber}
-                        keyboardType="numeric"
-                        editable={paymentMethod === "Add Checking Account"}
-                      />
-                    </>
-                  )}
+                    <Text style={styles.helpText}>Account Number</Text>
+                    <TextInput
+                      style={styles.specificInput}
+                      placeholder="Enter account number"
+                      placeholderTextColor="black"
+                      value={accountNumber}
+                      onChangeText={setAccountNumber}
+                      keyboardType="numeric"
+                      editable={paymentMethod === "Add Checking Account"}
+                    />
+                  </>
+                )}
 
                 <Text style={styles.helpText}>Payment Amount</Text>
                 <TextInput

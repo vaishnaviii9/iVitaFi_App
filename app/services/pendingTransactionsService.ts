@@ -17,7 +17,6 @@ export const fetchPendingTransactions = async (
     // console.log('Fetched pending transactions:', transactions);
     return transactions || [];
   } catch (error) {
-    console.error("Error fetching pending transactions:", error);
     return [];
   }
 };

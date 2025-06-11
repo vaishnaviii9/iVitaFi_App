@@ -37,7 +37,6 @@ export const updateCreditAccountPaymentMethodWithDefaultPaymentMethodAsync = asy
 
     return { type: "data", data };
   } catch (error) {
-    console.error("Error updating payment method:", error);
     return { type: "error", error: { errorCode: ErrorCode.Unknown } };
   }
 };

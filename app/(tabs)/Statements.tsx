@@ -6,13 +6,16 @@ import styles from "../../components/styles/StatementsStyles";
 import { fetchStatements } from "../services/statementService";
 import { useSelector } from "react-redux";
 import { format } from "date-fns";
-import * as FileSystem from 'expo-file-system';
-import { WebView } from 'react-native-webview';
-import SkeletonLoader from '../../components/SkeletonLoader';
+import * as FileSystem from "expo-file-system";
+import { WebView } from "react-native-webview";
+import SkeletonLoader from "../../components/SkeletonLoader";
+import { ErrorCode } from "../../utils/ErrorCodeUtil";
 
 const Statements: React.FC = () => {
   const token = useSelector((state: any) => state.auth.token);
-  const creditAccountId = useSelector((state: any) => state.creditAccount.creditAccountId);
+  const creditAccountId = useSelector(
+    (state: any) => state.creditAccount.creditAccountId
+  );
 
   const [statements, setStatements] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -22,7 +25,6 @@ const Statements: React.FC = () => {
 
   const loadStatements = useCallback(async () => {
     if (!creditAccountId) {
-      console.log("No Credit Account ID available.");
       setLoading(false);
       return;
     }
@@ -32,7 +34,8 @@ const Statements: React.FC = () => {
       const response = await fetchStatements(token, creditAccountId);
       setStatements(response || []);
     } catch (error) {
-      console.log("Error fetching statements:", error);
+      
+      return { type: "error", error: { errorCode: ErrorCode.Unknown } };
     } finally {
       setLoading(false);
     }
@@ -55,9 +58,9 @@ const Statements: React.FC = () => {
       const response = await fetch(
         `https://dev.ivitafi.com/api/creditaccount/${creditAccountId}/statements/${fileName}`,
         {
-          method: 'GET',
+          method: "GET",
           headers: {
-            'Authorization': `Bearer ${token}`,
+            Authorization: `Bearer ${token}`,
           },
         }
       );
@@ -67,15 +70,18 @@ const Statements: React.FC = () => {
       }
 
       let preSignedUrl = await response.text();
-      preSignedUrl = preSignedUrl.replace(/^"|"$/g, '');
+      preSignedUrl = preSignedUrl.replace(/^"|"$/g, "");
 
       const downloadDest = `${FileSystem.documentDirectory}${fileName}`;
-      const downloadResult = await FileSystem.downloadAsync(preSignedUrl, downloadDest);
+      const downloadResult = await FileSystem.downloadAsync(
+        preSignedUrl,
+        downloadDest
+      );
 
       return downloadDest;
     } catch (error) {
-      console.log("Error downloading file:", error);
-      throw error;
+     
+      return { type: "error", error: { errorCode: ErrorCode.Unknown } };
     }
   };
 
@@ -84,7 +90,8 @@ const Statements: React.FC = () => {
       const fileUri = await downloadPDF(item.fileName);
       setPdfUri(fileUri);
     } catch (error) {
-      console.log("Error", "Failed to download the PDF.");
+     
+      return { type: "error", error: { errorCode: ErrorCode.Unknown } };
     }
   };
 
@@ -96,14 +103,17 @@ const Statements: React.FC = () => {
         url: fileUri,
       });
     } catch (error) {
-      console.log("Error", "Failed to download the PDF.");
+      
+      return { type: "error", error: { errorCode: ErrorCode.Unknown } };
     }
   };
 
   if (!creditAccountId) {
     return (
       <View style={styles.container}>
-        <Text style={styles.noAccountText}>No Credit Account ID available.</Text>
+        <Text style={styles.noAccountText}>
+          No Credit Account ID available.
+        </Text>
       </View>
     );
   }
@@ -111,7 +121,10 @@ const Statements: React.FC = () => {
   return (
     <View style={styles.container}>
       <View style={styles.headerContainer}>
-        <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
+        <Pressable
+          onPress={() => navigation.goBack()}
+          style={styles.backButton}
+        >
           <Ionicons name="arrow-back" size={28} color="#37474F" />
         </Pressable>
         <Text style={styles.title}>Statements</Text>
@@ -130,8 +143,14 @@ const Statements: React.FC = () => {
             <View style={styles.row} key={index}>
               <SkeletonLoader style={styles.dateTextSkeleton} type="text" />
               <View style={styles.actions}>
-                <SkeletonLoader style={styles.actionButtonSkeleton} type="container" />
-                <SkeletonLoader style={styles.actionButtonSkeleton} type="container" />
+                <SkeletonLoader
+                  style={styles.actionButtonSkeleton}
+                  type="container"
+                />
+                <SkeletonLoader
+                  style={styles.actionButtonSkeleton}
+                  type="container"
+                />
               </View>
             </View>
           ))
@@ -147,10 +166,16 @@ const Statements: React.FC = () => {
                   {formatDateRange(item.statementStartDate, item.statementDate)}
                 </Text>
                 <View style={styles.actions}>
-                  <Pressable style={styles.actionButton} onPress={() => handleViewPress(item)}>
+                  <Pressable
+                    style={styles.actionButton}
+                    onPress={() => handleViewPress(item)}
+                  >
                     <Ionicons name="eye-outline" size={24} color="#FFFFFF" />
                   </Pressable>
-                  <Pressable style={styles.actionButton} onPress={() => handleDownloadPress(item)}>
+                  <Pressable
+                    style={styles.actionButton}
+                    onPress={() => handleDownloadPress(item)}
+                  >
                     <FontAwesome name="download" size={24} color="#FFFFFF" />
                   </Pressable>
                 </View>
@@ -164,7 +189,11 @@ const Statements: React.FC = () => {
 
       {pdfUri && (
         <WebView
-          source={{ uri: `https://docs.google.com/viewer?url=${encodeURIComponent(pdfUri)}` }}
+          source={{
+            uri: `https://docs.google.com/viewer?url=${encodeURIComponent(
+              pdfUri
+            )}`,
+          }}
           style={{ flex: 1 }}
         />
       )}

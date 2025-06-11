@@ -25,7 +25,6 @@ export const fetchSavedPaymentMethods = async (token: string, customerId: string
 
     return response;
   } catch (error) {
-    console.error("Error fetching saved payment methods:", error);
     return null;
   }
 };

@@ -176,7 +176,7 @@ const ManagePayments = () => {
         setErrorMessage("No customer response found.");
       }
     } catch (error) {
-      console.error("Error fetching data:", error);
+    
       setErrorMessage("Failed to fetch data.");
     } finally {
       setIsLoading(false);
@@ -359,7 +359,6 @@ const ManagePayments = () => {
           });
         }
       } catch (error) {
-        console.error("Error adding payment method:", error);
         Toast.show({
           type: "error",
           text1: "Error",
@@ -569,8 +568,8 @@ const ManagePayments = () => {
 
       return data;
     } catch (error) {
-      console.error("Error fetching debit card information:", error);
-      throw error;
+           return { type: "error", error: { errorCode: ErrorCode.Unknown } };
+
     }
   };
 
@@ -665,10 +664,7 @@ const ManagePayments = () => {
 
       return { type: "data", data };
     } catch (error) {
-      console.error(
-        "Error Error updating debit card information: payment method:",
-        error
-      );
+      
       return { type: "error", error: { errorCode: ErrorCode.Unknown } };
     }
   };
@@ -771,7 +767,7 @@ const ManagePayments = () => {
           });
         }
       } catch (error) {
-        console.error("Error updating debit card information:", error);
+        
         Toast.show({
           type: "error",
           text1: "Error",

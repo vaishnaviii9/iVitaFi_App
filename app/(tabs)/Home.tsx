@@ -14,6 +14,7 @@ import { logout } from "../../features/login/loginSlice";
 import { CreditApplicationStatus } from "../../utils/CreditApplicationStatusUtil";
 import styles from "../../components/styles/HomeStyles";
 import { setShowMakePayment, setShowMakeAdditionalPayment } from "../../features/buttonVisibility/buttonVisibilitySlice";
+import { ErrorCode } from "../../utils/ErrorCodeUtil";
 
 interface CreditApplication {
   accountNumber: string;
@@ -98,7 +99,7 @@ const HomeScreen: React.FC = () => {
           setPaymentSetupData(data);
         }
       } catch (error) {
-        console.error("Error fetching payment setup data:", error);
+      return { type: "error", error: { errorCode: ErrorCode.Unknown } };
       }
     },
     [token]
@@ -164,7 +165,7 @@ const HomeScreen: React.FC = () => {
         setTransactions(transactionsResponse || []);
       }
     } catch (error) {
-      console.error("Error fetching data:", error);
+      return { type: "error", error: { errorCode: ErrorCode.Unknown } };
     } finally {
       setLoading(false);
     }
@@ -226,7 +227,6 @@ const HomeScreen: React.FC = () => {
 
   useFocusEffect(
     useCallback(() => {
-      console.log("useFocusEffect triggered");
       fetchAllData();
     }, [fetchAllData, token])
   );
@@ -295,8 +295,7 @@ const HomeScreen: React.FC = () => {
   };
 
   useEffect(() => {
-    console.log("noAdditionalPayment:", noAdditionalPayment);
-    console.log("enableClick:", enableClick);
+  
     dispatch(setShowMakePayment(noAdditionalPayment && enableClick));
     dispatch(setShowMakeAdditionalPayment(!noAdditionalPayment && enableClick));
   }, [noAdditionalPayment, enableClick, dispatch]);

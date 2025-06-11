@@ -6,6 +6,7 @@ import { CreditAccountTransactionTypeUtil } from "../../utils/CreditAccountTrans
 import postedStyles from "../../components/styles/PostedTransactionStyles";
 import SkeletonLoader from '../../components/SkeletonLoader';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import { ErrorCode } from "../../utils/ErrorCodeUtil";
 
 const { height: screenHeight } = Dimensions.get("window");
 
@@ -19,7 +20,7 @@ const Posted: React.FC = () => {
   useEffect(() => {
     const fetchTransactions = async () => {
       if (!creditAccountId) {
-        console.warn("No Credit Account ID available in Redux.");
+      
         setLoading(false);
         return;
       }
@@ -28,7 +29,7 @@ const Posted: React.FC = () => {
         const response = await fetchPostedTransactions(token, creditAccountId);
         setTransactions(response || []);
       } catch (error) {
-        console.error("Error fetching transactions:", error);
+      return { type: "error", error: { errorCode: ErrorCode.Unknown } };
       } finally {
         setLoading(false);
       }

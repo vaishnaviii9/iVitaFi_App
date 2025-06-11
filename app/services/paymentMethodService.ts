@@ -21,22 +21,7 @@ export const deletePaymentMethod = async (
 
     return success;
   } catch (error) {
-    console.error("Error deleting payment method:", error);
     return false;
   }
 };
 
-// Placeholder for future function to add a payment method
-export const addPaymentMethod = async (
-  token: string,
-  paymentMethodDetails: any  // Pass the payment method details as a parameter
-) => {
-  try {
-    // Implementation for adding a payment method will be added here
-    console.log("Adding a payment method:", paymentMethodDetails);
-    return true;
-  } catch (error) {
-    console.error("Error adding payment method:", error);
-    return false;
-  }
-};

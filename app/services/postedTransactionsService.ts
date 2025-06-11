@@ -15,7 +15,6 @@ export const fetchPostedTransactions = async (
     const transactions = await fetchData(url, token, (data) => data, "Failed to fetch posted transactions.");
     return transactions || [];
   } catch (error) {
-    console.error("Error fetching posted transactions:", error);
     return [];
   }
 };

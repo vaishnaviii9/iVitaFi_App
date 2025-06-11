@@ -21,8 +21,7 @@ export const fetchData = async (
       return null;
     }
   } catch (error) {
-    console.error(errorMessage, error);
-    Alert.alert("Error", errorMessage);
+    
     return null;
   }
 };
@@ -41,12 +40,11 @@ export const deleteData = async (
     if (response.status === 200) {
       return true;
     } else {
-      console.warn("Unsuccessful response status", response.status);
+      // console.warn("Unsuccessful response status", response.status);
       return false;
     }
   } catch (error) {
-    console.error(errorMessage, error);
-    Alert.alert("Error", errorMessage);
+ 
     return false;
   }
 };

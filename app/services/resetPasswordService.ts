@@ -7,7 +7,6 @@ export const resetPasswordService = async (email: string) => {
       params: { email },
     });
   } catch (error) {
-    console.error("Error resetting password:", error);
     throw error;
   }
 };

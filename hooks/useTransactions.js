@@ -19,7 +19,7 @@ const useTransactions = () => {
       const response = await fetchPendingTransactions(token, creditAccountId);
       setTransactions(response || []);
     } catch (error) {
-      console.error("Error fetching transactions:", error);
+      return { type: "error", error: { errorCode: ErrorCode.Unknown } };
     } finally {
       setLoading(false);
     }

@@ -1,5 +1,6 @@
 import axios from "axios";
 import apiClient from "../../api/apiClient";  // Import API endpoints
+import { ErrorCode } from "../../utils/ErrorCodeUtil";
 
 export const authenticateUser = async (email: string, password: string) => {
   try {
@@ -9,7 +10,7 @@ export const authenticateUser = async (email: string, password: string) => {
     });
     return response.data;
   } catch (error) {
-    console.error("Error during authentication:", error);
-    throw error;
-  }
+     
+      return { type: "error", error: { errorCode: ErrorCode.Unknown } };
+    }
 };
