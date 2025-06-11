@@ -1,8 +1,5 @@
 import { StyleSheet, Dimensions, Platform } from "react-native";
-import {
-  widthPercentageToDP as wp,
-  heightPercentageToDP as hp,
-} from "react-native-responsive-screen";
+import { widthPercentageToDP as wp, heightPercentageToDP as hp } from "react-native-responsive-screen";
 
 const { height: screenHeight } = Dimensions.get("window");
 
@@ -11,7 +8,6 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     backgroundColor: "#fff",
-    // paddingTop: hp("%"),
     paddingBottom: hp("2.5%"),
   },
   headerContainer: {
@@ -40,22 +36,20 @@ const styles = StyleSheet.create({
     marginRight: wp("2.5%"),
     alignItems: "flex-end",
   },
-   userName: {
-  fontSize: wp("4.5%"),
-  fontWeight: "600",
-  color: "#000", 
-  flexShrink: 1, 
-  ...Platform.select({
-    ios: {
-        color: "#000", 
-    },
-    android: {
-      
-      color: "#000", 
-    },
-  }),
-},
- 
+  userName: {
+    fontSize: wp("4.5%"),
+    fontWeight: "600",
+    color: "#000",
+    flexShrink: 1,
+    ...Platform.select({
+      ios: {
+        color: "#000",
+      },
+      android: {
+        color: "#000",
+      },
+    }),
+  },
   welcomeText: {
     fontSize: wp("4%"),
     color: "#757575",
@@ -91,7 +85,6 @@ const styles = StyleSheet.create({
   autoPay: {
     fontSize: wp("3%"),
     fontWeight: "600",
-    fontFamily: "Inter-SemiBold",
     color: "#fff",
     marginRight: wp("1.2%"),
   },
@@ -150,40 +143,34 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     fontSize: wp("5%"),
     color: "#000",
-    fontFamily: "Poppins-Medium",
   },
   availableCredit: {
     fontWeight: "600",
     fontSize: wp("5%"),
     color: "#000",
-    fontFamily: "Poppins-Medium",
   },
   text: {
     fontWeight: "700",
     fontSize: wp("6%"),
     color: "#000",
-    fontFamily: "Poppins-Bold",
     textAlign: "right",
   },
   text1: {
     fontWeight: "700",
     fontSize: wp("6%"),
     color: "#000",
-    fontFamily: "Poppins-Bold",
     textAlign: "right",
   },
-
-  smallButton:{
+  smallButton: {
     backgroundColor: "#2D4768",
     paddingVertical: hp("1.5%"),
     paddingHorizontal: wp("3%"),
     borderRadius: wp("2.5%"),
-    
   },
-  twoButtons:{
+  twoButtons: {
     marginTop: hp("0.3%"),
     marginBottom: hp("0.3%"),
-   flexDirection: "row",
+    flexDirection: "row",
     justifyContent: "space-between",
     gap: wp("2%"),
   },
@@ -205,24 +192,17 @@ const styles = StyleSheet.create({
   RecentTransactionsContainer: {
     marginTop: hp("1.5%"),
     width: wp("90%"),
-    height:
-      screenHeight < 700
-        ? hp("35%")
-        : screenHeight > 700 && screenHeight <= 800
-        ? hp("35%")
-        : hp("37%"),
+    height: screenHeight < 700 ? hp("35%") : screenHeight > 700 && screenHeight <= 800 ? hp("35%") : hp("37%"),
     borderRadius: wp("4%"),
     overflow: "hidden",
-    marginBottom: hp("3%"), // Add space between Recent Transactions and Bottom Navigation
+    marginBottom: hp("3%"),
   },
-
   BottomNavigationContainer: {
     width: wp("90%"),
-    flex: 1, // Prevent unintended stretching
+    flex: 1,
     marginBottom: hp("1%"),
   },
-
-  // skeleton loader styles
+  // Skeleton loader styles
   headerSkeleton: {
     width: wp("90%"),
     height: hp("10%"),
@@ -255,7 +235,6 @@ const styles = StyleSheet.create({
     marginBottom: hp("2%"),
     borderRadius: wp("2%"),
   },
-
   userNameSkeleton: {
     marginHorizontal: wp("1.5%"),
     width: wp("30%"),
@@ -307,18 +286,18 @@ const styles = StyleSheet.create({
     height: hp("30%"),
   },
   accountStatusContainer: {
-    backgroundColor: "#D34A2A", 
-    padding: 8,
-    borderRadius: 5,
-    marginVertical: 10,
+    backgroundColor: "#D34A2A",
+    padding: wp("2%"),
+    borderRadius: wp("2%"),
+    marginVertical: hp("1%"),
     alignSelf: "stretch",
     marginHorizontal: wp("2%"),
   },
   accountStatusRed: {
-    backgroundColor: "#D34A2A", // Orange background
+    backgroundColor: "#D34A2A",
   },
   accountStatus: {
-    backgroundColor: "#D34A2A", // Orange background
+    backgroundColor: "#D34A2A",
   },
   row: {
     flexDirection: "row",
@@ -331,15 +310,15 @@ const styles = StyleSheet.create({
     flex: 2,
   },
   typography: {
-    fontSize: 10, 
-    color: "#fff", // White text color
-    fontWeight: '900'
+    fontSize: wp("3%"),
+    color: "#fff",
+    fontWeight: "900",
   },
   icon: {
-    color: "#fff", // White icon color
+    color: "#fff",
   },
   iconRed: {
-    color: "#fff", // White icon color
+    color: "#fff",
   },
 });
 

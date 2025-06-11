@@ -1,4 +1,17 @@
-import { StyleSheet, Platform } from "react-native";
+import { StyleSheet, Platform, Dimensions } from "react-native";
+
+// Get screen dimensions
+const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+
+// Function to calculate width percentage
+const wp = (percentage: number) => {
+  return (screenWidth * percentage) / 100;
+};
+
+// Function to calculate height percentage
+const hp = (percentage: number) => {
+  return (screenHeight * percentage) / 100;
+};
 
 export const styles = StyleSheet.create({
   container: {
@@ -7,12 +20,12 @@ export const styles = StyleSheet.create({
   },
   headerContainer: {
     backgroundColor: "#27446F",
-    paddingTop: Platform.OS === "ios" ? 50 : 30,
-    paddingBottom: 30,
-    paddingHorizontal: 20,
-    borderBottomLeftRadius: 60,
-    borderBottomRightRadius: 60,
-    height: Platform.OS === "ios" ? 150 : 130,
+    paddingTop: Platform.OS === "ios" ? hp(5) : hp(3),
+    paddingBottom: hp(3),
+    paddingHorizontal: wp(5),
+    borderBottomLeftRadius: wp(15),
+    borderBottomRightRadius: wp(15),
+    height: Platform.OS === "ios" ? hp(15) : hp(13),
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
@@ -23,34 +36,34 @@ export const styles = StyleSheet.create({
     justifyContent: "center",
   },
   backButton: {
-    padding: 4,
+    padding: wp(1),
   },
   headerText: {
     color: "#FFFFFF",
-    fontSize: 22,
+    fontSize: wp(5.5),
     fontWeight: "bold",
   },
   scrollContent: {
     flexGrow: 1,
-    padding: 15,
+    padding: wp(4),
   },
   content: {
     flex: 1,
-    paddingBottom: 25,
+    paddingBottom: hp(3),
   },
   formContainer: {
-    marginTop: 0.1,
+    marginTop: hp(0.1),
   },
   pickerWrapper: {
     borderWidth: 1,
     borderColor: "#ccc",
-    borderRadius: 6,
-    marginBottom: 15,
+    borderRadius: wp(1.5),
+    marginBottom: hp(2),
     backgroundColor: "#f9f9f9",
     overflow: Platform.OS === "android" ? "hidden" : "visible",
     ...Platform.select({
       ios: {
-        height: 40,
+        height: hp(5),
         justifyContent: "center",
         backgroundColor: "#fff",
       },
@@ -59,45 +72,45 @@ export const styles = StyleSheet.create({
   iosPicker: {
     ...Platform.select({
       ios: {
-        height: 200,
-        marginTop: 8,
-        width: "100%",
+        height: hp(25),
+        marginTop: hp(1),
+        width: wp(100),
         color: "#000000",
         backgroundColor: "#f9f9f9",
         borderWidth: 1,
         borderColor: "#ccc",
-        borderRadius: 6,
+        borderRadius: wp(1.5),
         zIndex: 1000,
         position: "relative",
       },
     }),
   },
   androidPicker: {
-    height: 50,
-    width: "100%",
+    height: hp(6),
+    width: wp(100),
     color: "#000000",
   },
   pickerDisplayContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 10,
-    height: 40,
+    paddingHorizontal: wp(2.5),
+    height: hp(5),
   },
   pickerDisplayText: {
-    fontSize: 16,
+    fontSize: wp(4),
     color: "#000000",
   },
   helpText: {
     color: "#27446F",
-    marginBottom: 5,
+    marginBottom: hp(0.5),
   },
   specificInput: {
-    height: 40,
+    height: hp(5),
     borderColor: "#ccc",
     borderWidth: 1,
-    marginBottom: 10,
-    paddingHorizontal: 10,
+    marginBottom: hp(1),
+    paddingHorizontal: wp(2.5),
     backgroundColor: "#f0f0f0",
     color: "black",
   },
@@ -105,95 +118,99 @@ export const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    height: 50,
+    height: hp(6),
     borderColor: "#ccc",
     borderWidth: 1,
-    borderRadius: 5,
-    paddingHorizontal: 10,
-    marginBottom: 15,
+    borderRadius: wp(1.5),
+    paddingHorizontal: wp(2.5),
+    marginBottom: hp(2),
     backgroundColor: "#ffffff",
   },
   dateText: {
     color: "#000000",
-    fontSize: 15,
+    fontSize: wp(3.7),
   },
   submitButton: {
     alignSelf: "center",
-    width: "50%",
+    width: wp(50),
     backgroundColor: "#27446F",
-    padding: 15,
-    borderRadius: 20,
+    padding: hp(2),
+    borderRadius: wp(5),
     alignItems: "center",
-    marginTop: 0,
+    marginTop: hp(0),
   },
   submitButtonText: {
     color: "#FFFFFF",
-    fontSize: 18,
+    fontSize: wp(4.5),
     fontWeight: "bold",
   },
   centeredView: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    marginTop: 22,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   modalView: {
-    margin: 20,
+    margin: wp(5),
     backgroundColor: "white",
-    borderRadius: 20,
-    padding: 35,
+    borderRadius: wp(5),
+    padding: wp(9),
     alignItems: "center",
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: hp(0.2),
     },
     shadowOpacity: 0.25,
-    shadowRadius: 4,
+    shadowRadius: wp(1),
     elevation: 5,
+    borderWidth: wp(0.5),
+    borderColor: '#4CAF50',
   },
   modalText: {
-    marginBottom: 15,
+    marginBottom: hp(2),
     textAlign: "center",
-    fontSize: 18,
+    fontSize: wp(6),
     fontWeight: "bold",
+    color: '#4CAF50',
   },
   modalMessage: {
-    marginBottom: 20,
+    marginBottom: hp(2.5),
     textAlign: "center",
-    fontSize: 16,
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginBottom: 10,
-    textAlign: "center",
+    fontSize: wp(4),
+    color: '#555555',
   },
   modalButton: {
-    backgroundColor: "#27446F",
-    padding: 10,
-    borderRadius: 5,
+    backgroundColor: "#4CAF50",
+    padding: hp(2),
+    borderRadius: wp(2.5),
     alignItems: "center",
+    width: wp(80),
+    marginTop: hp(1.2),
   },
   modalButtonText: {
     color: "white",
-    fontSize: 16,
+    fontSize: wp(4.5),
+    fontWeight: 'bold',
   },
   closeIcon: {
-    padding: 5,
+    position: 'absolute',
+    right: wp(35.5),
+    top: hp(-3),
+    padding: wp(1.2),
   },
   subHeaderText: {
     color: "#000000",
-    fontSize: 15,
+    fontSize: wp(3.7),
     textAlign: "center",
-    marginTop: 1,
-    marginBottom: 20,
+    marginTop: hp(0.1),
+    marginBottom: hp(2.5),
   },
   agreementText: {
-    marginTop: 0,
+    marginTop: hp(0),
     textAlign: "center",
     color: "black",
-    fontSize: 14,
-    marginBottom: 20,
+    fontSize: wp(3.5),
+    marginBottom: hp(2.5),
   },
 });

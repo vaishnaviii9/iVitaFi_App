@@ -1,6 +1,6 @@
-
 // ProfileScreen.styles.ts
 import { StyleSheet } from "react-native";
+import { widthPercentageToDP as wp, heightPercentageToDP as hp } from "react-native-responsive-screen";
 
 const styles = StyleSheet.create({
   container: {
@@ -9,23 +9,23 @@ const styles = StyleSheet.create({
   },
   headerContainer: {
     backgroundColor: "#27446F",
-    paddingVertical: 30,
-    paddingHorizontal: 20,
-    borderBottomLeftRadius: 60,
-    borderBottomRightRadius: 60,
-    height: 250,
+    paddingVertical: hp("4%"),
+    paddingHorizontal: wp("5%"),
+    borderBottomLeftRadius: wp("15%"),
+    borderBottomRightRadius: wp("15%"),
+    height: hp("30%"),
     flexDirection: "column",
     justifyContent: "space-between",
   },
   backButton: {
-    padding: 4,
-    top: 35,
+    padding: wp("1%"),
+    top: hp("2%"),
   },
   headerText: {
     color: "#FFFFFF",
-    fontSize: 30,
+    fontSize: wp("7%"),
     fontWeight: "bold",
-    top: 35,
+    top: hp("2%"),
   },
   headerItems: {
     flexDirection: "row",
@@ -34,43 +34,43 @@ const styles = StyleSheet.create({
   },
   detailsContainer: {
     flex: 1,
-    marginTop: 30,
-    paddingHorizontal: 10,
+    marginTop: hp("2%"),
+    paddingHorizontal: wp("2.5%"),
   },
   scrollViewContent: {
-    paddingBottom: 20,
+    paddingBottom: hp("2%"),
   },
   row: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 35,
+    marginBottom: hp("3%"),
   },
   icon: {
-    marginRight: 2,
-    width: 60,
+    marginRight: wp("2%"),
+    width: wp("15%"),
     alignItems: "center",
   },
   label: {
     color: "#000000",
-    fontSize: 22,
+    fontSize: wp("5%"),
     fontWeight: "600",
   },
   value: {
     color: "#333333",
-    fontSize: 18,
+    fontSize: wp("4.5%"),
   },
   input: {
-    fontSize: 18,
+    fontSize: wp("4.5%"),
     color: "#333333",
     borderBottomWidth: 1,
     borderBottomColor: "#CCCCCC",
-    paddingVertical: 4,
-    minWidth: 200,
+    paddingVertical: hp("0.5%"),
+    minWidth: wp("50%"),
   },
   avatarIcon: {
-    width: 80,
-    height: 80,
-    borderRadius: 25,
+    width: wp("20%"),
+    height: wp("20%"),
+    borderRadius: wp("10%"),
   },
   avatar: {
     alignItems: "center",
@@ -78,18 +78,19 @@ const styles = StyleSheet.create({
   },
   saveButtonContainer: {
     alignItems: "center",
-    marginBottom: 20,
-    marginTop: 10,
+    marginBottom: hp("2%"),
+    marginTop: hp("1%"),
   },
   saveButton: {
+    marginBottom: hp("3%"),
     backgroundColor: "#27446F",
-    paddingVertical: 12,
-    paddingHorizontal: 40,
-    borderRadius: 30,
+    paddingVertical: hp("1.5%"),  
+    paddingHorizontal: wp("15%"),
+    borderRadius: wp("7%"),
   },
   saveButtonText: {
     color: "#FFFFFF",
-    fontSize: 18,
+    fontSize: wp("4.5%"),
     fontWeight: "bold",
   },
 });

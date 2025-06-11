@@ -740,12 +740,12 @@ const MakeAdditionalPayment = () => {
                 marginBottom: 15,
               }}
             >
-              <Text style={styles.modalText}>Success</Text>
+ 
               <TouchableOpacity
                 style={styles.closeIcon}
                 onPress={() => setIsModalVisible(false)}
               >
-                <Ionicons name="close" size={24} color="black" />
+                <Ionicons name="close" size={34} color="black" />
               </TouchableOpacity>
             </View>
             <Text style={styles.modalText}>Your payment was successful</Text>
