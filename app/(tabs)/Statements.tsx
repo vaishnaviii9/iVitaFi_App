@@ -86,13 +86,13 @@ const Statements: React.FC = () => {
   };
 
   const handleViewPress = async (item: any) => {
-    try {
-      const fileUri = await downloadPDF(item.fileName);
-      setPdfUri(fileUri);
-    } catch (error) {
+    // try {
+    //   const fileUri = await downloadPDF(item.fileName);
+    //   setPdfUri(fileUri);
+    // } catch (error) {
      
-      return { type: "error", error: { errorCode: ErrorCode.Unknown } };
-    }
+    //   return { type: "error", error: { errorCode: ErrorCode.Unknown } };
+    // }
   };
 
   const handleDownloadPress = async (item: any) => {
@@ -168,7 +168,7 @@ const Statements: React.FC = () => {
                 <View style={styles.actions}>
                   <Pressable
                     style={styles.actionButton}
-                    onPress={() => handleViewPress(item)}
+                   
                   >
                     <Ionicons name="eye-outline" size={24} color="#FFFFFF" />
                   </Pressable>
