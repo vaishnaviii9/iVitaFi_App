@@ -52,8 +52,8 @@ export const styles = StyleSheet.create({
     borderWidth: 1,
     marginBottom: 10,
     paddingHorizontal: 10,
-    backgroundColor: "#f0f0f0",
-    color: "black",
+    backgroundColor: "#E9ECEF",
+    color: "#838383",
   },
   pickerWrapper: {
     borderWidth: 1,
@@ -123,6 +123,7 @@ export const styles = StyleSheet.create({
   helpLink: {
     color: "#27446F",
     marginBottom: 15,
+    textDecorationLine: "underline",
   },
   datePickerButton: {
     flexDirection: "row",
@@ -134,7 +135,7 @@ export const styles = StyleSheet.create({
     borderRadius: 5,
     paddingHorizontal: 10,
     marginBottom: 15,
-    backgroundColor: "#ffffff",
+    backgroundColor: "#F8F9FA",
   },
   dateText: {
     color: "#000000",
@@ -148,6 +149,9 @@ export const styles = StyleSheet.create({
     borderRadius: 20,
     alignItems: "center",
     marginTop: 20,
+  },
+  submitButtonDisabled: {
+    opacity: 0.6, // This makes the button appear faint
   },
   submitButtonText: {
     color: "#FFFFFF",
@@ -242,5 +246,16 @@ export const styles = StyleSheet.create({
     fontSize: 16,
     marginBottom: 20,
     textAlign: "center",
+  },
+
+  PaymentAmountField:{
+    height: 40,
+    borderColor: "#ccc",
+    borderWidth: 1,
+    marginBottom: 10,
+    paddingHorizontal: 10,
+    backgroundColor: "#F8F9FA",
+    color: "black",
+    borderRadius: 6,
   },
 });

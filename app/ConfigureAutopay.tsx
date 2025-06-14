@@ -1292,7 +1292,7 @@ const ConfigureAutopay = () => {
                         <TextInput
                           style={styles.specificInput}
                           placeholder="Enter card number"
-                          placeholderTextColor="black"
+                          placeholderTextColor="gray"
                           value={cardNumber}
                           onChangeText={setCardNumber}
                           keyboardType="numeric"
@@ -2069,7 +2069,7 @@ const ConfigureAutopay = () => {
                     )}
                     <Text style={styles.helpText}>Payment Amount</Text>
                     <TextInput
-                      style={styles.specificInput}
+                      style={styles.PaymentAmountField}
                       placeholder="Enter payment amount"
                       placeholderTextColor="black"
                       value={paymentAmount}
@@ -2110,15 +2110,18 @@ const ConfigureAutopay = () => {
                         </Text>
                       </TouchableOpacity>
                     </View>
-                    <TouchableOpacity
-                      style={styles.submitButton}
-                      onPress={handleSubmit}
-                      disabled={isSubmitting} // Disable the button if submitting
-                    >
-                      <Text style={styles.submitButtonText}>
-                        {isSubmitting ? "Submitting..." : "SUBMIT"}
-                      </Text>
-                    </TouchableOpacity>
+<TouchableOpacity
+  style={[
+    styles.submitButton,
+    isSubmitting && styles.submitButtonDisabled, // Apply the disabled style if isSubmitting is true
+  ]}
+  onPress={handleSubmit}
+  disabled={isSubmitting} // Disable the button if submitting
+>
+  <Text style={styles.submitButtonText}>
+    {isSubmitting ? "Submitting..." : "SUBMIT"}
+  </Text>
+</TouchableOpacity>
                   </>
                 )}
               </View>
