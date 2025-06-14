@@ -246,7 +246,7 @@ const ManagePayments = () => {
     zip: "",
   });
 
-    const [isDefault, setIsDefault] = useState(false);
+  const [isDefault, setIsDefault] = useState(false);
   const [isDefaultMethod, setIsDefaultMethod] = useState<boolean>(false);
   const [accountSummary, setAccountSummary] = useState<CreditSummary | null>(
     null
@@ -361,7 +361,7 @@ const ManagePayments = () => {
 
   useEffect(() => {
     fetchData();
-  }, [accountSummary, savedMethods,token]);
+  }, [accountSummary, savedMethods, token]);
 
   useFocusEffect(
     useCallback(() => {
@@ -1299,49 +1299,52 @@ const ManagePayments = () => {
           ) : errorMessage ? (
             <Text style={styles.errorMessage}>{errorMessage}</Text>
           ) : (
-            savedMethods.map((method) => (
-              <View key={method.id} style={styles.savedMethodContainer}>
-                <FontAwesome
-                  name="credit-card"
-                  size={28}
-                  color="#27446F"
-                  style={styles.savedMethodImage}
-                />
-                <View style={styles.savedMethodTextContainer}>
-                  {method.default && (
-                    <View style={styles.defaultLabelContainer}>
-                      <Text style={styles.defaultLabel}>Default</Text>
-                    </View>
-                  )}
-                  <Text style={styles.savedMethodLabel}>
-                    {method.cardNumber
-                      ? `Debit Card - ${getLast4Digits(method.cardNumber)}`
-                      : `Checking Account - ${getLast4Digits(
-                          method.accountNumber
-                        )}`}
-                  </Text>
-                  {method.cardNumber && method.expirationDate && (
-                    <Text style={styles.expirationLabel}>
-                      {formatCardExpiryStatus(method.expirationDate)}
+            // Sort savedMethods to show the default method first
+            [...savedMethods]
+              .sort((a, b) => (b.default ? 1 : -1))
+              .map((method) => (
+                <View key={method.id} style={styles.savedMethodContainer}>
+                  <FontAwesome
+                    name="credit-card"
+                    size={28}
+                    color="#27446F"
+                    style={styles.savedMethodImage}
+                  />
+                  <View style={styles.savedMethodTextContainer}>
+                    {method.default && (
+                      <View style={styles.defaultLabelContainer}>
+                        <Text style={styles.defaultLabel}>Default</Text>
+                      </View>
+                    )}
+                    <Text style={styles.savedMethodLabel}>
+                      {method.cardNumber
+                        ? `Debit Card - ${getLast4Digits(method.cardNumber)}`
+                        : `Checking Account - ${getLast4Digits(
+                            method.accountNumber
+                          )}`}
                     </Text>
+                    {method.cardNumber && method.expirationDate && (
+                      <Text style={styles.expirationLabel}>
+                        {formatCardExpiryStatus(method.expirationDate)}
+                      </Text>
+                    )}
+                  </View>
+                  {method.hasPaymentToken && (
+                    <TouchableOpacity
+                      style={styles.editButton}
+                      onPress={() => handleEditMethod(method)}
+                    >
+                      <Ionicons name="create" size={30} color="#27446F" />
+                    </TouchableOpacity>
                   )}
-                </View>
-                {method.hasPaymentToken && (
                   <TouchableOpacity
-                    style={styles.editButton}
-                    onPress={() => handleEditMethod(method)}
+                    style={styles.deleteButton}
+                    onPress={() => openConfirmDeleteModal(method.id)}
                   >
-                    <Ionicons name="create" size={30} color="#27446F" />
+                    <Ionicons name="trash" size={30} color="#FF0000" />
                   </TouchableOpacity>
-                )}
-                <TouchableOpacity
-                  style={styles.deleteButton}
-                  onPress={() => openConfirmDeleteModal(method.id)}
-                >
-                  <Ionicons name="trash" size={30} color="#FF0000" />
-                </TouchableOpacity>
-              </View>
-            ))
+                </View>
+              ))
           )}
 
           <Text style={styles.addNewPayHeader}>Add New Payment Method</Text>
