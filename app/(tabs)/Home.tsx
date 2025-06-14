@@ -165,12 +165,13 @@ const fetchAllData = useCallback(async () => {
         if ('isAutoPay' in paymentSetupData) {
           setCreditSummaries(creditSummaries);
           const validSummary = creditSummaries.find((summary) => summary !== null);
-          if (validSummary) {
-            // setCurrentAmountDue(
-            //   validSummary?.detail?.creditAccount?.paymentSchedule?.paymentAmount
-            // );
-                setCurrentAmountDue(validSummary?.totalAmountDue);
-
+         if (validSummary) {
+            // Conditional logic for setting currentAmountDue
+            if (validSummary.currentAmountDue > 0 || validSummary.currentBalance > 0) {
+              setCurrentAmountDue(validSummary.totalAmountDue);
+            } else {
+              setCurrentAmountDue(validSummary?.detail?.creditAccount?.paymentSchedule?.paymentAmount);
+            }
             const accountNum = validSummary.paymentMethod?.accountNumber;
             const cardNum = validSummary.paymentMethod?.cardNumber;
 
