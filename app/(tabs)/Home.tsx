@@ -1,5 +1,12 @@
 import React, { useCallback, useState, useEffect } from "react";
-import { View, Text, TouchableOpacity, Image, Pressable, ScrollView } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Image,
+  Pressable,
+  ScrollView,
+} from "react-native";
 import { useSelector, useDispatch } from "react-redux";
 import SkeletonLoader from "../../components/SkeletonLoader";
 import RecentTransactions from "../../features/transactions/RecentTransactions";
@@ -13,7 +20,10 @@ import { fetchPendingTransactions } from "../../app/services/pendingTransactions
 import { logout } from "../../features/login/loginSlice";
 import { CreditApplicationStatus } from "../../utils/CreditApplicationStatusUtil";
 import styles from "../../components/styles/HomeStyles";
-import { setShowMakePayment, setShowMakeAdditionalPayment } from "../../features/buttonVisibility/buttonVisibilitySlice";
+import {
+  setShowMakePayment,
+  setShowMakeAdditionalPayment,
+} from "../../features/buttonVisibility/buttonVisibilitySlice";
 import { ErrorCode } from "../../utils/ErrorCodeUtil";
 
 interface CreditApplication {
@@ -28,10 +38,21 @@ interface CreditAccountPaymentSetupDto {
   isProfile: boolean;
 }
 
+interface PaymentSetupData {
+  isPaymentMethod: boolean;
+  isPaymentSchedule: boolean;
+  isAutoPay: boolean;
+  isProfile: boolean;
+}
+
 const HomeScreen: React.FC = () => {
   const dispatch = useDispatch();
-  const { firstName, lastName, token } = useSelector((state: any) => state.auth);
-  const creditAccountId = useSelector((state: any) => state.creditAccount.creditAccountId);
+  const { firstName, lastName, token } = useSelector(
+    (state: any) => state.auth
+  );
+  const creditAccountId = useSelector(
+    (state: any) => state.creditAccount.creditAccountId
+  );
   const navigation = useNavigation();
 
   const [userData, setUserData] = useState<any>(null);
@@ -47,14 +68,20 @@ const HomeScreen: React.FC = () => {
   const [last4Digits, setLast4Digits] = useState<string | null>(null);
   const [isCardNumber, setIsCardNumber] = useState<boolean>(false);
   const [transactions, setTransactions] = useState<any[]>([]);
-  const [paymentSetupData, setPaymentSetupData] = useState<CreditAccountPaymentSetupDto | null>(null);
+  const [paymentSetupData, setPaymentSetupData] =
+    useState<CreditAccountPaymentSetupDto | null>(null);
 
   // State variables for customer standing logic
-  const [customerStandingDisplayMessage, setCustomerStandingDisplayMessage] = useState<string | null>(null);
-  const [noAdditionalPayment, setNoAdditionalPayment] = useState<boolean | null>(false);
+  const [customerStandingDisplayMessage, setCustomerStandingDisplayMessage] =
+    useState<string | null>(null);
+  const [noAdditionalPayment, setNoAdditionalPayment] = useState<
+    boolean | null
+  >(false);
   const [setUpAutopay, setSetUpAutopay] = useState<boolean | null>(false);
   const [enableClick, setEnableClick] = useState<boolean | null>(false);
-  const [enableConfigureAutopayText, setEnableConfigureAutopayText] = useState<boolean | null>(false);
+  const [enableConfigureAutopayText, setEnableConfigureAutopayText] = useState<
+    boolean | null
+  >(false);
   const [closedAccount, setClosedAccount] = useState<boolean | null>(false);
   const [bankruptAccount, setBankruptAccount] = useState<boolean | null>(false);
   const [isActiveClass, setIsActiveClass] = useState<boolean | null>(false);
@@ -82,148 +109,176 @@ const HomeScreen: React.FC = () => {
     setIsActiveClass(null);
   };
 
-  
   const fetchPaymentSetupData = useCallback(
-    async (creditAccountId: string) => {
-      try {
-        const response = await fetch(
-          `https://dev.ivitafi.com/api/admin/credit-account/${creditAccountId}/accountPaymentSetup`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-        if (response.ok) {
-          const data = await response.json();
-          setPaymentSetupData(data);
-        }
-      } catch (error) {
-      return { type: "error", error: { errorCode: ErrorCode.Unknown } };
-      }
-    },
-    [token]
-  );
-
-  const fetchAllData = useCallback(async () => {
+  async (creditAccountId: string): Promise<PaymentSetupData | { type: string; error: { errorCode: ErrorCode } }> => {
     try {
-      setLoading(true);
-      const [userResponse, customerResponse] = await Promise.all([
-        fetchUserData(token, setUserData),
-        fetchCustomerData(token, setCustomerData),
-      ]);
-
-      if (customerResponse?.creditAccounts) {
-        const accountNumbers = customerResponse.creditAccounts.map(
-          (application: CreditApplication) => application.accountNumber
-        );
-        setAccountNumbers(accountNumbers);
-
-        const { creditSummaries, creditAccountId } = await fetchCreditSummariesWithId(customerResponse, token);
-
-        if (creditAccountId) {
-          dispatch(setCreditAccountId(creditAccountId));
-          await fetchPaymentSetupData(creditAccountId);
+      const response = await fetch(
+        `https://dev.ivitafi.com/api/admin/credit-account/${creditAccountId}/accountPaymentSetup`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
+      );
 
-        setCreditSummaries(creditSummaries);
-        const validSummary = creditSummaries.find((summary) => summary !== null);
-        if (validSummary) {
-          setCurrentAmountDue(validSummary?.totalAmountDue);
+      if (response.ok) {
+        const data: PaymentSetupData = await response.json();
+        setPaymentSetupData(data);
+        return data;
+      } else {
+        return { type: "error", error: { errorCode: ErrorCode.Unknown } };
+      }
+    } catch (error) {
+      console.error("Error fetching payment setup data:", error);
+      return { type: "error", error: { errorCode: ErrorCode.Unknown } };
+    }
+  },
+  [token]
+);
 
-          const accountNum = validSummary.paymentMethod?.accountNumber;
-          const cardNum = validSummary.paymentMethod?.cardNumber;
 
-          if (accountNum) {
-            setLast4Digits(accountNum.slice(-4));
-            setIsCardNumber(false);
-          } else if (cardNum) {
-            setLast4Digits(cardNum.slice(-4));
-            setIsCardNumber(true);
-          } else {
-            setLast4Digits(null);
-            setIsCardNumber(false);
+// Inside fetchAllData function
+const fetchAllData = useCallback(async () => {
+  try {
+    setLoading(true);
+    const [userResponse, customerResponse] = await Promise.all([
+      fetchUserData(token, setUserData),
+      fetchCustomerData(token, setCustomerData),
+    ]);
+
+    if (customerResponse?.creditAccounts) {
+      const accountNumbers = customerResponse.creditAccounts.map(
+        (application: { accountNumber: any }) => application.accountNumber
+      );
+      setAccountNumbers(accountNumbers);
+
+      const { creditSummaries, creditAccountId } = await fetchCreditSummariesWithId(
+        customerResponse,
+        token
+      );
+
+      if (creditAccountId) {
+        dispatch(setCreditAccountId(creditAccountId));
+        const paymentSetupData = await fetchPaymentSetupData(creditAccountId);
+        console.log("Fetched payment setup data:", paymentSetupData);
+
+        if ('isAutoPay' in paymentSetupData) {
+          setCreditSummaries(creditSummaries);
+          const validSummary = creditSummaries.find((summary) => summary !== null);
+          if (validSummary) {
+            // setCurrentAmountDue(
+            //   validSummary?.detail?.creditAccount?.paymentSchedule?.paymentAmount
+            // );
+                setCurrentAmountDue(validSummary?.totalAmountDue);
+
+            const accountNum = validSummary.paymentMethod?.accountNumber;
+            const cardNum = validSummary.paymentMethod?.cardNumber;
+
+            if (accountNum) {
+              setLast4Digits(accountNum.slice(-4));
+              setIsCardNumber(false);
+            } else if (cardNum) {
+              setLast4Digits(cardNum.slice(-4));
+              setIsCardNumber(true);
+            } else {
+              setLast4Digits(null);
+              setIsCardNumber(false);
+            }
+
+            setBalance(validSummary.currentBalance);
+            setAvailableCredit(validSummary.displayAvailableCredit);
+
+            const date = new Date(validSummary.nextPaymentDate);
+            const formattedDate = `${String(date.getMonth() + 1).padStart(2, "0")}/${String(date.getDate()).padStart(2, "0")}`;
+            setNextPaymentDate(formattedDate);
+
+            const isAutoPay = paymentSetupData.isAutoPay;
+            setAutopay(isAutoPay);
+            dispatch({ type: "SET_AUTOPLAY_ENABLED", payload: isAutoPay });
+
+            console.log("Set isAutoPay to:", isAutoPay);
+
+            determineCustomerStandingPaymentOptions(validSummary, paymentSetupData);
           }
-
-          setBalance(validSummary.currentBalance);
-          setAvailableCredit(validSummary.displayAvailableCredit);
-
-          const date = new Date(validSummary.nextPaymentDate);
-          const formattedDate = `${String(date.getMonth() + 1).padStart(2, "0")}/${String(date.getDate()).padStart(2, "0")}`;
-          setNextPaymentDate(formattedDate);
-
-          const isAutopayEnabled = validSummary.detail?.creditAccount?.paymentSchedule?.autoPayEnabled;
-          setAutopay(isAutopayEnabled);
-          dispatch({ type: "SET_AUTOPLAY_ENABLED", payload: isAutopayEnabled });
-
-          determineCustomerStandingPaymentOptions(validSummary, paymentSetupData);
         }
       }
 
       if (creditAccountId) {
-        const transactionsResponse = await fetchPendingTransactions(token, creditAccountId);
+        const transactionsResponse = await fetchPendingTransactions(
+          token,
+          creditAccountId
+        );
         setTransactions(transactionsResponse || []);
       }
-    } catch (error) {
-      return { type: "error", error: { errorCode: ErrorCode.Unknown } };
-    } finally {
-      setLoading(false);
     }
-  }, [token, dispatch, creditAccountId]);
+  } catch (error) {
+    console.error("Error fetching data:", error);
+  } finally {
+    setLoading(false);
+  }
+}, [token, dispatch, creditAccountId]);
 
-  const determineCustomerStandingPaymentOptions = (
-    validSummary: any,
-    paymentSetupData: CreditAccountPaymentSetupDto | null
-  ) => {
-    const isAccountClosed = validSummary.detail?.creditAccount?.creditApplication?.status === CreditApplicationStatus.AccountClosed;
-    const isBankrupt = validSummary.isBankrupt;
-    const isAutoPay = paymentSetupData?.isAutoPay;
-    const currentAmountDue = validSummary.currentAmountDue;
-    const currentBalance = validSummary.currentBalance;
-    const daysDelinquent = validSummary.daysDelinquent;
-    const totalAmountDue = validSummary.totalAmountDue;
+// Inside determineCustomerStandingPaymentOptions function
+const determineCustomerStandingPaymentOptions = (
+  validSummary: { detail: { creditAccount: { creditApplication: { status: CreditApplicationStatus; }; }; }; isBankrupt: any; currentAmountDue: any; currentBalance: any; daysDelinquent: any; totalAmountDue: any; },
+  paymentSetupData: CreditAccountPaymentSetupDto | null
+) => {
+  const isAccountClosed =
+    validSummary.detail?.creditAccount?.creditApplication?.status ===
+    CreditApplicationStatus.AccountClosed;
+  const isBankrupt = validSummary.isBankrupt;
+  const isAutoPay = paymentSetupData?.isAutoPay !== undefined ? paymentSetupData.isAutoPay : false;
+  const currentAmountDue = validSummary.currentAmountDue;
+  const currentBalance = validSummary.currentBalance;
+  const daysDelinquent = validSummary.daysDelinquent;
+  const totalAmountDue = validSummary.totalAmountDue;
 
-    if (isAccountClosed) {
-      setCustomerStandingDisplayMessage("ACCOUNT IS CLOSED");
-      setNoAdditionalPayment(true);
-      setSetUpAutopay(false);
-      setClosedAccount(true);
-      setIsActiveClass(true);
-    } else if (isBankrupt) {
-      setCustomerStandingDisplayMessage("ACCOUNT IN BANKRUPTCY");
-      setIsActiveClass(true);
-      setEnableClick(true);
-      setSetUpAutopay(false);
-      setNoAdditionalPayment(true);
-      setBankruptAccount(true);
-    } else if (isAutoPay === false && !isBankrupt && !isAccountClosed) {
-      setEnableConfigureAutopayText(false);
+  console.log("isAutoPay in determineCustomerStandingPaymentOptions:", isAutoPay); // Debugging log
+
+  if (isAccountClosed) {
+    setCustomerStandingDisplayMessage("ACCOUNT IS CLOSED");
+    setNoAdditionalPayment(true);
+    setSetUpAutopay(false);
+    setClosedAccount(true);
+    setIsActiveClass(true);
+  } else if (isBankrupt) {
+    setCustomerStandingDisplayMessage("ACCOUNT IN BANKRUPTCY");
+    setIsActiveClass(true);
+    setEnableClick(true);
+    setSetUpAutopay(false);
+    setNoAdditionalPayment(true);
+    setBankruptAccount(true);
+  } else if (isAutoPay === false && !isBankrupt && !isAccountClosed) {
+    setEnableConfigureAutopayText(false);
+    setSetUpAutopay(true);
+    setNoAdditionalPayment(true);
+    setEnableClick(true);
+  } else if (
+    currentAmountDue === 0 &&
+    isAutoPay === true &&
+    currentBalance > 0
+  ) {
+    setEnableConfigureAutopayText(false);
+    setSetUpAutopay(false);
+    setEnableClick(true);
+    setClosedAccount(false);
+    setNoAdditionalPayment(false);
+  } else if (
+    (currentAmountDue === 0 && isAutoPay === false && currentBalance > 0) ||
+    (currentAmountDue > 0 && totalAmountDue - currentAmountDue === 0) ||
+    (totalAmountDue - currentAmountDue > 0 && daysDelinquent <= 60) ||
+    (totalAmountDue - currentAmountDue > 0 && daysDelinquent > 60)
+  ) {
+    if (isAutoPay === false && !isBankrupt && !isAccountClosed) {
       setSetUpAutopay(true);
-      setNoAdditionalPayment(true);
-      setEnableClick(true);
-    } else if (currentAmountDue === 0 && isAutoPay === true && currentBalance > 0) {
-      setEnableConfigureAutopayText(false);
+    } else {
       setSetUpAutopay(false);
       setEnableClick(true);
-      setClosedAccount(false);
-      setNoAdditionalPayment(false);
-    } else if (
-      (currentAmountDue === 0 && isAutoPay === false && currentBalance > 0) ||
-      (currentAmountDue > 0 && totalAmountDue - currentAmountDue === 0) ||
-      (totalAmountDue - currentAmountDue > 0 && daysDelinquent <= 60) ||
-      (totalAmountDue - currentAmountDue > 0 && daysDelinquent > 60)
-    ) {
-      if (isAutoPay === false && !isBankrupt && !isAccountClosed) {
-        setSetUpAutopay(true);
-      } else {
-        setSetUpAutopay(false);
-        setEnableClick(true);
-        setNoAdditionalPayment(true);
-      }
-    } else {
-      setEnableClick(true);
+      setNoAdditionalPayment(true);
     }
-  };
+  }
+};
+
 
   useFocusEffect(
     useCallback(() => {
@@ -233,17 +288,11 @@ const HomeScreen: React.FC = () => {
 
   const isLoggedOut = useSelector((state: any) => !state.auth.token);
 
-  // useEffect(() => {
-  //   if (isLoggedOut) {
-  //     resetAllState();
-  //   }
-  // }, [isLoggedOut,token]);
-
- useFocusEffect(
+  useFocusEffect(
     useCallback(() => {
       if (isLoggedOut) {
-      resetAllState();
-    }
+        resetAllState();
+      }
     }, [isLoggedOut, token])
   );
 
@@ -275,7 +324,9 @@ const HomeScreen: React.FC = () => {
 
     if (!isVisible) return null;
 
-    const messageStyle = isActiveClass ? styles.accountStatusRed : styles.accountStatus;
+    const messageStyle = isActiveClass
+      ? styles.accountStatusRed
+      : styles.accountStatus;
     const iconStyle = isActiveClass ? styles.iconRed : styles.icon;
 
     return (
@@ -295,7 +346,12 @@ const HomeScreen: React.FC = () => {
   };
 
   useEffect(() => {
-  
+    console.log("Rendering buttons with values:", {
+      noAdditionalPayment,
+      enableClick,
+      setUpAutopay,
+    });
+
     dispatch(setShowMakePayment(noAdditionalPayment && enableClick));
     dispatch(setShowMakeAdditionalPayment(!noAdditionalPayment && enableClick));
   }, [noAdditionalPayment, enableClick, dispatch]);
@@ -319,7 +375,10 @@ const HomeScreen: React.FC = () => {
           <View style={styles.paymentContainer}>
             <View>
               <SkeletonLoader style={styles.paymentLabelSkeleton} type="text" />
-              <SkeletonLoader style={styles.paymentAmountSkeleton} type="text" />
+              <SkeletonLoader
+                style={styles.paymentAmountSkeleton}
+                type="text"
+              />
             </View>
             <View>
               <SkeletonLoader style={styles.paymentLabelSkeleton} type="text" />
@@ -332,7 +391,10 @@ const HomeScreen: React.FC = () => {
           </View>
         </SkeletonLoader>
 
-        <SkeletonLoader style={styles.balanceContainerSkeleton} type="container">
+        <SkeletonLoader
+          style={styles.balanceContainerSkeleton}
+          type="container"
+        >
           <View style={styles.balanceRow}>
             <SkeletonLoader style={styles.balanceLabelSkeleton} type="text" />
             <SkeletonLoader style={styles.balanceValueSkeleton} type="text" />
@@ -347,45 +409,72 @@ const HomeScreen: React.FC = () => {
           <SkeletonLoader style={styles.buttonSkeleton} type="container" />
         </View>
 
-        <SkeletonLoader style={styles.RecentTransactionsContainerSkeleton} type="container">
-          <SkeletonLoader style={styles.recentTransactionsSkeleton} type="text" />
+        <SkeletonLoader
+          style={styles.RecentTransactionsContainerSkeleton}
+          type="container"
+        >
+          <SkeletonLoader
+            style={styles.recentTransactionsSkeleton}
+            type="text"
+          />
         </SkeletonLoader>
       </View>
     );
   }
 
   return (
-   
-      <View style={styles.container}>
-        <View style={styles.headerContainer}>
-          <Pressable onPress={handleHamburgerPress}>
-            <Image source={require("../../assets/images/menus.png")} style={styles.hamburgerIcon} />
-          </Pressable>
-          <View style={styles.iconAndTextContainer}>
-            <View style={styles.infoContainer}>
-              <Text style={styles.userName}>{firstName} {lastName}</Text>
-              <Text style={styles.welcomeText}>Welcome to IvitaFi</Text>
-            </View>
-            <Pressable onPress={handleProfilePress}>
-              <Image source={require("../../assets/images/profile.png")} style={styles.avatarIcon} />
-            </Pressable>
+    <View style={styles.container}>
+      <View style={styles.headerContainer}>
+        <Pressable onPress={handleHamburgerPress}>
+          <Image
+            source={require("../../assets/images/menus.png")}
+            style={styles.hamburgerIcon}
+          />
+        </Pressable>
+        <View style={styles.iconAndTextContainer}>
+          <View style={styles.infoContainer}>
+            <Text style={styles.userName}>
+              {firstName} {lastName}
+            </Text>
+            <Text style={styles.welcomeText}>Welcome to IvitaFi</Text>
           </View>
+          <Pressable onPress={handleProfilePress}>
+            <Image
+              source={require("../../assets/images/profile.png")}
+              style={styles.avatarIcon}
+            />
+          </Pressable>
         </View>
-         <ScrollView contentContainerStyle={styles.container}>
+      </View>
+      <ScrollView contentContainerStyle={styles.container}>
         {renderAccountStatus()}
         <View style={styles.boxContainer}>
           {accountNumbers.length > 0 ? (
             accountNumbers.map((accountNum, index) => (
               <View key={index} style={styles.accountDetails}>
                 <View style={styles.accountNumberContainer}>
-                  <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-                    <Text style={styles.accountNumberText}>Account Number: {accountNum}</Text>
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                    }}
+                  >
+                    <Text style={styles.accountNumberText}>
+                      Account Number: {accountNum}
+                    </Text>
                   </View>
                   <View style={styles.autoPayParent}>
                     {autoPay ? (
-                      <Image source={require("../../assets/images/autopayOn.png")} style={styles.autopayIcon} />
+                      <Image
+                        source={require("../../assets/images/autopayOn.png")}
+                        style={styles.autopayIcon}
+                      />
                     ) : (
-                      <Image source={require("../../assets/images/autopayOff.png")} style={styles.autopayIcon} />
+                      <Image
+                        source={require("../../assets/images/autopayOff.png")}
+                        style={styles.autopayIcon}
+                      />
                     )}
                     <Text style={styles.autoPay}>Auto Pay</Text>
                   </View>
@@ -393,16 +482,24 @@ const HomeScreen: React.FC = () => {
                 <View style={styles.paymentContainer}>
                   <View>
                     <Text style={styles.paymentLabel}>Next Payment</Text>
-                    <Text style={styles.paymentAmount}>${currentAmountDue?.toFixed(2) || " "}</Text>
+                    <Text style={styles.paymentAmount}>
+                      ${currentAmountDue?.toFixed(2) || " "}
+                    </Text>
                   </View>
                   <View>
                     <Text style={styles.paymentLabel}>Payment Date</Text>
-                    <Text style={styles.paymentDate}>{nextPaymentDate || " "}</Text>
+                    <Text style={styles.paymentDate}>
+                      {nextPaymentDate || " "}
+                    </Text>
                   </View>
                   <View>
                     <View>
-                      <Text style={styles.paymentLabel}>{isCardNumber ? "Debit Card" : "Account"}</Text>
-                      <Text style={styles.paymentDate}>{last4Digits ? `*${last4Digits}` : " -- "}</Text>
+                      <Text style={styles.paymentLabel}>
+                        {isCardNumber ? "Debit Card" : "Account"}
+                      </Text>
+                      <Text style={styles.paymentDate}>
+                        {last4Digits ? `*${last4Digits}` : " -- "}
+                      </Text>
                     </View>
                   </View>
                 </View>
@@ -420,31 +517,52 @@ const HomeScreen: React.FC = () => {
           </View>
           <View style={styles.balanceRow}>
             <Text style={styles.availableCredit}>Available Credit</Text>
-            <Text style={styles.text1}>${availableCredit?.toFixed(2) || " "}</Text>
+            <Text style={styles.text1}>
+              ${availableCredit?.toFixed(2) || " "}
+            </Text>
           </View>
         </View>
 
         <View style={styles.buttonContainer}>
           {noAdditionalPayment === false && enableClick === true && (
-            <TouchableOpacity style={styles.button} onPress={handleMakeAdditionalPayment}>
-              <Text style={styles.additionalPaymentText}>Make Additional Payment</Text>
+            <TouchableOpacity
+              style={styles.button}
+              onPress={handleMakeAdditionalPayment}
+            >
+              <Text style={styles.additionalPaymentText}>
+                Make Additional Payment
+              </Text>
             </TouchableOpacity>
           )}
 
           {setUpAutopay === true ? (
             <View style={styles.twoButtons}>
-              <TouchableOpacity style={styles.smallButton} onPress={handleConfigureAutoPay}>
-                <Text style={styles.additionalPaymentText}>Configure AutoPay</Text>
+              <TouchableOpacity
+                style={styles.smallButton}
+                onPress={handleConfigureAutoPay}
+              >
+                <Text style={styles.additionalPaymentText}>
+                  Configure AutoPay
+                </Text>
               </TouchableOpacity>
               {noAdditionalPayment === true && (
-                <TouchableOpacity style={styles.smallButton} onPress={handleMakeAPayment}>
-                  <Text style={styles.additionalPaymentText}>Make a Payment</Text>
+                <TouchableOpacity
+                  style={styles.smallButton}
+                  onPress={handleMakeAPayment}
+                >
+                  <Text style={styles.additionalPaymentText}>
+                    Make a Payment
+                  </Text>
                 </TouchableOpacity>
               )}
             </View>
           ) : (
-            noAdditionalPayment === true && enableClick === true && (
-              <TouchableOpacity style={styles.button} onPress={handleMakeAPayment}>
+            noAdditionalPayment === true &&
+            enableClick === true && (
+              <TouchableOpacity
+                style={styles.button}
+                onPress={handleMakeAPayment}
+              >
                 <Text style={styles.additionalPaymentText}>Make a Payment</Text>
               </TouchableOpacity>
             )
@@ -452,11 +570,14 @@ const HomeScreen: React.FC = () => {
         </View>
 
         <View style={styles.RecentTransactionsContainer}>
-          {creditAccountId ? <RecentTransactions /> : <Text style={styles.noAccountText}>No transactions available</Text>}
+          {creditAccountId ? (
+            <RecentTransactions />
+          ) : (
+            <Text style={styles.noAccountText}>No transactions available</Text>
+          )}
         </View>
-        </ScrollView>
-      </View>
-    
+      </ScrollView>
+    </View>
   );
 };
 

@@ -636,8 +636,7 @@ const ConfigureAutopay = () => {
             }
           }
         } catch (error) {
-               return { type: "error", error: { errorCode: ErrorCode.Unknown } };
-
+          return { type: "error", error: { errorCode: ErrorCode.Unknown } };
         } finally {
           setIsLoading(false); // Set loading to false after data is fetched
         }
@@ -807,6 +806,7 @@ const ConfigureAutopay = () => {
     if (value === "Add Debit Card" || value === "Add Checking Account") {
       router.push("/ManagePayments");
     }
+    setShowPaymentMethodPicker(false);
   };
 
   useEffect(() => {
