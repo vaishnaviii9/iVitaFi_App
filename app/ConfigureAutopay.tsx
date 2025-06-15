@@ -2110,18 +2110,18 @@ const ConfigureAutopay = () => {
                         </Text>
                       </TouchableOpacity>
                     </View>
-<TouchableOpacity
-  style={[
-    styles.submitButton,
-    isSubmitting && styles.submitButtonDisabled, // Apply the disabled style if isSubmitting is true
-  ]}
-  onPress={handleSubmit}
-  disabled={isSubmitting} // Disable the button if submitting
->
-  <Text style={styles.submitButtonText}>
-    {isSubmitting ? "Submitting..." : "SUBMIT"}
-  </Text>
-</TouchableOpacity>
+                    <TouchableOpacity
+                      style={[
+                        styles.submitButton,
+                        isSubmitting && styles.submitButtonDisabled, // Apply the disabled style if isSubmitting is true
+                      ]}
+                      onPress={handleSubmit}
+                      disabled={isSubmitting} // Disable the button if submitting
+                    >
+                      <Text style={styles.submitButtonText}>
+                        {isSubmitting ? "Submitting..." : "SUBMIT"}
+                      </Text>
+                    </TouchableOpacity>
                   </>
                 )}
               </View>

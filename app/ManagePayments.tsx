@@ -394,9 +394,9 @@ const ManagePayments = () => {
           text1: "Success",
           text2: "Customer Payment Method has been deleted successfully.",
           visibilityTime: 3000,
-        autoHide: true,
-        topOffset: 60,
-        bottomOffset: 100,
+          autoHide: true,
+          topOffset: 60,
+          bottomOffset: 100,
         });
       }
     } catch (error) {
@@ -515,9 +515,9 @@ const ManagePayments = () => {
             text1: "Success",
             text2: "Payment method added successfully.",
             visibilityTime: 3000,
-        autoHide: true,
-        topOffset: 60,
-        bottomOffset: 100,
+            autoHide: true,
+            topOffset: 60,
+            bottomOffset: 100,
           });
           resetFormInputs();
           await fetchData();
@@ -539,9 +539,9 @@ const ManagePayments = () => {
             text1: "Error",
             text2: "Please enter a valid routing number and account number.",
             visibilityTime: 3000,
-        autoHide: true,
-        topOffset: 60,
-        bottomOffset: 100,
+            autoHide: true,
+            topOffset: 60,
+            bottomOffset: 100,
           });
         } else {
           Toast.show({
@@ -549,9 +549,9 @@ const ManagePayments = () => {
             text1: "Error",
             text2: "There was an error while adding the payment method.",
             visibilityTime: 3000,
-        autoHide: true,
-        topOffset: 60,
-        bottomOffset: 100,
+            autoHide: true,
+            topOffset: 60,
+            bottomOffset: 100,
           });
         }
       } catch (error) {
@@ -560,9 +560,9 @@ const ManagePayments = () => {
           text1: "Error",
           text2: "An unexpected error occurred. Please try again.",
           visibilityTime: 3000,
-        autoHide: true,
-        topOffset: 60,
-        bottomOffset: 100,
+          autoHide: true,
+          topOffset: 60,
+          bottomOffset: 100,
         });
       } finally {
         setIsSubmitting(false);
@@ -601,10 +601,10 @@ const ManagePayments = () => {
           text1: "Error",
           text2:
             "The debit card you entered has expired. Please update your payment details.",
-            visibilityTime: 3000,
-        autoHide: true,
-        topOffset: 60,
-        bottomOffset: 100,
+          visibilityTime: 3000,
+          autoHide: true,
+          topOffset: 60,
+          bottomOffset: 100,
         });
         setIsSubmitting(false);
         return;
@@ -634,9 +634,9 @@ const ManagePayments = () => {
           text1: "Error",
           text2: "Card Number Already exists.",
           visibilityTime: 3000,
-        autoHide: true,
-        topOffset: 60,
-        bottomOffset: 100,
+          autoHide: true,
+          topOffset: 60,
+          bottomOffset: 100,
         });
         setIsSubmitting(false);
         return;
@@ -658,9 +658,9 @@ const ManagePayments = () => {
             text1: "Success",
             text2: "Payment method added successfully.",
             visibilityTime: 3000,
-        autoHide: true,
-        topOffset: 60,
-        bottomOffset: 100,
+            autoHide: true,
+            topOffset: 60,
+            bottomOffset: 100,
           });
           resetFormInputs();
           await fetchData();
@@ -678,9 +678,9 @@ const ManagePayments = () => {
             text1: "Error",
             text2: formattedMessage,
             visibilityTime: 3000,
-        autoHide: true,
-        topOffset: 60,
-        bottomOffset: 100,
+            autoHide: true,
+            topOffset: 60,
+            bottomOffset: 100,
           });
         }
       } catch (error) {
@@ -689,9 +689,9 @@ const ManagePayments = () => {
           text1: "Error",
           text2: "There was an error while adding the payment method.",
           visibilityTime: 3000,
-        autoHide: true,
-        topOffset: 60,
-        bottomOffset: 100,
+          autoHide: true,
+          topOffset: 60,
+          bottomOffset: 100,
         });
       } finally {
         setIsSubmitting(false);
@@ -837,9 +837,9 @@ const ManagePayments = () => {
             "There was an error while fetching debit card payment information.",
           text2: "Error",
           visibilityTime: 3000,
-        autoHide: true,
-        topOffset: 60,
-        bottomOffset: 100,
+          autoHide: true,
+          topOffset: 60,
+          bottomOffset: 100,
         });
       }
     } else if (method.accountNumber) {
@@ -940,9 +940,9 @@ const ManagePayments = () => {
           text1: "Error",
           text2: "Invalid security code. It must be 3 or 4 digits.",
           visibilityTime: 3000,
-        autoHide: true,
-        topOffset: 60,
-        bottomOffset: 100,
+          autoHide: true,
+          topOffset: 60,
+          bottomOffset: 100,
         });
         setIsSubmitting(false);
         return;
@@ -962,10 +962,10 @@ const ManagePayments = () => {
           text1: "Error",
           text2:
             "The debit card you entered has expired. Please update your payment details.",
-            visibilityTime: 3000,
-        autoHide: true,
-        topOffset: 60,
-        bottomOffset: 100,
+          visibilityTime: 3000,
+          autoHide: true,
+          topOffset: 60,
+          bottomOffset: 100,
         });
         setIsSubmitting(false);
         return;
@@ -986,10 +986,10 @@ const ManagePayments = () => {
             text1: "Success",
             text2:
               "The payment method information has been updated successfully.",
-              visibilityTime: 3000,
-        autoHide: true,
-        topOffset: 60,
-        bottomOffset: 100,
+            visibilityTime: 3000,
+            autoHide: true,
+            topOffset: 60,
+            bottomOffset: 100,
           });
           resetFormInputs();
         } else {
@@ -998,10 +998,10 @@ const ManagePayments = () => {
             text1: "Error",
             text2:
               "Failed to update the payment method information. Please try again.",
-              visibilityTime: 3000,
-        autoHide: true,
-        topOffset: 60,
-        bottomOffset: 100,
+            visibilityTime: 3000,
+            autoHide: true,
+            topOffset: 60,
+            bottomOffset: 100,
           });
         }
       } catch (error) {
@@ -1010,9 +1010,9 @@ const ManagePayments = () => {
           text1: "Error",
           text2: "An unexpected error occurred. Please try again.",
           visibilityTime: 3000,
-        autoHide: true,
-        topOffset: 60,
-        bottomOffset: 100,
+          autoHide: true,
+          topOffset: 60,
+          bottomOffset: 100,
         });
       } finally {
         setIsSubmitting(false);
@@ -1706,7 +1706,10 @@ const ManagePayments = () => {
 
           <View style={styles.submitButtonContainer}>
             <TouchableOpacity
-              style={styles.submitButton}
+              style={[
+                styles.submitButton,
+                isSubmitting && styles.submitButtonDisabled, // Apply the disabled style if isSubmitting is true
+              ]}
               onPress={handleButtonPress}
               disabled={isSubmitting}
             >
