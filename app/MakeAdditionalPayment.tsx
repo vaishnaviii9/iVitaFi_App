@@ -52,9 +52,7 @@ const MakeAdditionalPayment = () => {
   const [expirationYear, setExpirationYear] = useState("");
   const [routingNumber, setRoutingNumber] = useState("");
   const [accountNumber, setAccountNumber] = useState("");
-  const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState<
-    string | null
-  >(null);
+  const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [creditAccountId, setCreditAccountId] = useState<string | null>(null);
@@ -186,7 +184,6 @@ const MakeAdditionalPayment = () => {
             }
           }
         } catch (error) {
-        
           return { type: "error", error: { errorCode: ErrorCode.Unknown } };
         } finally {
           setIsLoading(false);
@@ -392,7 +389,6 @@ const MakeAdditionalPayment = () => {
     };
 
     if (!obj2Ref.current || !creditAccountId || !selectedPaymentMethodId) {
-     
       Toast.show({
         type: "error",
         text1: "Submission Error",
@@ -410,7 +406,6 @@ const MakeAdditionalPayment = () => {
       ...transactionPost,
       expirationDate: formattedExpirationDate,
     };
-
 
     try {
       const result = await postCreditAccountTransactionsNew(
@@ -464,7 +459,7 @@ const MakeAdditionalPayment = () => {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
-      style={{ flex: 1 }}
+      style={styles.container}
     >
       <View style={styles.headerContainer}>
         <TouchableOpacity onPress={handleBackPress} style={styles.backButton}>
@@ -482,8 +477,6 @@ const MakeAdditionalPayment = () => {
       >
         {isLoading ? (
           <>
-            <SkeletonLoader style={styles.helpText} type="text" />
-            <SkeletonLoader style={styles.specificInput} type="input" />
             <SkeletonLoader style={styles.helpText} type="text" />
             <SkeletonLoader style={styles.specificInput} type="input" />
             <SkeletonLoader style={styles.helpText} type="text" />
@@ -605,7 +598,7 @@ const MakeAdditionalPayment = () => {
                   <>
                     <Text style={styles.helpText}>Card Number</Text>
                     <TextInput
-                      style={styles.specificInput}
+                      style={styles.nonEditableInput}
                       placeholder="Enter card number"
                       placeholderTextColor="black"
                       value={cardNumber}
@@ -616,7 +609,7 @@ const MakeAdditionalPayment = () => {
 
                     <Text style={styles.helpText}>Expiration Month</Text>
                     <TextInput
-                      style={styles.specificInput}
+                      style={styles.nonEditableInput}
                       placeholder="Enter expiration month"
                       placeholderTextColor="black"
                       value={expirationMonth}
@@ -627,7 +620,7 @@ const MakeAdditionalPayment = () => {
 
                     <Text style={styles.helpText}>Expiration Year</Text>
                     <TextInput
-                      style={styles.specificInput}
+                      style={styles.nonEditableInput}
                       placeholder="Enter expiration year"
                       placeholderTextColor="black"
                       value={expirationYear}

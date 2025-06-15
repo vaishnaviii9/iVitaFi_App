@@ -52,9 +52,7 @@ const MakeAPayment = () => {
   const [expirationYear, setExpirationYear] = useState("");
   const [routingNumber, setRoutingNumber] = useState("");
   const [accountNumber, setAccountNumber] = useState("");
-  const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState<
-    string | null
-  >(null);
+  const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [creditAccountId, setCreditAccountId] = useState<string | null>(null);
@@ -190,7 +188,6 @@ const MakeAPayment = () => {
             }
           }
         } catch (error) {
-          
           return { type: "error", error: { errorCode: ErrorCode.Unknown } };
         } finally {
           setIsLoading(false);
@@ -396,7 +393,7 @@ const MakeAPayment = () => {
     };
 
     if (!obj2Ref.current || !creditAccountId || !selectedPaymentMethodId) {
-     
+
       Toast.show({
         type: "error",
         text1: "Submission Error",
@@ -414,8 +411,6 @@ const MakeAPayment = () => {
       ...transactionPost,
       expirationDate: formattedExpirationDate,
     };
-
-   
 
     try {
       const result = await postCreditAccountTransactionsNew(
@@ -605,7 +600,7 @@ const MakeAPayment = () => {
                   <>
                     <Text style={styles.helpText}>Card Number</Text>
                     <TextInput
-                      style={styles.specificInput}
+                      style={styles. nonEditableInput}
                       placeholder="Enter card number"
                       placeholderTextColor="black"
                       value={cardNumber}
@@ -616,7 +611,7 @@ const MakeAPayment = () => {
 
                     <Text style={styles.helpText}>Expiration Month</Text>
                     <TextInput
-                      style={styles.specificInput}
+                      style={styles. nonEditableInput}
                       placeholder="Enter expiration month"
                       placeholderTextColor="black"
                       value={expirationMonth}
@@ -627,7 +622,7 @@ const MakeAPayment = () => {
 
                     <Text style={styles.helpText}>Expiration Year</Text>
                     <TextInput
-                      style={styles.specificInput}
+                      style={styles. nonEditableInput}
                       placeholder="Enter expiration year"
                       placeholderTextColor="black"
                       value={expirationYear}
