@@ -166,8 +166,9 @@ const fetchAllData = useCallback(async () => {
           setCreditSummaries(creditSummaries);
           const validSummary = creditSummaries.find((summary) => summary !== null);
          if (validSummary) {
+          let pastDue = validSummary.totalAmountDue - validSummary.currentAmountDue
             // Conditional logic for setting currentAmountDue
-            if (validSummary.currentAmountDue > 0 || validSummary.currentBalance > 0) {
+            if ((pastDue>0 ||validSummary.currentAmountDue > 0 )&& validSummary.currentBalance > 0) {
               setCurrentAmountDue(validSummary.totalAmountDue);
             } else {
               setCurrentAmountDue(validSummary?.detail?.creditAccount?.paymentSchedule?.paymentAmount);
