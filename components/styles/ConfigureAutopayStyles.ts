@@ -60,7 +60,7 @@ export const styles = StyleSheet.create({
     borderColor: "#ccc",
     borderRadius: 6,
     marginBottom: 15,
-    backgroundColor: "#f9f9f9",
+    backgroundColor: "#fff",
     overflow: Platform.OS === "android" ? "hidden" : "visible",
     ...Platform.select({
       ios: {
@@ -135,7 +135,7 @@ export const styles = StyleSheet.create({
     borderRadius: 5,
     paddingHorizontal: 10,
     marginBottom: 15,
-    backgroundColor: "#F8F9FA",
+    // backgroundColor: "#F8F9FA",
   },
   dateText: {
     color: "#000000",
@@ -254,7 +254,7 @@ export const styles = StyleSheet.create({
     borderWidth: 1,
     marginBottom: 10,
     paddingHorizontal: 10,
-    backgroundColor: "#F8F9FA",
+    // backgroundColor: "#F8F9FA",
     color: "black",
     borderRadius: 6,
   },

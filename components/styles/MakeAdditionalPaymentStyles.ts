@@ -59,7 +59,7 @@ export const styles = StyleSheet.create({
     borderColor: "#ccc",
     borderRadius: wp(1.5),
     marginBottom: hp(2),
-    backgroundColor: "#f9f9f9",
+    backgroundColor: "#fff",
     overflow: Platform.OS === "android" ? "hidden" : "visible",
     ...Platform.select({
       ios: {
@@ -76,7 +76,7 @@ export const styles = StyleSheet.create({
         marginTop: hp(1),
         width: wp(100),
         color: "#000000",
-        backgroundColor: "#f9f9f9",
+        backgroundColor: "#fff",
         borderWidth: 1,
         borderColor: "#ccc",
         borderRadius: wp(1.5),
@@ -111,9 +111,20 @@ export const styles = StyleSheet.create({
     borderWidth: 1,
     marginBottom: hp(1),
     paddingHorizontal: wp(2.5),
-    backgroundColor: "#f0f0f0",
+    backgroundColor: "#fff",
     color: "black",
   },
+
+  nonEditableInput: {
+    height: hp(5),
+    borderColor: "#ccc",
+    borderWidth: 1,
+    marginBottom: hp(1),
+    paddingHorizontal: wp(2.5),
+    backgroundColor: "#E9ECEF",
+    color: "#838383",
+  },
+
   datePickerButton: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -193,9 +204,9 @@ export const styles = StyleSheet.create({
     fontSize: wp(4.5),
     fontWeight: 'bold',
   },
-  closeIcon: {
+ closeIcon: {
     position: 'absolute',
-    right: wp(35.5),
+    left: wp(35.5),
     top: hp(-3),
     padding: wp(1.2),
   },
