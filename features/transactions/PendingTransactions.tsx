@@ -10,7 +10,7 @@ import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-nat
 const { height: screenHeight } = Dimensions.get("window");
 
 const Pending = () => {
-  const { transactions, loading } = useTransactions();
+  const { transactions, loading, fetchTransactions } = useTransactions();
 
   if (loading) {
     return (
@@ -45,7 +45,7 @@ const Pending = () => {
       showsVerticalScrollIndicator={true}
     >
       {transactions.length > 0 ? (
-        <TransactionList transactions={transactions} styles={styles} maxTransactions={undefined} />
+        <TransactionList transactions={transactions} styles={styles} maxTransactions={undefined} fetchTransactions={fetchTransactions} />
       ) : (
         <Text style={styles.noTransactionsText}>No recent transactions available.</Text>
       )}
