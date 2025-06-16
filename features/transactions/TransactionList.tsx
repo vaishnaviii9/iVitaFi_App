@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, ScrollView, TouchableOpacity, Modal } from "react-native";
-import { CreditAccountTransactionTypeUtil, CreditAccountTransactionType } from "../../utils/CreditAccountTransactionTypeUtil";
+import {
+  CreditAccountTransactionTypeUtil,
+  CreditAccountTransactionType,
+} from "../../utils/CreditAccountTransactionTypeUtil";
 import styles from "../../components/styles/TransactionListStyles";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import Entypo from "@expo/vector-icons/Entypo";
@@ -10,6 +13,7 @@ import { approvalTransaction } from "../../app/services/approvalTransactionServi
 import Toast from "react-native-toast-message";
 import { useSelector } from "react-redux";
 import { useFocusEffect } from "@react-navigation/native";
+import { Dimensions } from "react-native";
 
 // Define types for your props
 interface Transaction {
@@ -42,6 +46,16 @@ interface TransactionListProps {
   fetchTransactions?: () => void;
 }
 
+const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+
+const wp = (percentage: number) => {
+  return (screenWidth * percentage) / 100;
+};
+
+const hp = (percentage: number) => {
+  return (screenHeight * percentage) / 100;
+};
+
 const compareNow = (expirationDate?: string): number => {
   if (!expirationDate) return -1;
   const now = new Date();
@@ -49,53 +63,102 @@ const compareNow = (expirationDate?: string): number => {
   return now > expiry ? -1 : 1;
 };
 
-const getPendingTransactionClassification = (transaction: Transaction): number => {
+const getPendingTransactionClassification = (
+  transaction: Transaction
+): number => {
   let classification = 0;
 
-  if (transaction.transactionType === CreditAccountTransactionType.ProcedureDischarge) {
+  if (
+    transaction.transactionType ===
+    CreditAccountTransactionType.ProcedureDischarge
+  ) {
     classification = 1;
-  } else if (transaction.transactionType === CreditAccountTransactionType.CardPayment) {
+  } else if (
+    transaction.transactionType === CreditAccountTransactionType.CardPayment
+  ) {
     classification = 14;
-  } else if (transaction.transactionType === CreditAccountTransactionType.AchNonDirectedPayment) {
+  } else if (
+    transaction.transactionType ===
+    CreditAccountTransactionType.AchNonDirectedPayment
+  ) {
     classification = 15;
   } else {
-    if (transaction.requiresCustomerApproval === true && transaction.hasCustomerApproval === true) {
-      if (transaction.transactionType === CreditAccountTransactionType.SubsequentProcedureDischarge) {
+    if (
+      transaction.requiresCustomerApproval === true &&
+      transaction.hasCustomerApproval === true
+    ) {
+      if (
+        transaction.transactionType ===
+        CreditAccountTransactionType.SubsequentProcedureDischarge
+      ) {
         classification = 3;
-      } else if (transaction.transactionType === CreditAccountTransactionType.UpwardAdjustment) {
+      } else if (
+        transaction.transactionType ===
+        CreditAccountTransactionType.UpwardAdjustment
+      ) {
         classification = 7;
-      } else if (transaction.transactionType === CreditAccountTransactionType.DownwardAdjustment) {
+      } else if (
+        transaction.transactionType ===
+        CreditAccountTransactionType.DownwardAdjustment
+      ) {
         classification = 11;
       }
-    } else if (transaction.requiresCustomerApproval === true && transaction.hasCustomerApproval === false) {
-      if (transaction.transactionType === CreditAccountTransactionType.SubsequentProcedureDischarge) {
+    } else if (
+      transaction.requiresCustomerApproval === true &&
+      transaction.hasCustomerApproval === false
+    ) {
+      if (
+        transaction.transactionType ===
+        CreditAccountTransactionType.SubsequentProcedureDischarge
+      ) {
         classification = 4;
-      } else if (transaction.transactionType === CreditAccountTransactionType.UpwardAdjustment) {
+      } else if (
+        transaction.transactionType ===
+        CreditAccountTransactionType.UpwardAdjustment
+      ) {
         classification = 8;
-      } else if (transaction.transactionType === CreditAccountTransactionType.DownwardAdjustment) {
+      } else if (
+        transaction.transactionType ===
+        CreditAccountTransactionType.DownwardAdjustment
+      ) {
         classification = 12;
       }
-    } else if (transaction.requiresCustomerApproval === true && transaction.hasCustomerApproval === null) {
-      if (transaction.transactionType === CreditAccountTransactionType.SubsequentProcedureDischarge) {
+    } else if (
+      transaction.requiresCustomerApproval === true &&
+      transaction.hasCustomerApproval === null
+    ) {
+      if (
+        transaction.transactionType ===
+        CreditAccountTransactionType.SubsequentProcedureDischarge
+      ) {
         if (compareNow(transaction.expirationDate) === -1) {
           classification = 5;
         } else {
           classification = 2;
         }
-      } else if (transaction.transactionType === CreditAccountTransactionType.UpwardAdjustment) {
+      } else if (
+        transaction.transactionType ===
+        CreditAccountTransactionType.UpwardAdjustment
+      ) {
         if (compareNow(transaction.expirationDate) === -1) {
           classification = 9;
         } else {
           classification = 6;
         }
-      } else if (transaction.transactionType === CreditAccountTransactionType.DownwardAdjustment) {
+      } else if (
+        transaction.transactionType ===
+        CreditAccountTransactionType.DownwardAdjustment
+      ) {
         if (compareNow(transaction.expirationDate) === -1) {
           classification = 13;
         } else {
           classification = 10;
         }
       }
-    } else if (transaction.transactionType === CreditAccountTransactionType.DownwardAdjustment) {
+    } else if (
+      transaction.transactionType ===
+      CreditAccountTransactionType.DownwardAdjustment
+    ) {
       classification = 11;
     }
   }
@@ -103,11 +166,23 @@ const getPendingTransactionClassification = (transaction: Transaction): number =
   return classification;
 };
 
-const TransactionList: React.FC<TransactionListProps> = ({ transactions, maxTransactions, styles: passedStyles, fetchTransactions }) => {
+const TransactionList: React.FC<TransactionListProps> = ({
+  transactions,
+  maxTransactions,
+  styles: passedStyles,
+  fetchTransactions,
+}) => {
   const token = useSelector((state: any) => state.auth.token);
   const mergedStyles = { ...styles, ...passedStyles };
   const [modalVisible, setModalVisible] = useState(false);
-  const [selectedTransactionId, setSelectedTransactionId] = useState<string | null>(null);
+  const [selectedTransactionId, setSelectedTransactionId] = useState<
+    string | null
+  >(null);
+  const [operationMessage, setOperationMessage] = useState({
+    title: "",
+    message: "",
+  });
+  const [operationModalVisible, setOperationModalVisible] = useState(false);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -117,28 +192,36 @@ const TransactionList: React.FC<TransactionListProps> = ({ transactions, maxTran
     }, [fetchTransactions])
   );
 
-  const approvalFunction = async (id: string, isApproved: boolean): Promise<void> => {
+  const showOperationModal = (title: string, message: string) => {
+    setOperationMessage({ title, message });
+    setOperationModalVisible(true);
+  };
+
+  const approvalFunction = async (
+    id: string,
+    isApproved: boolean,
+    transactions: Transaction[]
+  ): Promise<void> => {
     const response = await approvalTransaction(id, isApproved, token);
+
+    // Find the transaction by id
+    const transaction = transactions.find((t) => t.id === id);
+    const transactionType = transaction
+      ? CreditAccountTransactionTypeUtil.toString(transaction.transactionType)
+      : "Unknown Type";
+
     if (response.type === "error") {
-      Toast.show({
-        type: "error",
-        text1: "Error",
-        text2: "An error occurred while processing the transaction.",
-        visibilityTime: 3000,
-        autoHide: true,
-        topOffset: 60,
-        bottomOffset: 100,
-      });
+      showOperationModal(
+        "Error",
+        "An error occurred while processing the transaction."
+      );
     } else {
-      Toast.show({
-        type: "success",
-        text1: "Success",
-        text2: `Transaction has been successfully ${isApproved ? "approved" : "rejected"}.`,
-        visibilityTime: 3000,
-        autoHide: true,
-        topOffset: 60,
-        bottomOffset: 100,
-      });
+      showOperationModal(
+        "Success",
+        `${transactionType} transaction has been successfully ${
+          isApproved ? "approved" : "rejected"
+        }.`
+      );
       if (fetchTransactions) {
         fetchTransactions();
       }
@@ -167,11 +250,11 @@ const TransactionList: React.FC<TransactionListProps> = ({ transactions, maxTran
   };
 
   const handleCheckIconPress = (id: string) => {
-    approvalFunction(id, true);
+    approvalFunction(id, true, transactions);
   };
 
   const handleXIconPress = (id: string) => {
-    approvalFunction(id, false);
+    approvalFunction(id, false, transactions);
   };
 
   const handleDeleteConfirmation = async (confirm: boolean) => {
@@ -180,39 +263,18 @@ const TransactionList: React.FC<TransactionListProps> = ({ transactions, maxTran
       try {
         const response = await deleteTransaction(selectedTransactionId, token);
         if (response.status === 200) {
-          Toast.show({
-            type: "success",
-            text1: "Success",
-            text2: "Transaction has been successfully deleted.",
-            visibilityTime: 3000,
-            autoHide: true,
-            topOffset: 60,
-            bottomOffset: 100,
-          });
+          showOperationModal("Success", "Deleted pending transaction.");
           if (fetchTransactions) {
             fetchTransactions();
           }
         } else {
-          Toast.show({
-            type: "error",
-            text1: "Error",
-            text2: "Failed to delete the transaction.",
-            visibilityTime: 3000,
-            autoHide: true,
-            topOffset: 60,
-            bottomOffset: 100,
-          });
+          showOperationModal("Error", "Failed to delete the transaction.");
         }
       } catch (error) {
-        Toast.show({
-          type: "error",
-          text1: "Error",
-          text2: "An error occurred while deleting the transaction.",
-          visibilityTime: 3000,
-          autoHide: true,
-          topOffset: 60,
-          bottomOffset: 100,
-        });
+        showOperationModal(
+          "Error",
+          "An error occurred while deleting the transaction."
+        );
       }
     }
   };
@@ -246,16 +308,23 @@ const TransactionList: React.FC<TransactionListProps> = ({ transactions, maxTran
       if (transactionType === CreditAccountTransactionType.ProcedureDischarge) {
         setDisable(true);
       } else if (
-        transactionType === CreditAccountTransactionType.AchNonDirectedPayment ||
+        transactionType ===
+          CreditAccountTransactionType.AchNonDirectedPayment ||
         transactionType === CreditAccountTransactionType.CardPayment
       ) {
-        if (!(givenDate > currentDate && (executedDate === null || executedDate === undefined))) {
+        if (
+          !(
+            givenDate > currentDate &&
+            (executedDate === null || executedDate === undefined)
+          )
+        ) {
           setDisable(true);
         } else {
           setDisable(false);
         }
       } else if (
-        transactionType === CreditAccountTransactionType.SubsequentProcedureDischarge ||
+        transactionType ===
+          CreditAccountTransactionType.SubsequentProcedureDischarge ||
         transactionType === CreditAccountTransactionType.UpwardAdjustment
       ) {
         setDisable(true);
@@ -280,7 +349,10 @@ const TransactionList: React.FC<TransactionListProps> = ({ transactions, maxTran
     }
 
     return (
-      <TouchableOpacity onPress={() => handleTrashIconPress(id, disable)} disabled={disable}>
+      <TouchableOpacity
+        onPress={() => handleTrashIconPress(id, disable)}
+        disabled={disable}
+      >
         {renderTrashIcon(disable)}
       </TouchableOpacity>
     );
@@ -306,16 +378,25 @@ const TransactionList: React.FC<TransactionListProps> = ({ transactions, maxTran
             ]}
           >
             <View style={mergedStyles.transactionDetailsContainer}>
-              <Text style={[mergedStyles.transactionDetails, mergedStyles.textSmall]}>
+              <Text
+                style={[
+                  mergedStyles.transactionDetails,
+                  mergedStyles.textSmall,
+                ]}
+              >
                 <Text style={mergedStyles.textBold}>{transaction.id}</Text>
                 {"\n"}
                 <Text style={mergedStyles.textSecondary}>
-                  {CreditAccountTransactionTypeUtil.toString(transaction.transactionType) || "Unknown Type"}
+                  {CreditAccountTransactionTypeUtil.toString(
+                    transaction.transactionType
+                  ) || "Unknown Type"}
                 </Text>
                 {"\n"}
                 <Text style={mergedStyles.textSecondary}>
                   {transaction.pendingTransactionDate
-                    ? new Date(transaction.pendingTransactionDate).toLocaleDateString("en-US", {
+                    ? new Date(
+                        transaction.pendingTransactionDate
+                      ).toLocaleDateString("en-US", {
                         month: "2-digit",
                         day: "2-digit",
                         year: "numeric",
@@ -353,22 +434,72 @@ const TransactionList: React.FC<TransactionListProps> = ({ transactions, maxTran
       >
         <View style={mergedStyles.modalContainer}>
           <View style={mergedStyles.modalView}>
-            <TouchableOpacity style={mergedStyles.modalCloseButton} onPress={() => setModalVisible(false)}>
+            <TouchableOpacity
+              style={mergedStyles.modalCloseButton}
+              onPress={() => setModalVisible(false)}
+            >
               <Ionicons name="close" size={25} color="#333" />
             </TouchableOpacity>
             <Text style={mergedStyles.modalTitle}>Delete Transaction</Text>
-            <Text style={mergedStyles.modalText}>Are you sure you want to delete this transaction?</Text>
+            <Text style={mergedStyles.modalText}>
+              Are you sure you want to delete this transaction?
+            </Text>
             <View style={mergedStyles.modalButtonContainer}>
-              <TouchableOpacity style={mergedStyles.modalButton} onPress={() => handleDeleteConfirmation(false)}>
+              <TouchableOpacity
+                style={mergedStyles.modalButton}
+                onPress={() => handleDeleteConfirmation(false)}
+              >
                 <Text style={mergedStyles.modalButtonText}>No</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={mergedStyles.modalButton} onPress={() => handleDeleteConfirmation(true)}>
+              <TouchableOpacity
+                style={mergedStyles.modalButton}
+                onPress={() => handleDeleteConfirmation(true)}
+              >
                 <Text style={mergedStyles.modalButtonText}>Yes</Text>
               </TouchableOpacity>
             </View>
           </View>
         </View>
       </Modal>
+
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={operationModalVisible}
+        onRequestClose={() => setOperationModalVisible(false)}
+      >
+        <View style={mergedStyles.centeredView}>
+          <View style={mergedStyles.modalView}>
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                marginBottom: hp(1.5),
+              }}
+            >
+              <TouchableOpacity
+                style={mergedStyles.closeIcon}
+                onPress={() => setOperationModalVisible(false)}
+              >
+                <Ionicons name="close" size={34} color="black" />
+              </TouchableOpacity>
+            </View>
+            <Text style={mergedStyles.modalTextStyle}>{operationMessage.title}</Text>
+            <Text style={mergedStyles.modalMessageStyle}>
+              {operationMessage.message}
+            </Text>
+            <TouchableOpacity
+              style={mergedStyles.modalButtonStyle}
+              onPress={() => {
+                setOperationModalVisible(!operationModalVisible);
+              }}
+            >
+              <Text style={mergedStyles.modalButtonTextStyle}>Done</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
       <Toast />
     </View>
   );

@@ -312,6 +312,9 @@ modalHeader: {
     alignItems: 'center',
     marginBottom: 20,
   },
+   submitButtonDisabled: {
+    opacity: 0.6, // This makes the button appear faint
+  },
 });
 
 export default styles;

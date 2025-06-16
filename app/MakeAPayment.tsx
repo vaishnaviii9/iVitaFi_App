@@ -701,7 +701,10 @@ const MakeAPayment = () => {
               )}
 
               <TouchableOpacity
-                style={styles.submitButton}
+                 style={[
+                styles.submitButton,
+                isSubmitting && styles.submitButtonDisabled, // Apply the disabled style if isSubmitting is true
+              ]}
                 onPress={handleSubmit}
                 disabled={isSubmitting}
               >
@@ -740,8 +743,7 @@ const MakeAPayment = () => {
               </View>
               <Text style={styles.modalText}>Your payment was successful</Text>
               <Text style={styles.modalMessage}>
-                Thank You! Your payment has been submitted. Please allow 2-4
-                business days for it to be reflected on your account.
+               Thank You! Your payment has been scheduled. Your account balance will be updated when your payment is processed.
               </Text>
               <TouchableOpacity
                 style={styles.modalButton}
