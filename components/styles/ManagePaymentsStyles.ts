@@ -312,43 +312,9 @@ modalHeader: {
     alignItems: 'center',
     marginBottom: 20,
   },
-<<<<<<< HEAD
-    helpLink: {
-    color: "#27446F",
-    marginBottom: 15,
-    textDecorationLine: "underline",
-  },
-  modalContent: {
-    backgroundColor: "white",
-    padding: 20,
-    borderRadius: 10,
-    width: "80%",
-  },
-  modalImage: {
-    width: "100%",
-    height: 200,
-    resizeMode: "contain",
-    marginVertical: 10,
-  },
-    closeButton: {
-    position: "absolute",
-    right: 10,
-    top: 10,
-  },
-  helpText: {
-    color: 'blue',
-    textDecorationLine: 'underline',
-    marginTop: 10,
-    marginBottom: 20,
-    alignSelf: 'center',
-  },
-
-
-=======
    submitButtonDisabled: {
     opacity: 0.6, // This makes the button appear faint
   },
->>>>>>> 479d40c73b34efe2b83a177d7a523d620743d004
 });
 
 export default styles;
