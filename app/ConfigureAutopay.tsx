@@ -1346,49 +1346,7 @@ const ConfigureAutopay = () => {
                         />
                       </>
                     )}
-                    <TouchableOpacity onPress={() => setModalVisible(true)}>
-                      <Text style={styles.helpLink}>
-                        {paymentMethod.startsWith("Debit Card -")
-                          ? "Help me find my card information"
-                          : "Help me find my account information"}
-                      </Text>
-                    </TouchableOpacity>
-                    <Modal
-                      animationType="slide"
-                      transparent={true}
-                      visible={modalVisible}
-                      onRequestClose={() => {
-                        setModalVisible(!modalVisible);
-                      }}
-                    >
-                      <View style={styles.modalContainer}>
-                        <View style={styles.modalContent}>
-                          <Text style={styles.modalText}>
-                            {paymentMethod.startsWith("Debit Card -")
-                              ? "Debit Card"
-                              : "Checking Account"}
-                          </Text>
-
-                          {paymentMethod.startsWith("Debit Card -") ? (
-                            <Image
-                              source={require("../assets/images/debit-image.jpg")}
-                              style={styles.modalImage}
-                            />
-                          ) : (
-                            <Image
-                              source={require("../assets/images/bank-account.jpg")}
-                              style={styles.modalImage}
-                            />
-                          )}
-                          <TouchableOpacity
-                            style={styles.closeButton}
-                            onPress={() => setModalVisible(!modalVisible)}
-                          >
-                            <Ionicons name="close" size={24} color="black" />
-                          </TouchableOpacity>
-                        </View>
-                      </View>
-                    </Modal>
+                  
                     <Text style={styles.helpText}>Payment will be</Text>
                     {Platform.OS === "ios" ? (
                       <>

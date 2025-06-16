@@ -11,6 +11,7 @@ import {
   Platform,
   useColorScheme,
   Pressable,
+  Image,
 } from "react-native";
 import { Ionicons, FontAwesome } from "@expo/vector-icons";
 import { router, useFocusEffect } from "expo-router";
@@ -223,7 +224,7 @@ const ManagePayments = () => {
   const creditAccountId = useSelector(
     (state: any) => state.creditAccount.creditAccountId
   );
-
+  const [isHelpModalVisible, setHelpModalVisible] = useState(false);
   const [routingNumber, setRoutingNumber] = useState("");
   const [accountNumber, setAccountNumber] = useState("");
   const [debitCardInputs, setDebitCardInputs] = useState({
@@ -295,6 +296,7 @@ const ManagePayments = () => {
     null
   );
   const [customerResponse, setCustomerResponse] = useState<any>(null);
+  const [isCardInfoModalVisible, setCardInfoModalVisible] = useState(false);
 
   const isCardExpired = (expMonth: string, expYear: string): boolean => {
     const currentDate = new Date();
@@ -304,6 +306,12 @@ const ManagePayments = () => {
     expirationDate.setHours(23, 59, 59, 999);
 
     return currentDate > expirationDate;
+  };
+  const toggleHelpModal = () => {
+    setHelpModalVisible(!isHelpModalVisible);
+  };
+  const toggleCardInfoModal = () => {
+    setCardInfoModalVisible(!isCardInfoModalVisible);
   };
 
   const fetchData = async () => {
@@ -1475,9 +1483,48 @@ const ManagePayments = () => {
                 {accountNumberError && (
                   <Text style={styles.errorText}>{accountNumberError}</Text>
                 )}
+                <Text style={styles.helpText} onPress={toggleHelpModal}>
+                  Help me find my routing and account number
+                </Text>
               </View>
             </>
           )}
+          <Modal
+            isVisible={isHelpModalVisible}
+            onBackdropPress={toggleHelpModal}
+          >
+            <View style={styles.modalContainer}>
+              <TouchableOpacity
+                onPress={toggleHelpModal}
+                style={styles.modalCloseButton}
+              >
+                <Ionicons name="close" size={24} color="#333" />
+              </TouchableOpacity>
+              <Text style={styles.modalTitle}>Checking Account</Text>
+              <Image
+                source={require("../assets/images/CheckingAccInfo.jpeg")}
+                style={styles.modalImage}
+              />
+            </View>
+          </Modal>
+          <Modal
+            isVisible={isCardInfoModalVisible}
+            onBackdropPress={toggleCardInfoModal}
+          >
+            <View style={styles.modalContainer}>
+              <TouchableOpacity
+                onPress={toggleCardInfoModal}
+                style={styles.modalCloseButton}
+              >
+                <Ionicons name="close" size={24} color="#333" />
+              </TouchableOpacity>
+              <Text style={styles.modalTitle}>Card Information</Text>
+              <Image
+                source={require("../assets/images/CardInfo.jpeg")}
+                style={styles.modalImage}
+              />
+            </View>
+          </Modal>
 
           {selectedMethod === "Add Debit Card" && !isEditModalVisible && (
             <>
@@ -1686,6 +1733,9 @@ const ManagePayments = () => {
                     </Text>
                   )}
               </View>
+              <Text style={styles.helpText} onPress={toggleCardInfoModal}>
+                Help me find my card information
+              </Text>
             </>
           )}
 
