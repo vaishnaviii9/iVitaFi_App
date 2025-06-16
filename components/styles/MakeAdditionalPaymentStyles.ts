@@ -162,7 +162,8 @@ export const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   modalView: {
-    margin: wp(5),
+    width:wp(90), 
+    margin: wp(1),
     backgroundColor: "white",
     borderRadius: wp(5),
     padding: wp(9),
@@ -176,14 +177,14 @@ export const styles = StyleSheet.create({
     shadowRadius: wp(1),
     elevation: 5,
     borderWidth: wp(0.5),
-    borderColor: '#4CAF50',
+    borderColor: 'green',
   },
   modalText: {
     marginBottom: hp(2),
     textAlign: "center",
     fontSize: wp(6),
     fontWeight: "bold",
-    color: '#4CAF50',
+    color: 'green',
   },
   modalMessage: {
     marginBottom: hp(2.5),
@@ -192,11 +193,11 @@ export const styles = StyleSheet.create({
     color: '#555555',
   },
   modalButton: {
-    backgroundColor: "#4CAF50",
+    backgroundColor: "green",
     padding: hp(2),
     borderRadius: wp(2.5),
     alignItems: "center",
-    width: wp(80),
+    width: wp(35),
     marginTop: hp(1.2),
   },
   modalButtonText: {
@@ -206,7 +207,7 @@ export const styles = StyleSheet.create({
   },
  closeIcon: {
     position: 'absolute',
-    left: wp(35.5),
+    left: wp(32.5),
     top: hp(-3),
     padding: wp(1.2),
   },

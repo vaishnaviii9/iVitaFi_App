@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
-import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
+import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 
 const styles = StyleSheet.create({
   container: {
@@ -110,6 +110,45 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  centeredView: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalTextStyle: {
+    marginTop: hp(1.5),
+    marginBottom: hp(1.5),
+    textAlign: "center",
+    fontSize: wp(6),
+    fontWeight: "bold",
+    color: 'green',
+  },
+  modalMessageStyle: {
+    marginBottom: hp(2),
+    textAlign: "center",
+    fontSize: wp(4),
+    color: '#555555',
+  },
+  modalButtonStyle: {
+    backgroundColor: "green",
+    padding: hp(1.5),
+    borderRadius: wp(2.5),
+    alignItems: "center",
+    width: wp(50),
+    marginTop: hp(1),
+  },
+  modalButtonTextStyle: {
+    color: "white",
+    fontSize: wp(3.5),
+    fontWeight: 'bold',
+  },
+  closeIcon: {
+    position: 'absolute',
+    left: wp(29),
+    top: hp(-2.5),
+    padding: wp(1.2),
   },
 });
 
