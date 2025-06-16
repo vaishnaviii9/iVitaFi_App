@@ -312,6 +312,7 @@ modalHeader: {
     alignItems: 'center',
     marginBottom: 20,
   },
+<<<<<<< HEAD
     helpLink: {
     color: "#27446F",
     marginBottom: 15,
@@ -343,6 +344,11 @@ modalHeader: {
   },
 
 
+=======
+   submitButtonDisabled: {
+    opacity: 0.6, // This makes the button appear faint
+  },
+>>>>>>> 479d40c73b34efe2b83a177d7a523d620743d004
 });
 
 export default styles;

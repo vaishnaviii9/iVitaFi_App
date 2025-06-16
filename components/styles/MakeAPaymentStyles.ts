@@ -213,4 +213,7 @@ export const styles = StyleSheet.create({
     fontSize: wp(3.5),
     marginBottom: hp(2),
   },
+   submitButtonDisabled: {
+    opacity: 0.6, // This makes the button appear faint
+  },
 });

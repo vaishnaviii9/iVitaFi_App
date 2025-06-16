@@ -701,7 +701,10 @@ const MakeAPayment = () => {
               )}
 
               <TouchableOpacity
-                style={styles.submitButton}
+                 style={[
+                styles.submitButton,
+                isSubmitting && styles.submitButtonDisabled, // Apply the disabled style if isSubmitting is true
+              ]}
                 onPress={handleSubmit}
                 disabled={isSubmitting}
               >

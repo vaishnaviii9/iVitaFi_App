@@ -1756,7 +1756,10 @@ const ManagePayments = () => {
 
           <View style={styles.submitButtonContainer}>
             <TouchableOpacity
-              style={styles.submitButton}
+              style={[
+                styles.submitButton,
+                isSubmitting && styles.submitButtonDisabled, // Apply the disabled style if isSubmitting is true
+              ]}
               onPress={handleButtonPress}
               disabled={isSubmitting}
             >
