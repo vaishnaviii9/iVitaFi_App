@@ -9,7 +9,6 @@ import {
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
-  useColorScheme,
   Pressable,
   Image,
 } from "react-native";
@@ -56,6 +55,7 @@ interface DebitCardInfoDto {
   phone?: string | null;
   state?: string | null;
 }
+
 interface CreditSummary {
   availableCredit: number;
   displayAvailableCredit: number;
@@ -106,9 +106,9 @@ interface CreditSummary {
       creditLimit: number;
       amountDueMonthly: number;
       customerId: number;
-      customer: any | null; // Replace `any` with a more specific type if possible
+      customer: any | null;
       fundingSourceId: number;
-      fundingSource: any | null; // Replace `any` with a more specific type if possible
+      fundingSource: any | null;
       creditApplicationId: number;
       creditApplication: {
         requestedAmount: number;
@@ -118,35 +118,35 @@ interface CreditSummary {
         status: number;
         expirationDate: string;
         customerId: number;
-        customer: any | null; // Replace `any` with a more specific type if possible
+        customer: any | null;
         fundingSourceId: number;
-        fundingSource: any | null; // Replace `any` with a more specific type if possible
-        createdBySelfService: any | null; // Replace `any` with a more specific type if possible
+        fundingSource: any | null;
+        createdBySelfService: any | null;
         expirationExtensionDate: string | null;
         numberOfCalls: number;
-        bypassTUChecks: any | null; // Replace `any` with a more specific type if possible
-        guarantor: any | null; // Replace `any` with a more specific type if possible
-        patientEpisodes: any | null; // Replace `any` with a more specific type if possible
-        income: any | null; // Replace `any` with a more specific type if possible
-        paymentMethod: any | null; // Replace `any` with a more specific type if possible
-        denials: any | null; // Replace `any` with a more specific type if possible
-        notes: any | null; // Replace `any` with a more specific type if possible
-        statusHistory: any | null; // Replace `any` with a more specific type if possible
-        registration: any | null; // Replace `any` with a more specific type if possible
-        detail: any | null; // Replace `any` with a more specific type if possible
-        underwritingResults: any | null; // Replace `any` with a more specific type if possible
-        account: any | null; // Replace `any` with a more specific type if possible
-        paymentMethodVerifications: any | null; // Replace `any` with a more specific type if possible
-        scoreRecords: any | null; // Replace `any` with a more specific type if possible
-        customerFlags: any | null; // Replace `any` with a more specific type if possible
-        paymentSchedule: any | null; // Replace `any` with a more specific type if possible
-        ruleApplied: any | null; // Replace `any` with a more specific type if possible
+        bypassTUChecks: any | null;
+        guarantor: any | null;
+        patientEpisodes: any | null;
+        income: any | null;
+        paymentMethod: any | null;
+        denials: any | null;
+        notes: any | null;
+        statusHistory: any | null;
+        registration: any | null;
+        detail: any | null;
+        underwritingResults: any | null;
+        account: any | null;
+        paymentMethodVerifications: any | null;
+        scoreRecords: any | null;
+        customerFlags: any | null;
+        paymentSchedule: any | null;
+        ruleApplied: any | null;
         id: number;
         surrogateId: string;
         createdOn: string;
       };
-      transactions: any | null; // Replace `any` with a more specific type if possible
-      pendingTransactions: any | null; // Replace `any` with a more specific type if possible
+      transactions: any | null;
+      pendingTransactions: any | null;
       paymentMethod: {
         customerPaymentMethodId: number;
         customerPaymentMethod: {
@@ -180,9 +180,9 @@ interface CreditSummary {
         surrogateId: string;
         createdOn: string;
       };
-      messages: any | null; // Replace `any` with a more specific type if possible
-      patientEpisodes: any | null; // Replace `any` with a more specific type if possible
-      configuration: any | null; // Replace `any` with a more specific type if possible
+      messages: any | null;
+      patientEpisodes: any | null;
+      configuration: any | null;
       paymentSchedule: {
         autoPayEnabled: boolean;
         paymentFrequency: number;
@@ -201,7 +201,7 @@ interface CreditSummary {
         surrogateId: string;
         createdOn: string;
       };
-      bankruptcy: any | null; // Replace `any` with a more specific type if possible
+      bankruptcy: any | null;
       originationDate: string;
       id: number;
       surrogateId: string;
@@ -249,28 +249,19 @@ const ManagePayments = () => {
 
   const [isDefault, setIsDefault] = useState(false);
   const [isDefaultMethod, setIsDefaultMethod] = useState<boolean>(false);
-  const [accountSummary, setAccountSummary] = useState<CreditSummary | null>(
-    null
-  );
+  const [accountSummary, setAccountSummary] = useState<CreditSummary | null>(null);
   const [isModalVisible, setModalVisible] = useState(false);
   const [savedMethods, setSavedMethods] = useState<PaymentMethod[]>([]);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [isConfirmDeleteModalVisible, setConfirmDeleteModalVisible] =
-    useState(false);
+  const [isConfirmDeleteModalVisible, setConfirmDeleteModalVisible] = useState(false);
   const [methodToDelete, setMethodToDelete] = useState<string | null>(null);
   const [selectedMethod, setSelectedMethod] = useState("Add Checking Account");
   const [isLoading, setIsLoading] = useState(true);
   const [showMonthPicker, setShowMonthPicker] = useState(false);
   const [showYearPicker, setShowYearPicker] = useState(false);
-  const [accountVerificationError, setAccountVerificationError] = useState<
-    string | null
-  >(null);
-  const [routingNumberError, setRoutingNumberError] = useState<string | null>(
-    null
-  );
-  const [accountNumberError, setAccountNumberError] = useState<string | null>(
-    null
-  );
+  const [accountVerificationError, setAccountVerificationError] = useState<string | null>(null);
+  const [routingNumberError, setRoutingNumberError] = useState<string | null>(null);
+  const [accountNumberError, setAccountNumberError] = useState<string | null>(null);
   const [paymentVerified, setPaymentVerified] = useState<boolean | null>(null);
   const [activeField, setActiveField] = useState<string | null>(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -292,9 +283,7 @@ const ManagePayments = () => {
     { label: "12 - Dec", value: "12" },
   ];
   const [isEditModalVisible, setEditModalVisible] = useState(false);
-  const [editingMethod, setEditingMethod] = useState<PaymentMethod | null>(
-    null
-  );
+  const [editingMethod, setEditingMethod] = useState<PaymentMethod | null>(null);
   const [customerResponse, setCustomerResponse] = useState<any>(null);
   const [isCardInfoModalVisible, setCardInfoModalVisible] = useState(false);
 
@@ -307,9 +296,11 @@ const ManagePayments = () => {
 
     return currentDate > expirationDate;
   };
+
   const toggleHelpModal = () => {
     setHelpModalVisible(!isHelpModalVisible);
   };
+
   const toggleCardInfoModal = () => {
     setCardInfoModalVisible(!isCardInfoModalVisible);
   };
@@ -338,7 +329,6 @@ const ManagePayments = () => {
                 }) =>
                   method.cardNumber !== null || method.accountNumber !== null
               );
-              // Transform the methods to include the default property
               const methodsWithDefault = validMethods.map(
                 (method: { id: number | undefined }) => ({
                   ...method,
@@ -801,17 +791,15 @@ const ManagePayments = () => {
   };
 
   const handleEditMethod = async (method: PaymentMethod) => {
-    resetFormInputs(); // Reset the add payment form state
+    resetFormInputs();
 
     if (method.cardNumber) {
       try {
         const debitCardInfo = await fetchDebitCardInfo(method.id);
 
-        // Extract month and year from expirationDate
         const expMonth = debitCardInfo.expirationDate.substring(0, 2);
         const expYearTwoDigits = debitCardInfo.expirationDate.substring(2, 4);
 
-        // Convert two-digit year to full year
         const expirationYearTwoDigits = parseInt(expYearTwoDigits, 10);
         const currentYear = new Date().getFullYear();
         const currentCentury = Math.floor(currentYear / 100) * 100;
@@ -819,10 +807,8 @@ const ManagePayments = () => {
 
         let fullYear: number;
         if (expirationYearTwoDigits < currentYearTwoDigits) {
-          // Year has already passed in this century — assume next century
           fullYear = currentCentury + 100 + expirationYearTwoDigits;
         } else {
-          // Same century
           fullYear = currentCentury + expirationYearTwoDigits;
         }
 
@@ -834,7 +820,7 @@ const ManagePayments = () => {
             debitCardInfo.lastName || customerResponse?.user?.lastName || "",
           cardNumber: debitCardInfo.cardNumber || "",
           expMonth: expMonth,
-          expYear: fullYear.toString(), // Use the full year
+          expYear: fullYear.toString(),
           cvv: "",
           zip: debitCardInfo.zipCode || "",
         });
@@ -909,10 +895,8 @@ const ManagePayments = () => {
       const month = Number(expMonth);
       const year = Number(expYear);
 
-      // Get last day of the correct month
       const lastDay = new Date(year, month, 0).getDate();
 
-      // Create expiration date with last day
       const expirationDateWithTime = new Date(
         year,
         month - 1,
@@ -930,7 +914,6 @@ const ManagePayments = () => {
         expirationDateTime: expirationDateWithTime,
         zipCode: editDebitCardInputs.zip,
         customerPaymentMethodId: Number(editingMethod.id),
-        // Additional fields
         address1: null,
         address2: null,
         city: null,
@@ -1124,7 +1107,7 @@ const ManagePayments = () => {
                     }
                     style={styles.inputField}
                     placeholderTextColor={"#707073"}
-                    editable={false} // Make this field read-only
+                    editable={false}
                   />
                 </View>
 
@@ -1140,7 +1123,7 @@ const ManagePayments = () => {
                     }
                     style={styles.inputField}
                     placeholderTextColor={"#707073"}
-                    editable={false} // Make this field read-only
+                    editable={false}
                   />
                 </View>
 
@@ -1158,7 +1141,7 @@ const ManagePayments = () => {
                     placeholderTextColor={"#707073"}
                     keyboardType="numeric"
                     maxLength={16}
-                    editable={false} // Make this field read-only
+                    editable={false}
                   />
                 </View>
                 <View style={styles.inputFieldContainer}>
@@ -1202,7 +1185,7 @@ const ManagePayments = () => {
                               ...prev,
                               expMonth: value,
                             }));
-                            setShowMonthPicker(false); // Close the month picker after selection
+                            setShowMonthPicker(false);
                           }}
                           style={styles.iosPicker}
                           itemStyle={styles.pickerItem}
@@ -1227,7 +1210,7 @@ const ManagePayments = () => {
                             ...prev,
                             expMonth: value,
                           }));
-                          setShowMonthPicker(false); // Close the month picker after selection
+                          setShowMonthPicker(false);
                         }}
                         style={styles.androidPicker}
                         dropdownIconColor="#000000"
@@ -1271,7 +1254,7 @@ const ManagePayments = () => {
                               ...prev,
                               expYear: value,
                             }));
-                            setShowYearPicker(false); // Close the year picker after selection
+                            setShowYearPicker(false);
                           }}
                           style={styles.iosPicker}
                           itemStyle={styles.pickerItem}
@@ -1296,7 +1279,7 @@ const ManagePayments = () => {
                             ...prev,
                             expYear: value,
                           }));
-                          setShowYearPicker(false); // Close the year picker after selection
+                          setShowYearPicker(false);
                         }}
                         style={styles.androidPicker}
                         dropdownIconColor="#000000"
@@ -1375,7 +1358,6 @@ const ManagePayments = () => {
           ) : errorMessage ? (
             <Text style={styles.errorMessage}>{errorMessage}</Text>
           ) : (
-            // Sort savedMethods to show the default method first
             [...savedMethods]
               .sort((a, b) => (b.default ? 1 : -1))
               .map((method) => (
@@ -1483,48 +1465,14 @@ const ManagePayments = () => {
                 {accountNumberError && (
                   <Text style={styles.errorText}>{accountNumberError}</Text>
                 )}
+              </View>
+              <View style={styles.helpTextContainer}>
                 <Text style={styles.helpText} onPress={toggleHelpModal}>
                   Help me find my routing and account number
                 </Text>
               </View>
             </>
           )}
-          <Modal
-            isVisible={isHelpModalVisible}
-            onBackdropPress={toggleHelpModal}
-          >
-            <View style={styles.modalContainer}>
-              <TouchableOpacity
-                onPress={toggleHelpModal}
-                style={styles.modalCloseButton}
-              >
-                <Ionicons name="close" size={24} color="#333" />
-              </TouchableOpacity>
-              <Text style={styles.modalTitle}>Checking Account</Text>
-              <Image
-                source={require("../assets/images/CheckingAccInfo.jpeg")}
-                style={styles.modalImage}
-              />
-            </View>
-          </Modal>
-          <Modal
-            isVisible={isCardInfoModalVisible}
-            onBackdropPress={toggleCardInfoModal}
-          >
-            <View style={styles.modalContainer}>
-              <TouchableOpacity
-                onPress={toggleCardInfoModal}
-                style={styles.modalCloseButton}
-              >
-                <Ionicons name="close" size={24} color="#333" />
-              </TouchableOpacity>
-              <Text style={styles.modalTitle}>Card Information</Text>
-              <Image
-                source={require("../assets/images/CardInfo.jpeg")}
-                style={styles.modalImage}
-              />
-            </View>
-          </Modal>
 
           {selectedMethod === "Add Debit Card" && !isEditModalVisible && (
             <>
@@ -1733,9 +1681,11 @@ const ManagePayments = () => {
                     </Text>
                   )}
               </View>
-              <Text style={styles.helpText} onPress={toggleCardInfoModal}>
-                Help me find my card information
-              </Text>
+              <View style={styles.helpTextContainer}>
+                <Text style={styles.helpText} onPress={toggleCardInfoModal}>
+                  Help me find my card information
+                </Text>
+              </View>
             </>
           )}
 
@@ -1758,7 +1708,7 @@ const ManagePayments = () => {
             <TouchableOpacity
               style={[
                 styles.submitButton,
-                isSubmitting && styles.submitButtonDisabled, // Apply the disabled style if isSubmitting is true
+                isSubmitting && styles.submitButtonDisabled,
               ]}
               onPress={handleButtonPress}
               disabled={isSubmitting}
@@ -1769,6 +1719,43 @@ const ManagePayments = () => {
             </TouchableOpacity>
           </View>
         </ScrollView>
+
+        <Modal
+          isVisible={isHelpModalVisible}
+          onBackdropPress={toggleHelpModal}
+        >
+          <View style={styles.modalContainer}>
+            <TouchableOpacity
+              onPress={toggleHelpModal}
+              style={styles.modalCloseButton}
+            >
+              <Ionicons name="close" size={24} color="#333" />
+            </TouchableOpacity>
+            <Text style={styles.modalTitle}>Checking Account</Text>
+            <Image
+              source={require("../assets/images/CheckingAccInfo.jpeg")}
+              style={styles.modalImage}
+            />
+          </View>
+        </Modal>
+        <Modal
+          isVisible={isCardInfoModalVisible}
+          onBackdropPress={toggleCardInfoModal}
+        >
+          <View style={styles.modalContainer}>
+            <TouchableOpacity
+              onPress={toggleCardInfoModal}
+              style={styles.modalCloseButton}
+            >
+              <Ionicons name="close" size={24} color="#333" />
+            </TouchableOpacity>
+            <Text style={styles.modalTitle}>Card Information</Text>
+            <Image
+              source={require("../assets/images/CardInfo.jpeg")}
+              style={styles.modalImage}
+            />
+          </View>
+        </Modal>
 
         <Toast />
       </View>

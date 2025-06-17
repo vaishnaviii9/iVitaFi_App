@@ -57,15 +57,15 @@ const styles = StyleSheet.create({
     marginBottom: 3,
   },
   defaultLabel: {
-    backgroundColor: "#4CAF50", // Green background for the badge
-    color: "#FFFFFF", // White text color
+    backgroundColor: "#4CAF50",
+    color: "#FFFFFF",
     fontSize: 12,
     fontWeight: "bold",
     paddingVertical: 4,
     paddingHorizontal: 8,
     borderRadius: 15,
     marginTop: 0.2,
-    alignSelf: "flex-start", // Align the badge to the start of the text container
+    alignSelf: "flex-start",
   },
   defaultLabelContainer: {
     flexDirection: "row",
@@ -87,7 +87,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   addMethodButton: {
-    backgroundColor: "#FFFFFF", // Default background color for unselected button
+    backgroundColor: "#FFFFFF",
     borderColor: "#27446F",
     borderWidth: 2,
     padding: 15,
@@ -99,16 +99,16 @@ const styles = StyleSheet.create({
   },
   addMethodButtonText: {
     textAlign: "center",
-    color: "#27446F", // Default text color for unselected button
+    color: "#27446F",
     fontSize: 16,
   },
   selectedMethodButton: {
-    backgroundColor: "#27446F", // Background color for selected button
+    backgroundColor: "#27446F",
     borderColor: "#27446F",
     borderWidth: 2,
   },
   selectedMethodButtonText: {
-    color: "#FFFFFF", // Text color for selected button
+    color: "#FFFFFF",
   },
   inputFieldContainer: {
     marginBottom: 15,
@@ -150,12 +150,14 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginBottom: 20,
   },
+  submitButtonDisabled: {
+    opacity: 0.5,
+  },
   submitButtonText: {
     color: "#FFFFFF",
     fontSize: 16,
     fontWeight: "bold",
   },
-
   backButton: {
     position: "absolute",
     left: 20,
@@ -207,7 +209,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#27446F",
     padding: 10,
     borderRadius: 5,
-    width: "40%", // Increase the width of the buttons
+    width: "40%",
     alignItems: "center",
   },
   modalButtonText: {
@@ -248,9 +250,8 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     marginBottom: 5,
   },
-  
   inputFieldText: {
-    color: "#000000", // Ensure text color is black
+    color: "#000000",
   },
   errorText: {
     color: "red",
@@ -297,25 +298,35 @@ const styles = StyleSheet.create({
     color: "#000000",
     fontSize: 20,
   },
-   editButton: {
+  editButton: {
     marginRight: 10,
   },
-modalCloseIcon: {
-  color: '#FFFFFF',
-},
-modalCloseIconContainer: {
+  modalCloseIcon: {
+    color: "#FFFFFF",
+  },
+  modalCloseIconContainer: {
     padding: 10,
   },
-modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 20,
   },
-    helpLink: {
-    color: "#27446F",
-    marginBottom: 15,
+  helpTextContainer: {
+    marginTop: 1,
+    marginBottom: 20,
+    alignSelf: "flex-start",
+  },
+  helpText: {
+    color: "blue",
     textDecorationLine: "underline",
+    fontSize: 14,
+  },
+  closeButton: {
+    position: "absolute",
+    right: 10,
+    top: 10,
   },
   modalContent: {
     backgroundColor: "white",
@@ -329,20 +340,6 @@ modalHeader: {
     resizeMode: "contain",
     marginVertical: 10,
   },
-    closeButton: {
-    position: "absolute",
-    right: 10,
-    top: 10,
-  },
-  helpText: {
-    color: 'blue',
-    textDecorationLine: 'underline',
-    marginTop: 10,
-    marginBottom: 20,
-    alignSelf: 'center',
-  },
-
-
 });
 
 export default styles;
