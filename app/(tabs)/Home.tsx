@@ -478,7 +478,7 @@ const determineCustomerStandingPaymentOptions = (
                         style={styles.autopayIcon}
                       />
                     )}
-                    <Text style={styles.autoPay}>Auto Pay</Text>
+                    <Text style={styles.autoPay}> AutoPay</Text>
                   </View>
                 </View>
                 <View style={styles.paymentContainer}>
