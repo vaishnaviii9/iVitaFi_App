@@ -1398,8 +1398,13 @@ const ManagePayments = () => {
                   <TouchableOpacity
                     style={styles.deleteButton}
                     onPress={() => openConfirmDeleteModal(method.id)}
+                    disabled={method.default || savedMethods.length === 1}
                   >
-                    <Ionicons name="trash" size={30} color="#FF0000" />
+                    <Ionicons
+                      name="trash"
+                      size={30}
+                      color={method.default || savedMethods.length === 1 ? "#837e7e" : "#FF0000"}
+                    />
                   </TouchableOpacity>
                 </View>
               ))

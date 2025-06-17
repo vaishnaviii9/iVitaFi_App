@@ -9,7 +9,7 @@ const styles = StyleSheet.create({
   },
   headerContainer: {
     backgroundColor: "#27446F",
-    paddingVertical: hp("4%"),
+    paddingVertical: hp("5%"),
     paddingHorizontal: wp("5%"),
     borderBottomLeftRadius: wp("15%"),
     borderBottomRightRadius: wp("15%"),
@@ -25,7 +25,7 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     fontSize: wp("7%"),
     fontWeight: "bold",
-    top: hp("2%"),
+    top: hp("2.5%"),
   },
   headerItems: {
     flexDirection: "row",

@@ -118,21 +118,22 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   modalTextStyle: {
-    marginTop: hp(1.5),
-    marginBottom: hp(1.5),
+    bottom: hp(1.5),
+    marginTop: hp(0),
+    marginBottom: hp(0.5),
     textAlign: "center",
     fontSize: wp(6),
     fontWeight: "bold",
-    color: 'green',
+    color: '#27446F',
   },
   modalMessageStyle: {
-    marginBottom: hp(2),
+    marginBottom: hp(1),
     textAlign: "center",
     fontSize: wp(4),
     color: '#555555',
   },
   modalButtonStyle: {
-    backgroundColor: "green",
+    backgroundColor: "#27446F",
     padding: hp(1.5),
     borderRadius: wp(2.5),
     alignItems: "center",
@@ -146,8 +147,8 @@ const styles = StyleSheet.create({
   },
   closeIcon: {
     position: 'absolute',
-    left: wp(29),
-    top: hp(-2.5),
+    left: wp(27),
+    top: hp(-2),
     padding: wp(1.2),
   },
 });

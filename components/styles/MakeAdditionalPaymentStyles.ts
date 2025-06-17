@@ -177,14 +177,14 @@ export const styles = StyleSheet.create({
     shadowRadius: wp(1),
     elevation: 5,
     borderWidth: wp(0.5),
-    borderColor: 'green',
+    borderColor: '#27446F',
   },
   modalText: {
     marginBottom: hp(2),
     textAlign: "center",
     fontSize: wp(6),
     fontWeight: "bold",
-    color: 'green',
+    color: '#27446F',
   },
   modalMessage: {
     marginBottom: hp(2.5),
@@ -193,7 +193,7 @@ export const styles = StyleSheet.create({
     color: '#555555',
   },
   modalButton: {
-    backgroundColor: "green",
+    backgroundColor: "#27446F",
     padding: hp(2),
     borderRadius: wp(2.5),
     alignItems: "center",
