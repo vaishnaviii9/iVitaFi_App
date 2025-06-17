@@ -208,7 +208,7 @@ const styles = StyleSheet.create({
   modalButton: {
     backgroundColor: "#27446F",
     padding: 10,
-    borderRadius: 5,
+    borderRadius: wp("2.5%"),
     width: "40%",
     alignItems: "center",
   },
@@ -251,10 +251,6 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     marginBottom: 5,
   },
-<<<<<<< HEAD
-
-=======
->>>>>>> prathamesh
   inputFieldText: {
     color: "#000000",
   },
@@ -318,11 +314,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 20,
   },
-<<<<<<< HEAD
-  helpLink: {
-    color: "#27446F",
-    marginBottom: 15,
-=======
   helpTextContainer: {
     marginTop: 1,
     marginBottom: 20,
@@ -330,7 +321,6 @@ const styles = StyleSheet.create({
   },
   helpText: {
     color: "blue",
->>>>>>> prathamesh
     textDecorationLine: "underline",
     fontSize: 14,
   },
@@ -351,21 +341,6 @@ const styles = StyleSheet.create({
     resizeMode: "contain",
     marginVertical: 10,
   },
-<<<<<<< HEAD
-  closeButton: {
-    position: "absolute",
-    right: 10,
-    top: 10,
-  },
-  helpText: {
-    color: "blue",
-    textDecorationLine: "underline",
-    marginTop: 10,
-    marginBottom: 20,
-    alignSelf: "center",
-  },
-=======
->>>>>>> prathamesh
 });
 
 export default styles;
