@@ -241,6 +241,7 @@ export const styles = StyleSheet.create({
     color: "blue",
     textAlign: "center",
     marginTop: 20,
+     textDecorationLine: "underline",
   },
   modalText: {
     fontSize: 16,
