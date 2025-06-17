@@ -194,7 +194,8 @@ const fetchAllData = useCallback(async () => {
             const formattedDate = `${String(date.getMonth() + 1).padStart(2, "0")}/${String(date.getDate()).padStart(2, "0")}`;
             setNextPaymentDate(formattedDate);
 
-            const isAutoPay = paymentSetupData.isAutoPay;
+            // const isAutoPay = paymentSetupData.isAutoPay;
+            const isAutoPay = validSummary?.detail?.creditAccount?.paymentSchedule?.autoPayEnabled;
             setAutopay(isAutoPay);
             dispatch({ type: "SET_AUTOPLAY_ENABLED", payload: isAutoPay });
 

@@ -32,11 +32,28 @@ interface PaymentMethod {
   accountNumber: string | null;
   routingNumber: string | null;
 }
-
+interface CreditAccount {
+  creditApplication: {
+    status: string;
+  };
+  paymentSchedule: {
+    autoPayEnabled: boolean;
+    paymentAmount: number;
+  };
+}
 interface ValidSummary {
   paymentMethod: {
     autoPayEnabled: boolean;
   };
+  detail: {
+    creditAccount: CreditAccount;
+  };
+  totalAmountDue: number;
+  currentAmountDue: number;
+  currentBalance: number;
+  daysDelinquent: number;
+  nextPaymentDate: Date;
+  isBankrupt: boolean;
 }
 
 const handleBackPress = () => {
@@ -64,9 +81,9 @@ const MakeAdditionalPayment = () => {
   const [lastNameOnCard, setLastNameOnCard] = useState("");
   const [debitZipMake, setDebitZipMake] = useState("");
   const [securityCode1, setSecurityCode1] = useState("");
-  const [validSummary, setValidSummary] = useState<ValidSummary | null>(null);
+   const [validSummaries, setValidSummaries] = useState<ValidSummary[]>([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
-
+  const [enableAutoPay, setEnableAutoPay] = useState<boolean | null>(null);
   const obj2Ref = useRef<any>(null);
 
   const currentDate = new Date();
@@ -80,121 +97,100 @@ const MakeAdditionalPayment = () => {
     return `$${amount.toFixed(2)}`;
   };
 
-  useFocusEffect(
-    React.useCallback(() => {
-      const fetchData = async () => {
-        try {
-          setIsLoading(true);
-          const customerResponse = await fetchCustomerData(token, () => {});
-          if (customerResponse) {
-            const { creditSummaries } = await fetchCreditSummariesWithId(
-              customerResponse,
-              token
-            );
-            dispatch(setCreditSummaries(creditSummaries));
-            if (creditSummaries && creditSummaries.length > 0) {
-              const customerId =
-                creditSummaries[0]?.detail?.creditAccount?.customerId;
-              const creditAccountId =
-                creditSummaries[0]?.detail?.creditAccountId;
-              setCreditAccountId(creditAccountId);
-
-              if (customerId) {
-                const methods = await fetchSavedPaymentMethods(
-                  token,
-                  customerId
-                );
-                if (methods && methods.length > 0) {
-                  const validMethods = methods.filter(
-                    (method: PaymentMethod) =>
-                      method.cardNumber !== null ||
-                      method.accountNumber !== null
-                  );
-                  setSavedMethods(validMethods);
-
-                  const defaultPaymentMethod =
-                    creditSummaries[0]?.paymentMethod;
-                  if (defaultPaymentMethod) {
-                    if (defaultPaymentMethod.cardNumber) {
-                      const formattedCardNumber =
-                        "x".repeat(defaultPaymentMethod.cardNumber.length - 4) +
-                        defaultPaymentMethod.cardNumber.slice(-4);
-                      setCardNumber(formattedCardNumber);
-                      setPaymentMethod(
-                        `Debit Card - ${defaultPaymentMethod.cardNumber.slice(
-                          -4
-                        )}`
-                      );
-
-                      const expirationDate = new Date(
-                        defaultPaymentMethod.expirationDate
-                      );
-                      const expirationMonth = expirationDate.getMonth() + 1;
-                      const expirationYear = expirationDate.getFullYear();
-
-                      const monthNames = [
-                        "January",
-                        "February",
-                        "March",
-                        "April",
-                        "May",
-                        "June",
-                        "July",
-                        "August",
-                        "September",
-                        "October",
-                        "November",
-                        "December",
-                      ];
-                      const formattedExpirationMonth = `${expirationMonth
-                        .toString()
-                        .padStart(2, "0")} - ${
-                        monthNames[expirationMonth - 1]
-                      }`;
-
-                      setExpirationMonth(formattedExpirationMonth);
-                      setExpirationYear(expirationYear.toString());
-                    } else if (defaultPaymentMethod.accountNumber) {
-                      setAccountNumber(defaultPaymentMethod.accountNumber);
-                      setRoutingNumber(
-                        defaultPaymentMethod.routingNumber || ""
-                      );
-                      setPaymentMethod(
-                        `Checking Account - ${defaultPaymentMethod.accountNumber.slice(
-                          -4
-                        )}`
-                      );
-                    }
-                  }
-                }
-              }
-
-              const summary = creditSummaries[0]?.detail
-                ?.validSummary as ValidSummary;
-              setValidSummary(summary);
-
-              const paymentSchedule =
-                creditSummaries[0]?.detail?.creditAccount?.paymentSchedule;
-              if (paymentSchedule) {
-                setPaymentSchedule(paymentSchedule);
-                setPaymentAmount(
-                  formatPaymentAmount(paymentSchedule.paymentAmount)
-                );
-              }
-            }
-          }
-        } catch (error) {
-          return { type: "error", error: { errorCode: ErrorCode.Unknown } };
-        } finally {
-          setIsLoading(false);
-        }
-      };
-
-      if (token) {
-        fetchData();
-      }
-    }, [creditAccountId, token, dispatch])
-  );
+   useFocusEffect(
+     React.useCallback(() => {
+       const fetchData = async () => {
+         try {
+           setIsLoading(true);
+           const customerResponse = await fetchCustomerData(token, () => {});
+ 
+           if (customerResponse) {
+             const { creditSummaries } = await fetchCreditSummariesWithId(
+               customerResponse,
+               token
+             );
+             console.log("Fetched credit summaries:", creditSummaries);
+             dispatch(setCreditSummaries(creditSummaries));
+ 
+             if (creditSummaries && creditSummaries.length > 0) {
+               setValidSummaries(creditSummaries);
+ 
+               const customerId = creditSummaries[0]?.detail?.creditAccount?.customerId;
+               const creditAccountId = creditSummaries[0]?.detail?.creditAccountId;
+               setCreditAccountId(creditAccountId);
+ 
+               if (customerId) {
+                 const methods = await fetchSavedPaymentMethods(token, customerId);
+                 console.log("Fetched payment methods:", methods);
+                 if (methods && methods.length > 0) {
+                   const validMethods = methods.filter(
+                     (method: PaymentMethod) =>
+                       method.cardNumber !== null || method.accountNumber !== null
+                   );
+                   setSavedMethods(validMethods);
+ 
+                   const defaultPaymentMethod = creditSummaries[0]?.paymentMethod;
+                   if (defaultPaymentMethod) {
+                     if (defaultPaymentMethod.cardNumber) {
+                       const formattedCardNumber =
+                         "x".repeat(defaultPaymentMethod.cardNumber.length - 4) +
+                         defaultPaymentMethod.cardNumber.slice(-4);
+                       setCardNumber(formattedCardNumber);
+                       setPaymentMethod(
+                         `Debit Card - ${defaultPaymentMethod.cardNumber.slice(-4)}`
+                       );
+ 
+                       const expirationDate = new Date(
+                         defaultPaymentMethod.expirationDate
+                       );
+                       const expirationMonth = expirationDate.getMonth() + 1;
+                       const expirationYear = expirationDate.getFullYear();
+ 
+                       const monthNames = [
+                         "January", "February", "March", "April", "May", "June",
+                         "July", "August", "September", "October", "November", "December"
+                       ];
+                       const formattedExpirationMonth = `${expirationMonth
+                         .toString()
+                         .padStart(2, "0")} - ${monthNames[expirationMonth - 1]}`;
+ 
+                       setExpirationMonth(formattedExpirationMonth);
+                       setExpirationYear(expirationYear.toString());
+                     } else if (defaultPaymentMethod.accountNumber) {
+                       setAccountNumber(defaultPaymentMethod.accountNumber);
+                       setRoutingNumber(defaultPaymentMethod.routingNumber || "");
+                       setPaymentMethod(
+                         `Checking Account - ${defaultPaymentMethod.accountNumber.slice(-4)}`
+                       );
+                     }
+                   }
+                 }
+               }
+ 
+               const autoPayEnabled = creditSummaries[0]?.detail?.creditAccount?.paymentSchedule?.autoPayEnabled;
+               setEnableAutoPay(autoPayEnabled);
+ 
+               const paymentSchedule = creditSummaries[0]?.detail?.creditAccount?.paymentSchedule;
+               if (paymentSchedule) {
+                 setPaymentSchedule(paymentSchedule);
+                 setPaymentAmount(formatPaymentAmount(paymentSchedule.paymentAmount));
+               }
+             }
+           }
+         } catch (error) {
+           console.error("Error fetching data:", error);
+           return { type: "error", error: { errorCode: ErrorCode.Unknown } };
+         } finally {
+           setIsLoading(false);
+           console.log("Data fetch completed.");
+         }
+       };
+ 
+       if (token) {
+         fetchData();
+       }
+     }, [creditAccountId, token, dispatch])
+   );
 
   const toggleDatePicker = () => {
     if (Platform.OS === "android") {
@@ -373,16 +369,15 @@ const MakeAdditionalPayment = () => {
     ).toISOString();
     const formattedTransactionDate = date.toISOString();
 
-    const enableAutoPay = validSummary?.paymentMethod
-      ? validSummary.paymentMethod.autoPayEnabled
-      : false;
+
 
     const transactionPost = {
       transactionAmount: Number(paymentAmount.replace(/[^0-9.-]+/g, "")),
       transactionDate: formattedTransactionDate,
       customAmount: null,
       useSavedPaymentMethod: true,
-      enableAutoPay: enableAutoPay,
+      enableAutoPay: enableAutoPay !== null 
+      ? enableAutoPay : false,
       paymentMethodType: obj2Ref.current
         ? obj2Ref.current.paymentMethodType
         : null,
@@ -408,13 +403,12 @@ const MakeAdditionalPayment = () => {
     };
 
     try {
-      const result = await postCreditAccountTransactionsNew(
-        Number(creditAccountId),
-        Number(selectedPaymentMethodId),
-        payload,
-        token
-      );
-
+     const result = await postCreditAccountTransactionsNew(
+             Number(creditAccountId),
+             Number(selectedPaymentMethodId),
+             payload,
+             token
+           );
       if (result.type === "error") {
         Toast.show({
           type: "error",

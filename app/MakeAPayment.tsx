@@ -33,10 +33,29 @@ interface PaymentMethod {
   routingNumber: string | null;
 }
 
+interface CreditAccount {
+  creditApplication: {
+    status: string;
+  };
+  paymentSchedule: {
+    autoPayEnabled: boolean;
+    paymentAmount: number;
+  };
+}
+
 interface ValidSummary {
   paymentMethod: {
     autoPayEnabled: boolean;
   };
+  detail: {
+    creditAccount: CreditAccount;
+  };
+  totalAmountDue: number;
+  currentAmountDue: number;
+  currentBalance: number;
+  daysDelinquent: number;
+  nextPaymentDate: Date;
+  isBankrupt: boolean;
 }
 
 const handleBackPress = () => {
@@ -64,9 +83,9 @@ const MakeAPayment = () => {
   const [lastNameOnCard, setLastNameOnCard] = useState("");
   const [debitZipMake, setDebitZipMake] = useState("");
   const [securityCode1, setSecurityCode1] = useState("");
-  const [validSummary, setValidSummary] = useState<ValidSummary | null>(null);
+  const [validSummaries, setValidSummaries] = useState<ValidSummary[]>([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
-
+  const [enableAutoPay, setEnableAutoPay] = useState<boolean | null>(null);
   const obj2Ref = useRef<any>(null);
 
   const currentDate = new Date();
@@ -90,34 +109,33 @@ const MakeAPayment = () => {
         try {
           setIsLoading(true);
           const customerResponse = await fetchCustomerData(token, () => {});
+
           if (customerResponse) {
             const { creditSummaries } = await fetchCreditSummariesWithId(
               customerResponse,
               token
             );
+            console.log("Fetched credit summaries:", creditSummaries);
             dispatch(setCreditSummaries(creditSummaries));
+
             if (creditSummaries && creditSummaries.length > 0) {
-              const customerId =
-                creditSummaries[0]?.detail?.creditAccount?.customerId;
-              const creditAccountId =
-                creditSummaries[0]?.detail?.creditAccountId;
+              setValidSummaries(creditSummaries);
+
+              const customerId = creditSummaries[0]?.detail?.creditAccount?.customerId;
+              const creditAccountId = creditSummaries[0]?.detail?.creditAccountId;
               setCreditAccountId(creditAccountId);
 
               if (customerId) {
-                const methods = await fetchSavedPaymentMethods(
-                  token,
-                  customerId
-                );
+                const methods = await fetchSavedPaymentMethods(token, customerId);
+                console.log("Fetched payment methods:", methods);
                 if (methods && methods.length > 0) {
                   const validMethods = methods.filter(
                     (method: PaymentMethod) =>
-                      method.cardNumber !== null ||
-                      method.accountNumber !== null
+                      method.cardNumber !== null || method.accountNumber !== null
                   );
                   setSavedMethods(validMethods);
 
-                  const defaultPaymentMethod =
-                    creditSummaries[0]?.paymentMethod;
+                  const defaultPaymentMethod = creditSummaries[0]?.paymentMethod;
                   if (defaultPaymentMethod) {
                     if (defaultPaymentMethod.cardNumber) {
                       const formattedCardNumber =
@@ -125,9 +143,7 @@ const MakeAPayment = () => {
                         defaultPaymentMethod.cardNumber.slice(-4);
                       setCardNumber(formattedCardNumber);
                       setPaymentMethod(
-                        `Debit Card - ${defaultPaymentMethod.cardNumber.slice(
-                          -4
-                        )}`
+                        `Debit Card - ${defaultPaymentMethod.cardNumber.slice(-4)}`
                       );
 
                       const expirationDate = new Date(
@@ -137,60 +153,42 @@ const MakeAPayment = () => {
                       const expirationYear = expirationDate.getFullYear();
 
                       const monthNames = [
-                        "January",
-                        "February",
-                        "March",
-                        "April",
-                        "May",
-                        "June",
-                        "July",
-                        "August",
-                        "September",
-                        "October",
-                        "November",
-                        "December",
+                        "January", "February", "March", "April", "May", "June",
+                        "July", "August", "September", "October", "November", "December"
                       ];
                       const formattedExpirationMonth = `${expirationMonth
                         .toString()
-                        .padStart(2, "0")} - ${
-                        monthNames[expirationMonth - 1]
-                      }`;
+                        .padStart(2, "0")} - ${monthNames[expirationMonth - 1]}`;
 
                       setExpirationMonth(formattedExpirationMonth);
                       setExpirationYear(expirationYear.toString());
                     } else if (defaultPaymentMethod.accountNumber) {
                       setAccountNumber(defaultPaymentMethod.accountNumber);
-                      setRoutingNumber(
-                        defaultPaymentMethod.routingNumber || ""
-                      );
+                      setRoutingNumber(defaultPaymentMethod.routingNumber || "");
                       setPaymentMethod(
-                        `Checking Account - ${defaultPaymentMethod.accountNumber.slice(
-                          -4
-                        )}`
+                        `Checking Account - ${defaultPaymentMethod.accountNumber.slice(-4)}`
                       );
                     }
                   }
                 }
               }
 
-              const summary = creditSummaries[0]?.detail
-                ?.validSummary as ValidSummary;
-              setValidSummary(summary);
+              const autoPayEnabled = creditSummaries[0]?.detail?.creditAccount?.paymentSchedule?.autoPayEnabled;
+              setEnableAutoPay(autoPayEnabled);
 
-              const paymentSchedule =
-                creditSummaries[0]?.detail?.creditAccount?.paymentSchedule;
+              const paymentSchedule = creditSummaries[0]?.detail?.creditAccount?.paymentSchedule;
               if (paymentSchedule) {
                 setPaymentSchedule(paymentSchedule);
-                setPaymentAmount(
-                  formatPaymentAmount(paymentSchedule.paymentAmount)
-                );
+                setPaymentAmount(formatPaymentAmount(paymentSchedule.paymentAmount));
               }
             }
           }
         } catch (error) {
+          console.error("Error fetching data:", error);
           return { type: "error", error: { errorCode: ErrorCode.Unknown } };
         } finally {
           setIsLoading(false);
+          console.log("Data fetch completed.");
         }
       };
 
@@ -229,18 +227,8 @@ const MakeAPayment = () => {
         const expirationYear = expirationDate.getFullYear();
 
         const monthNames = [
-          "January",
-          "February",
-          "March",
-          "April",
-          "May",
-          "June",
-          "July",
-          "August",
-          "September",
-          "October",
-          "November",
-          "December",
+          "January", "February", "March", "April", "May", "June",
+          "July", "August", "September", "October", "November", "December"
         ];
         const formattedExpirationMonth = `${expirationMonth
           .toString()
@@ -377,23 +365,18 @@ const MakeAPayment = () => {
     ).toISOString();
     const formattedTransactionDate = date.toISOString();
 
-    const enableAutoPay = validSummary?.paymentMethod
-      ? validSummary.paymentMethod.autoPayEnabled
-      : false;
-
     const transactionPost = {
       transactionAmount: Number(paymentAmount.replace(/[^0-9.-]+/g, "")),
       transactionDate: formattedTransactionDate,
       customAmount: null,
       useSavedPaymentMethod: true,
-      enableAutoPay: enableAutoPay,
+      enableAutoPay: enableAutoPay !== null ? enableAutoPay : false,
       paymentMethodType: obj2Ref.current
         ? obj2Ref.current.paymentMethodType
         : null,
     };
 
     if (!obj2Ref.current || !creditAccountId || !selectedPaymentMethodId) {
-
       Toast.show({
         type: "error",
         text1: "Submission Error",
@@ -600,7 +583,7 @@ const MakeAPayment = () => {
                   <>
                     <Text style={styles.helpText}>Card Number</Text>
                     <TextInput
-                      style={styles. nonEditableInput}
+                      style={styles.nonEditableInput}
                       placeholder="Enter card number"
                       placeholderTextColor="black"
                       value={cardNumber}
@@ -611,7 +594,7 @@ const MakeAPayment = () => {
 
                     <Text style={styles.helpText}>Expiration Month</Text>
                     <TextInput
-                      style={styles. nonEditableInput}
+                      style={styles.nonEditableInput}
                       placeholder="Enter expiration month"
                       placeholderTextColor="black"
                       value={expirationMonth}
@@ -622,7 +605,7 @@ const MakeAPayment = () => {
 
                     <Text style={styles.helpText}>Expiration Year</Text>
                     <TextInput
-                      style={styles. nonEditableInput}
+                      style={styles.nonEditableInput}
                       placeholder="Enter expiration year"
                       placeholderTextColor="black"
                       value={expirationYear}
@@ -701,10 +684,10 @@ const MakeAPayment = () => {
               )}
 
               <TouchableOpacity
-                 style={[
-                styles.submitButton,
-                isSubmitting && styles.submitButtonDisabled, // Apply the disabled style if isSubmitting is true
-              ]}
+                style={[
+                  styles.submitButton,
+                  isSubmitting && styles.submitButtonDisabled,
+                ]}
                 onPress={handleSubmit}
                 disabled={isSubmitting}
               >
@@ -743,7 +726,8 @@ const MakeAPayment = () => {
               </View>
               <Text style={styles.modalText}>Your payment was successful</Text>
               <Text style={styles.modalMessage}>
-               Thank You! Your payment has been scheduled. Your account balance will be updated when your payment is processed.
+                Thank You! Your payment has been scheduled. Your account balance
+                will be updated when your payment is processed.
               </Text>
               <TouchableOpacity
                 style={styles.modalButton}
