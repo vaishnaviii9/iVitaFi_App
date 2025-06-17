@@ -1,3 +1,4 @@
+// LoginStyles.js
 import { StyleSheet } from 'react-native';
 
 const styles = StyleSheet.create({
@@ -46,7 +47,7 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   forgotPassword: {
-    alignItems:'flex-end',
+    alignItems: 'flex-end',
     color: '#232126',
     fontSize: 15,
     fontFamily: 'Montserrat',
@@ -64,7 +65,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 20,
   },
-  submitButton:{
+  disabledButton: {
+    opacity: 0.5,
+  },
+  submitButton: {
     width: '50%',
     height: 56,
     backgroundColor: '#1F3644',
@@ -110,10 +114,9 @@ const styles = StyleSheet.create({
     width: 102,
     height: 37,
   },
-  errorText:{
+  errorText: {
     color: '#FF0000',
-  
-  }
+  },
 });
 
 export default styles;
