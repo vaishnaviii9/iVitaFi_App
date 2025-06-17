@@ -1,5 +1,5 @@
 import { StyleSheet } from "react-native";
-
+import { widthPercentageToDP as wp, heightPercentageToDP as hp } from "react-native-responsive-screen";
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -147,7 +147,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#27446F",
     paddingVertical: 15,
     paddingHorizontal: 30,
-    borderRadius: 10,
+   borderRadius: wp("2.5%"),
     marginBottom: 20,
   },
   submitButtonText: {
@@ -184,7 +184,7 @@ const styles = StyleSheet.create({
   okButton: {
     marginTop: 20,
     backgroundColor: "#27446F",
-    borderRadius: 10,
+   borderRadius: wp("2.5%"),
     paddingVertical: 10,
     alignItems: "center",
   },
@@ -213,6 +213,7 @@ const styles = StyleSheet.create({
   modalButtonText: {
     color: "white",
     fontSize: 16,
+    
   },
   expirationLabel: {
     fontSize: 13,
@@ -248,7 +249,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     marginBottom: 5,
   },
-  
+
   inputFieldText: {
     color: "#000000", // Ensure text color is black
   },
@@ -297,22 +298,22 @@ const styles = StyleSheet.create({
     color: "#000000",
     fontSize: 20,
   },
-   editButton: {
+  editButton: {
     marginRight: 10,
   },
-modalCloseIcon: {
-  color: '#FFFFFF',
-},
-modalCloseIconContainer: {
+  modalCloseIcon: {
+    color: "#FFFFFF",
+  },
+  modalCloseIconContainer: {
     padding: 10,
   },
-modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 20,
   },
-    helpLink: {
+  helpLink: {
     color: "#27446F",
     marginBottom: 15,
     textDecorationLine: "underline",
@@ -329,20 +330,18 @@ modalHeader: {
     resizeMode: "contain",
     marginVertical: 10,
   },
-    closeButton: {
+  closeButton: {
     position: "absolute",
     right: 10,
     top: 10,
   },
   helpText: {
-    color: 'blue',
-    textDecorationLine: 'underline',
+    color: "blue",
+    textDecorationLine: "underline",
     marginTop: 10,
     marginBottom: 20,
-    alignSelf: 'center',
+    alignSelf: "center",
   },
-
-
 });
 
 export default styles;

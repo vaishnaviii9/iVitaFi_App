@@ -1,4 +1,5 @@
 import { StyleSheet, Platform } from "react-native";
+import { widthPercentageToDP as wp, heightPercentageToDP as hp } from "react-native-responsive-screen";
 
 export const styles = StyleSheet.create({
   container: {
@@ -146,7 +147,7 @@ export const styles = StyleSheet.create({
     width: "50%",
     backgroundColor: "#27446F",
     padding: 15,
-    borderRadius: 20,
+    borderRadius: wp("2.5%"),
     alignItems: "center",
     marginTop: 20,
   },
@@ -230,7 +231,7 @@ export const styles = StyleSheet.create({
   modalButton: {
     backgroundColor: "#27446F",
     padding: 10,
-    borderRadius: 5,
+     borderRadius: wp("2.5%"),
     alignItems: "center",
   },
   modalButtonText: {

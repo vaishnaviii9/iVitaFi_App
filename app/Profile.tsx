@@ -366,7 +366,7 @@ const ProfileScreen = () => {
           ))}
           <View style={styles.saveButtonContainer}>
             <TouchableOpacity
-              style={styles.saveButton}
+              style={[styles.saveButton, isSaving && styles.disabledButton]}
               onPress={handleSave}
               disabled={isSaving}
             >

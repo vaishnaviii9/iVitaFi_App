@@ -141,7 +141,7 @@ export const styles = StyleSheet.create({
     width: wp(50),
     backgroundColor: "#27446F",
     padding: hp(1.5),
-    borderRadius: wp(5),
+    borderRadius: wp(2.5),
     alignItems: "center",
     marginTop: hp(2),
   },

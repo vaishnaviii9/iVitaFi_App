@@ -1,5 +1,6 @@
 // LoginStyles.js
 import { StyleSheet } from 'react-native';
+import { widthPercentageToDP as wp, heightPercentageToDP as hp } from "react-native-responsive-screen";
 
 const styles = StyleSheet.create({
   outerContainer: {
@@ -60,7 +61,7 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 56,
     backgroundColor: '#1F3644',
-    borderRadius: 15,
+     borderRadius: wp("2.5%"),
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 20,

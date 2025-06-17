@@ -86,12 +86,15 @@ const styles = StyleSheet.create({
     backgroundColor: "#27446F",
     paddingVertical: hp("1.5%"),  
     paddingHorizontal: wp("15%"),
-    borderRadius: wp("7%"),
+    borderRadius: wp("2.5%"),
   },
   saveButtonText: {
     color: "#FFFFFF",
     fontSize: wp("4.5%"),
     fontWeight: "bold",
+  },
+   disabledButton: {
+    opacity: 0.5,
   },
 });
 
