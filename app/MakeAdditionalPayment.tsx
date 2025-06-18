@@ -173,7 +173,7 @@ const MakeAdditionalPayment = () => {
                const paymentSchedule = creditSummaries[0]?.detail?.creditAccount?.paymentSchedule;
                if (paymentSchedule) {
                  setPaymentSchedule(paymentSchedule);
-                 setPaymentAmount(formatPaymentAmount(paymentSchedule.paymentAmount));
+                 setPaymentAmount("0");
                }
              }
            }
