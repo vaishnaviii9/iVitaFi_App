@@ -25,6 +25,7 @@ import styles from "../components/styles/ManagePaymentsStyles";
 import { deletePaymentMethod } from "./services/paymentMethodService";
 import { updateCreditAccountPaymentMethodWithDefaultPaymentMethodAsync } from "./services/creditAccountPaymentService";
 import { ErrorCode } from "../utils/ErrorCodeUtil";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialIcons";
 
 interface PaymentMethod {
   id: string;
@@ -306,6 +307,7 @@ const ManagePayments = () => {
   };
 
   const fetchData = async () => {
+    setIsLoading(true);
     try {
       const customerResponse = await fetchCustomerData(token, (data) => {});
 
@@ -333,7 +335,7 @@ const ManagePayments = () => {
                 (method: { id: number | undefined }) => ({
                   ...method,
                   default:
-                    accountSummary?.detail?.creditAccount?.paymentMethod
+                    creditSummaries[0]?.detail?.creditAccount?.paymentMethod
                       ?.customerPaymentMethodId === method.id,
                 })
               );
@@ -359,7 +361,7 @@ const ManagePayments = () => {
 
   useEffect(() => {
     fetchData();
-  }, [accountSummary, savedMethods, token]);
+  }, [token]);
 
   useFocusEffect(
     useCallback(() => {
@@ -390,22 +392,14 @@ const ManagePayments = () => {
         Toast.show({
           type: "success",
           text1: "Success",
-          text2: "Customer Payment Method has been deleted successfully.",
-          visibilityTime: 5000,
-          autoHide: true,
-          topOffset: 60,
-          bottomOffset: 100,
+          text2: "Payment method deleted successfully.",
         });
       }
     } catch (error) {
       Toast.show({
         type: "error",
-        text1: "Deletion Failed",
+        text1: "Error",
         text2: "An unexpected error occurred. Please try again.",
-        visibilityTime: 5000,
-        autoHide: true,
-        topOffset: 60,
-        bottomOffset: 100,
       });
     } finally {
       setConfirmDeleteModalVisible(false);
@@ -512,10 +506,6 @@ const ManagePayments = () => {
             type: "success",
             text1: "Success",
             text2: "Payment method added successfully.",
-            visibilityTime: 5000,
-            autoHide: true,
-            topOffset: 60,
-            bottomOffset: 100,
           });
           resetFormInputs();
           await fetchData();
@@ -536,20 +526,12 @@ const ManagePayments = () => {
             type: "error",
             text1: "Error",
             text2: "Please enter a valid routing number and account number.",
-            visibilityTime: 5000,
-            autoHide: true,
-            topOffset: 60,
-            bottomOffset: 100,
           });
         } else {
           Toast.show({
             type: "error",
             text1: "Error",
             text2: "There was an error while adding the payment method.",
-            visibilityTime: 5000,
-            autoHide: true,
-            topOffset: 60,
-            bottomOffset: 100,
           });
         }
       } catch (error) {
@@ -557,10 +539,6 @@ const ManagePayments = () => {
           type: "error",
           text1: "Error",
           text2: "An unexpected error occurred. Please try again.",
-          visibilityTime: 5000,
-          autoHide: true,
-          topOffset: 60,
-          bottomOffset: 100,
         });
       } finally {
         setIsSubmitting(false);
@@ -599,10 +577,6 @@ const ManagePayments = () => {
           text1: "Error",
           text2:
             "The debit card you entered has expired. Please update your payment details.",
-          visibilityTime: 5000,
-          autoHide: true,
-          topOffset: 60,
-          bottomOffset: 100,
         });
         setIsSubmitting(false);
         return;
@@ -631,10 +605,6 @@ const ManagePayments = () => {
           type: "error",
           text1: "Error",
           text2: "Card Number Already exists.",
-          visibilityTime: 5000,
-          autoHide: true,
-          topOffset: 60,
-          bottomOffset: 100,
         });
         setIsSubmitting(false);
         return;
@@ -655,10 +625,6 @@ const ManagePayments = () => {
             type: "success",
             text1: "Success",
             text2: "Payment method added successfully.",
-            visibilityTime: 5000,
-            autoHide: true,
-            topOffset: 60,
-            bottomOffset: 100,
           });
           resetFormInputs();
           await fetchData();
@@ -675,10 +641,6 @@ const ManagePayments = () => {
             type: "error",
             text1: "Error",
             text2: formattedMessage,
-            visibilityTime: 5000,
-            autoHide: true,
-            topOffset: 60,
-            bottomOffset: 100,
           });
         }
       } catch (error) {
@@ -686,10 +648,6 @@ const ManagePayments = () => {
           type: "error",
           text1: "Error",
           text2: "There was an error while adding the payment method.",
-          visibilityTime: 5000,
-          autoHide: true,
-          topOffset: 60,
-          bottomOffset: 100,
         });
       } finally {
         setIsSubmitting(false);
@@ -830,10 +788,6 @@ const ManagePayments = () => {
           text1:
             "There was an error while fetching debit card payment information.",
           text2: "Error",
-          visibilityTime: 5000,
-          autoHide: true,
-          topOffset: 60,
-          bottomOffset: 100,
         });
       }
     } else if (method.accountNumber) {
@@ -930,10 +884,6 @@ const ManagePayments = () => {
           type: "error",
           text1: "Error",
           text2: "Invalid security code. It must be 3 or 4 digits.",
-          visibilityTime: 5000,
-          autoHide: true,
-          topOffset: 60,
-          bottomOffset: 100,
         });
         setIsSubmitting(false);
         return;
@@ -953,10 +903,6 @@ const ManagePayments = () => {
           text1: "Error",
           text2:
             "The debit card you entered has expired. Please update your payment details.",
-          visibilityTime: 5000,
-          autoHide: true,
-          topOffset: 60,
-          bottomOffset: 100,
         });
         setIsSubmitting(false);
         return;
@@ -977,10 +923,6 @@ const ManagePayments = () => {
             text1: "Success",
             text2:
               "The payment method information has been updated successfully.",
-            visibilityTime: 5000,
-            autoHide: true,
-            topOffset: 60,
-            bottomOffset: 100,
           });
           resetFormInputs();
         } else {
@@ -989,10 +931,6 @@ const ManagePayments = () => {
             text1: "Error",
             text2:
               "Failed to update the payment method information. Please try again.",
-            visibilityTime: 5000,
-            autoHide: true,
-            topOffset: 60,
-            bottomOffset: 100,
           });
         }
       } catch (error) {
@@ -1000,15 +938,64 @@ const ManagePayments = () => {
           type: "error",
           text1: "Error",
           text2: "An unexpected error occurred. Please try again.",
-          visibilityTime: 5000,
-          autoHide: true,
-          topOffset: 60,
-          bottomOffset: 100,
         });
       } finally {
         setIsSubmitting(false);
       }
     }
+  };
+
+  const toastConfig = {
+    success: ({ text1, text2, ...rest }: any) => (
+      <View
+        style={{
+          backgroundColor: "#d4edda",
+          padding: 15,
+          borderRadius: 10,
+          margin: 10,
+          flexDirection: "row",
+          alignItems: "center",
+        }}
+      >
+        <MaterialCommunityIcons
+          name="check-circle"
+          size={24}
+          color="#155724"
+          style={{ marginRight: 10 }}
+        />
+        <View>
+          <Text style={{ fontSize: 16, fontWeight: "bold", color: "#155724" }}>
+            {text1}
+          </Text>
+          <Text style={{ fontSize: 14, color: "#155724" }}>{text2}</Text>
+        </View>
+      </View>
+    ),
+    error: ({ text1, text2, ...rest }: any) => (
+      <View
+        style={{
+          backgroundColor: "#f8d7da",
+          padding: 15,
+          borderRadius: 10,
+          margin: 10,
+          flexDirection: "row",
+          alignItems: "center",
+        }}
+      >
+        <MaterialCommunityIcons
+          name="error"
+          size={24}
+          color="#721c24"
+          style={{ marginRight: 10 }}
+        />
+        <View>
+          <Text style={{ fontSize: 16, fontWeight: "bold", color: "#721c24" }}>
+            {text1}
+          </Text>
+          <Text style={{ fontSize: 14, color: "#721c24" }}>{text2}</Text>
+        </View>
+      </View>
+    ),
   };
 
   return (
@@ -1170,11 +1157,7 @@ const ManagePayments = () => {
                           <Text style={styles.pickerText}>
                             {editDebitCardInputs.expMonth || "Select Month"}
                           </Text>
-                          <FontAwesome
-                            name="caret-down"
-                            size={16}
-                            color="#000"
-                          />
+                          <FontAwesome name="caret-down" size={16} color="#000" />
                         </View>
                       </Pressable>
                       {showMonthPicker && (
@@ -1239,11 +1222,7 @@ const ManagePayments = () => {
                           <Text style={styles.pickerText}>
                             {editDebitCardInputs.expYear || "Select Year"}
                           </Text>
-                          <FontAwesome
-                            name="caret-down"
-                            size={16}
-                            color="#000"
-                          />
+                          <FontAwesome name="caret-down" size={16} color="#000" />
                         </View>
                       </Pressable>
                       {showYearPicker && (
@@ -1295,6 +1274,7 @@ const ManagePayments = () => {
                     </View>
                   )}
                 </View>
+
                 <View style={styles.inputFieldContainer}>
                   <Text style={styles.inputFieldLabel}>Security Code</Text>
                   <TextInput
@@ -1403,7 +1383,11 @@ const ManagePayments = () => {
                     <Ionicons
                       name="trash"
                       size={30}
-                      color={method.default || savedMethods.length === 1 ? "#837e7e" : "#FF0000"}
+                      color={
+                        method.default || savedMethods.length === 1
+                          ? "#837e7e"
+                          : "#FF0000"
+                      }
                     />
                   </TouchableOpacity>
                 </View>
@@ -1762,7 +1746,7 @@ const ManagePayments = () => {
           </View>
         </Modal>
 
-        <Toast />
+        <Toast config={toastConfig} />
       </View>
     </KeyboardAvoidingView>
   );

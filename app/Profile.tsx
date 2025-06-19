@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import styles from "../components/styles/ProfileScreenStyles"; // Adjust path as needed
+import styles from "../components/styles/ProfileScreenStyles";
 import {
   Image,
   View,
@@ -18,10 +18,11 @@ import {
   Feather,
   Ionicons,
 } from "@expo/vector-icons";
-import { fetchUserData, updateCustomer } from "./services/userService"; // Adjust the import path as necessary
+import { fetchUserData, updateCustomer } from "./services/userService";
 import { fetchCreditSummariesWithId } from "./services/creditAccountService";
 import { fetchCustomerData } from "./services/customerService";
 import Toast from "react-native-toast-message";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialIcons";
 
 const ProfileScreen = () => {
   interface UserData {
@@ -48,6 +49,7 @@ const ProfileScreen = () => {
   const [userData, setUserData] = useState<UserData | null>(null);
   const [emailInput, setEmailInput] = useState<string | null>(null);
   const [customerResponse, setCustomerResponse] = useState<any>(null);
+
   const getUserData = async () => {
     const data = await fetchUserData(token, setUserData);
     if (data) {
@@ -80,12 +82,14 @@ const ProfileScreen = () => {
   const handleBackPress = () => {
     router.push("/(tabs)/Home");
   };
+
   const capitalizeWords = (str: string) => {
     if (!str) return str;
     return str.replace(/\w\S*/g, (txt) => {
       return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
     });
   };
+
   const handleSave = async () => {
     if (!emailInput) {
       console.log("Email is required");
@@ -129,7 +133,7 @@ const ProfileScreen = () => {
               zipCode: customerResponse.zipCode,
               user: {
                 ...customerResponse.user,
-                email: emailInput, // Update the email in the user object
+                email: emailInput,
               },
             };
 
@@ -144,24 +148,15 @@ const ProfileScreen = () => {
                 type: "success",
                 text1: "Success",
                 text2: "Profile updated successfully.",
-                visibilityTime: 5000,
-                autoHide: true,
-                topOffset: 60,
-                bottomOffset: 100,
               });
 
-              // Call getUserData again to fetch the latest data
               await getUserData();
             }
           } else {
             Toast.show({
               type: "error",
               text1: "Error",
-              text2: "Error occurred..",
-              visibilityTime: 5000,
-              autoHide: true,
-              topOffset: 60,
-              bottomOffset: 100,
+              text2: "Error occurred.",
             });
           }
         }
@@ -170,11 +165,7 @@ const ProfileScreen = () => {
       Toast.show({
         type: "error",
         text1: "Error",
-        text2: "Error occurred..",
-        visibilityTime: 5000,
-        autoHide: true,
-        topOffset: 60,
-        bottomOffset: 100,
+        text2: "Error occurred.",
       });
     } finally {
       setIsSaving(false);
@@ -330,6 +321,54 @@ const ProfileScreen = () => {
     },
   ];
 
+  const toastConfig = {
+    success: ({ text1, text2, ...rest }: any) => (
+      <View
+        style={{
+          backgroundColor: "#d4edda",
+          padding: 15,
+          borderRadius: 10,
+          margin: 10,
+          flexDirection: "row",
+          alignItems: "center",
+        }}
+      >
+        <MaterialCommunityIcons
+          name="check-circle"
+          size={24}
+          color="#155724"
+          style={{ marginRight: 10 }}
+        />
+        <View>
+          <Text style={{ fontSize: 16, fontWeight: "bold", color: "#155724" }}>
+            {text1}
+          </Text>
+          <Text style={{ fontSize: 14, color: "#155724" }}>{text2}</Text>
+        </View>
+      </View>
+    ),
+    error: ({ text1, text2, ...rest }: any) => (
+      <View
+        style={{
+          backgroundColor: "#f8d7da",
+          padding: 15,
+          borderRadius: 10,
+          margin: 10,
+          flexDirection: "row",
+          alignItems: "center",
+        }}
+      >
+        <MaterialIcons name="error" size={24} color="#721c24" style={{ marginRight: 10 }} />
+        <View>
+          <Text style={{ fontSize: 16, fontWeight: "bold", color: "#721c24" }}>
+            {text1}
+          </Text>
+          <Text style={{ fontSize: 14, color: "#721c24" }}>{text2}</Text>
+        </View>
+      </View>
+    ),
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.headerContainer}>
@@ -377,7 +416,7 @@ const ProfileScreen = () => {
           </View>
         </ScrollView>
       </View>
-      <Toast />
+      <Toast config={toastConfig} />
     </View>
   );
 };

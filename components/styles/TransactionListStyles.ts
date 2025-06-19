@@ -42,6 +42,7 @@ const styles = StyleSheet.create({
     fontSize: wp(3.5),
     fontWeight: 'bold',
     flex: 1,
+    right: 1,
     textAlign: 'right',
     paddingHorizontal: wp(2),
   },
