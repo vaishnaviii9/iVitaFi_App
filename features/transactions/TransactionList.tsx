@@ -234,11 +234,11 @@ const TransactionList: React.FC<TransactionListProps> = ({
   };
 
   const renderCheckIcon = () => {
-    return <Icon name="check-bold" size={24} color="green" />;
+    return <Icon name="check-bold" size={32} color="green" />;
   };
 
   const renderXIcon = () => {
-    return <Entypo name="cross" size={24} color="red" />;
+    return <Entypo name="cross" size={32} color="red" />;
   };
 
   const handleTrashIconPress = (id: string, disable: boolean) => {

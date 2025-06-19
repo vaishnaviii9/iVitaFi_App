@@ -9,12 +9,15 @@ import {
   Platform,
   Pressable,
   KeyboardAvoidingView,
-  Image,
   LogBox,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { FontAwesome, Ionicons } from "@expo/vector-icons";
+import {
+  FontAwesome,
+  Ionicons,
+  MaterialCommunityIcons,
+} from "@expo/vector-icons";
 import { router } from "expo-router";
 import { styles } from "../components/styles/ConfigureAutopayStyles";
 import { fetchSavedPaymentMethods } from "./services/savedPaymentMethodService";
@@ -24,7 +27,8 @@ import { fetchCreditSummariesWithId } from "./services/creditAccountService";
 import { ErrorCode } from "../utils/ErrorCodeUtil";
 import { useFocusEffect } from "@react-navigation/native";
 import Toast from "react-native-toast-message";
-import SkeletonLoader from "../components/SkeletonLoader"; // Import the SkeletonLoader component
+import SkeletonLoader from "../components/SkeletonLoader";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 
 // Define an interface for the payment method to ensure type safety
 interface PaymentMethod {
@@ -200,11 +204,8 @@ const updateDefaultPaymentMethod = async (
       error: { errorCode: ErrorCode.InvalidPaymentMethod },
     };
   }
-
   const url = `https://dev.ivitafi.com/api/creditaccount/${creditAccountId}/${selectedPaymentMethodId}/true/update-default-payment-method-customer`;
-
   let payload;
-
   if (accountNumber) {
     payload = {
       zipCode: "",
@@ -237,7 +238,6 @@ const updateDefaultPaymentMethod = async (
       error: { errorCode: ErrorCode.InvalidPaymentMethod },
     };
   }
-
   try {
     const response = await fetch(url, {
       method: "PUT",
@@ -247,21 +247,16 @@ const updateDefaultPaymentMethod = async (
       },
       body: JSON.stringify(payload),
     });
-
     const contentType = response.headers.get("content-type");
-
     if (!response.ok) {
       const errorData = contentType?.includes("application/json")
         ? await response.json()
         : { errorMessage: await response.text() };
-
       return { type: "error", response: errorData };
     }
-
     const data = contentType?.includes("application/json")
       ? await response.json()
       : await response.text();
-
     return { type: "data", data };
   } catch (error) {
     return { type: "error", error: { errorCode: ErrorCode.Unknown } };
@@ -294,9 +289,7 @@ const updatePaymentSchedule = async (
       error: { errorCode: ErrorCode.InvalidPaymentMethod },
     };
   }
-
   const url = `https://dev.ivitafi.com/api/CreditAccount/${creditAccountId}/payment-schedule-new`;
-
   try {
     const response = await fetch(url, {
       method: "PUT",
@@ -306,21 +299,16 @@ const updatePaymentSchedule = async (
       },
       body: JSON.stringify(payload),
     });
-
     const contentType = response.headers.get("content-type");
-
     if (!response.ok) {
       const errorData = contentType?.includes("application/json")
         ? await response.json()
         : { errorMessage: await response.text() };
-
       return { type: "error", response: errorData };
     }
-
     const data = contentType?.includes("application/json")
       ? await response.json()
       : await response.text();
-
     return { type: "data", data };
   } catch (error) {
     return { type: "error", error: { errorCode: ErrorCode.Unknown } };
@@ -369,7 +357,6 @@ const ConfigureAutopay = () => {
     selectedMonthlyPaymentOptionValue,
     setSelectedMonthlyPaymentOptionValue,
   ] = useState<PaymentSubFrequency | undefined>(undefined);
-
   const [selectedDay, setSelectedDay] = useState("");
   const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState<
     string | null
@@ -410,10 +397,11 @@ const ConfigureAutopay = () => {
   const [creditAccountId, setCreditAccountId] = useState<string | null>(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isLoading, setIsLoading] = useState(true); // Add loading state
+  const [isLoading, setIsLoading] = useState(true);
   const currentDate = new Date();
   const maxDate = new Date(currentDate);
   maxDate.setDate(currentDate.getDate() + 30);
+
   // Retrieve token from Redux store to authenticate API requests
   const token = useSelector((state: any) => state.auth.token);
 
@@ -440,14 +428,13 @@ const ConfigureAutopay = () => {
     React.useCallback(() => {
       const fetchData = async () => {
         try {
-          setIsLoading(true); // Set loading to true when starting to fetch data
+          setIsLoading(true);
           const customerResponse = await fetchCustomerData(token, () => {});
           if (customerResponse) {
             const { creditSummaries } = await fetchCreditSummariesWithId(
               customerResponse,
               token
             );
-
             if (creditSummaries && creditSummaries.length > 0) {
               const customerId =
                 creditSummaries[0]?.detail?.creditAccount?.customerId;
@@ -455,14 +442,11 @@ const ConfigureAutopay = () => {
                 creditSummaries[0]?.detail?.creditAccount?.amountDueMonthly;
               const creditAccountId =
                 creditSummaries[0]?.detail?.creditAccountId;
-
               setCreditAccountId(creditAccountId);
               const paymentFrequency =
                 creditSummaries[0]?.detail?.creditAccount?.paymentSchedule
                   ?.paymentFrequency;
-
               setAmountDueMonthly(amountDue);
-
               const frequencyMap: Record<IncomeFrequency, string> = {
                 [IncomeFrequency.Unknown]: "Select",
                 [IncomeFrequency.Weekly]: "Weekly",
@@ -470,9 +454,7 @@ const ConfigureAutopay = () => {
                 [IncomeFrequency.SemiMonthly]: "Twice per Month",
                 [IncomeFrequency.Monthly]: "Monthly",
               };
-
               setPaymentFrequency(paymentFrequency as IncomeFrequency);
-
               if (customerId) {
                 const methods = await fetchSavedPaymentMethods(
                   token,
@@ -485,7 +467,6 @@ const ConfigureAutopay = () => {
                       method.accountNumber !== null
                   );
                   setSavedMethods(validMethods);
-
                   const defaultPaymentMethod =
                     creditSummaries[0]?.paymentMethod;
                   if (defaultPaymentMethod) {
@@ -499,13 +480,11 @@ const ConfigureAutopay = () => {
                           -4
                         )}`
                       );
-
                       const expirationDate = new Date(
                         defaultPaymentMethod.expirationDate
                       );
                       const expirationMonth = expirationDate.getMonth() + 1;
                       const expirationYear = expirationDate.getFullYear();
-
                       const monthNames = [
                         "January",
                         "February",
@@ -525,7 +504,6 @@ const ConfigureAutopay = () => {
                         .padStart(2, "0")} - ${
                         monthNames[expirationMonth - 1]
                       }`;
-
                       setExpirationMonth(formattedExpirationMonth);
                       setExpirationYear(expirationYear.toString());
                     } else if (defaultPaymentMethod.accountNumber) {
@@ -542,21 +520,17 @@ const ConfigureAutopay = () => {
                   }
                 }
               }
-
               const paymentSchedule =
                 creditSummaries[0]?.detail?.creditAccount?.paymentSchedule;
-
               if (paymentSchedule) {
                 setPaymentSchedule(paymentSchedule);
                 setPaymentAmount(
                   formatPaymentAmount(paymentSchedule.paymentAmount)
                 );
-
                 const initialPaymentDate = new Date(
                   paymentSchedule.initialPaymentDate
                 );
                 setLastPayDate(initialPaymentDate);
-
                 if (
                   paymentSchedule.paymentFrequency === IncomeFrequency.Weekly ||
                   paymentSchedule.paymentFrequency ===
@@ -572,7 +546,6 @@ const ConfigureAutopay = () => {
                   setPaymentDayOne(paymentSchedule.paymentDayOne);
                   setPaymentDayTwo(paymentSchedule.paymentDayTwo);
                 }
-
                 setSelectedPayDayOne(
                   paymentSchedule.paymentDayOne
                     ? date2Map[paymentSchedule.paymentDayOne]
@@ -583,19 +556,14 @@ const ConfigureAutopay = () => {
                     ? date3Map[paymentSchedule.paymentDayTwo]
                     : ""
                 );
-
                 setPaymentWeekOne(paymentSchedule.paymentWeekOne);
                 setPaymentWeekTwo(paymentSchedule.paymentWeekTwo);
-
                 setInitialPaymentDate(initialPaymentDate);
                 setStartDate(new Date(paymentSchedule.startDate));
-
                 setAutoPayEnabled(paymentSchedule.autoPayEnabled);
                 setPaymentType(paymentSchedule.paymentType);
-
                 setNextPaymentDate(new Date(paymentSchedule.nextPaymentDate));
                 setNextPaymentAmount(paymentSchedule.nextPaymentAmount);
-
                 if (
                   paymentSchedule.paymentFrequency === IncomeFrequency.Weekly
                 ) {
@@ -638,10 +606,9 @@ const ConfigureAutopay = () => {
         } catch (error) {
           return { type: "error", error: { errorCode: ErrorCode.Unknown } };
         } finally {
-          setIsLoading(false); // Set loading to false after data is fetched
+          setIsLoading(false);
         }
       };
-
       if (token) {
         fetchData();
       }
@@ -675,7 +642,6 @@ const ConfigureAutopay = () => {
     amountDueMonthly: number
   ) => {
     let amount = 0;
-
     if (paymentSchedule.paymentFrequency === IncomeFrequency.Monthly) {
       amount = amountDueMonthly;
     } else if (
@@ -686,7 +652,6 @@ const ConfigureAutopay = () => {
     } else if (paymentSchedule.paymentFrequency === IncomeFrequency.Weekly) {
       amount = amountDueMonthly / 4;
     }
-
     if (paymentSchedule.paymentSubFrequency !== null) {
       if (
         paymentSchedule.paymentFrequency === IncomeFrequency.SemiMonthly &&
@@ -699,21 +664,16 @@ const ConfigureAutopay = () => {
     } else {
       setSpDay(false);
     }
-
     const formattedAmount = formatPaymentAmount(amount);
-
     setPaymentAmount(formattedAmount);
   };
 
   // Function to handle form submission
-
   const getPaymentSummaryMessage = () => {
     if (!paymentSchedule || !paymentAmount) return "";
-
     const paymentMethodText = paymentMethod.startsWith("Debit Card -")
       ? "from your debit card"
       : "from your checking account";
-
     if (paymentFrequency === IncomeFrequency.Monthly) {
       if (paymentSubFrequency === PaymentSubFrequency.SpecificDay) {
         return `You have selected to pay ${paymentAmount} on the ${paymentDate} of each month, ${paymentMethodText}.`;
@@ -724,7 +684,6 @@ const ConfigureAutopay = () => {
       }
       return `You have selected to pay ${paymentAmount} monthly, ${paymentMethodText}.`;
     }
-
     switch (paymentFrequency) {
       case IncomeFrequency.Weekly:
         return `You have selected to pay ${paymentAmount} every week on ${dayOfWeek}, ${paymentMethodText}.`;
@@ -739,24 +698,20 @@ const ConfigureAutopay = () => {
 
   const handlePaymentMethodChange = (value: string) => {
     setPaymentMethod(value);
-
     if (value.startsWith("Debit Card -")) {
       const cardNumberFromValue = value.split(" - ")[1];
       const selectedMethod = savedMethods.find(
         (method) =>
           method.cardNumber && method.cardNumber.endsWith(cardNumberFromValue)
       );
-
       if (selectedMethod && selectedMethod.cardNumber) {
         const formattedCardNumber =
           "x".repeat(selectedMethod.cardNumber.length - 4) +
           selectedMethod.cardNumber.slice(-4);
         setCardNumber(formattedCardNumber);
-
         const expirationDate = new Date(selectedMethod.expirationDate);
         const expirationMonth = expirationDate.getMonth() + 1;
         const expirationYear = expirationDate.getFullYear();
-
         const monthNames = [
           "January",
           "February",
@@ -774,7 +729,6 @@ const ConfigureAutopay = () => {
         const formattedExpirationMonth = `${expirationMonth
           .toString()
           .padStart(2, "0")} - ${monthNames[expirationMonth - 1]}`;
-
         setExpirationMonth(formattedExpirationMonth);
         setExpirationYear(expirationYear.toString());
       }
@@ -785,13 +739,11 @@ const ConfigureAutopay = () => {
           method.accountNumber &&
           method.accountNumber.endsWith(accountNumberFromValue)
       );
-
       if (selectedMethod) {
         setAccountNumber(selectedMethod.accountNumber || "");
         setRoutingNumber(selectedMethod.routingNumber || "");
       }
     }
-
     if (value !== "Add Debit Card" && value !== "Add Checking Account") {
       const selectedMethodId = savedMethods.find(
         (method) =>
@@ -799,10 +751,8 @@ const ConfigureAutopay = () => {
           (method.accountNumber &&
             value.endsWith(method.accountNumber.slice(-4)))
       )?.id;
-
       setSelectedPaymentMethodId(selectedMethodId ?? null);
     }
-
     if (value === "Add Debit Card" || value === "Add Checking Account") {
       router.push("/ManagePayments");
     }
@@ -843,7 +793,6 @@ const ConfigureAutopay = () => {
     const selectedValue = Number(itemValue);
     setSelectedPayDayOne(date2Map[selectedValue]);
     setPaymentDayOne(selectedValue);
-
     setShowPayDayOnePicker(false);
   };
 
@@ -851,7 +800,6 @@ const ConfigureAutopay = () => {
     const selectedValue = Number(itemValue);
     setSelectedPayDayTwo(date3Map[selectedValue]);
     setPaymentDayTwo(selectedValue);
-
     setShowPayDayTwoPicker(false);
   };
 
@@ -860,11 +808,9 @@ const ConfigureAutopay = () => {
     const selectedOption = whichDaysOptions.find(
       (option) => option.value === selectedValue
     );
-
     if (selectedOption) {
       setSelectedWhichDaysValue(selectedOption.value);
       setWhichDaysDisplayName(selectedOption.name);
-
       if (selectedOption.value === 1) {
         setPaymentSubFrequency(PaymentSubFrequency.SpecificDay);
       } else if (selectedOption.value === 2) {
@@ -900,13 +846,10 @@ const ConfigureAutopay = () => {
     if (Platform.OS === "android") {
       setShowDatePicker(false);
     }
-
     if (selectedDate) {
-      // Ensure the selected date is within the allowed range
       if (selectedDate >= currentDate && selectedDate <= maxDate) {
         setDate(selectedDate);
       } else {
-        // Optionally, show an error message or toast
         Toast.show({
           type: "error",
           text1: "Invalid Date",
@@ -924,17 +867,13 @@ const ConfigureAutopay = () => {
     const month = String(date.getMonth() + 1).padStart(2, "0");
     const day = String(date.getDate()).padStart(2, "0");
     const year = date.getFullYear();
-
     return `${month}/${day}/${year}`;
   };
 
-  // Inside your handleSubmit function
   const handleSubmit = async () => {
-    // Check if payment amount is valid
     const safeNextPaymentAmount = parseFloat(
       paymentAmount.replace(/[^0-9.-]/g, "")
     );
-
     if (isNaN(safeNextPaymentAmount) || safeNextPaymentAmount <= 0) {
       Toast.show({
         type: "error",
@@ -947,10 +886,8 @@ const ConfigureAutopay = () => {
       });
       return;
     }
-
     if (creditAccountId && selectedPaymentMethodId && token) {
       setIsSubmitting(true);
-
       const result = await updateDefaultPaymentMethod(
         creditAccountId,
         selectedPaymentMethodId,
@@ -961,14 +898,12 @@ const ConfigureAutopay = () => {
         expirationMonth,
         expirationYear
       );
-
       if (result) {
         if (result.type === "data") {
           let safePaymentSubFrequency = paymentSubFrequency;
           let safePaymentDayOne = paymentDayOne;
           let safePaymentDayTwo = paymentDayTwo;
           let safePaymentWeekOne = paymentWeekOne;
-
           if (paymentFrequency === IncomeFrequency.Monthly) {
             if (paymentSubFrequency === PaymentSubFrequency.SpecificDay) {
               safePaymentDayOne = Number(paymentDate);
@@ -991,7 +926,6 @@ const ConfigureAutopay = () => {
           } else if (paymentFrequency === IncomeFrequency.SemiMonthly) {
             safePaymentSubFrequency = PaymentSubFrequency.SpecificDay;
           }
-
           const payload = {
             autoPayEnabled: true,
             paymentFrequency,
@@ -1012,13 +946,11 @@ const ConfigureAutopay = () => {
                 : new Date(),
             nextPaymentAmount: safeNextPaymentAmount,
           };
-
           const scheduleResult = await updatePaymentSchedule(
             creditAccountId,
             token,
             payload
           );
-
           if (scheduleResult) {
             if (scheduleResult.type === "data") {
               Toast.show({
@@ -1030,18 +962,15 @@ const ConfigureAutopay = () => {
                 topOffset: 60,
                 bottomOffset: 100,
               });
-
               setTimeout(() => {
                 router.push("/(tabs)/Home");
               }, 3000);
-
               const customerResponse = await fetchCustomerData(token, () => {});
               if (customerResponse) {
                 const { creditSummaries } = await fetchCreditSummariesWithId(
                   customerResponse,
                   token
                 );
-
                 if (creditSummaries && creditSummaries.length > 0) {
                   const paymentSchedule =
                     creditSummaries[0]?.detail?.creditAccount?.paymentSchedule;
@@ -1085,17 +1014,26 @@ const ConfigureAutopay = () => {
     }
   };
 
-  // Function to handle the press event of the "Turn off AutoPay" text
   const handleTurnOffAutoPayPress = () => {
     setIsModalVisible(true);
   };
 
-  // Function to handle the OK button press in the modal
   const handleOKPress = () => {
     setIsModalVisible(false);
   };
 
-  // Modal structure
+  const handleTestErrorToast = () => {
+    Toast.show({
+      type: "error",
+      text1: "Test Error",
+      text2: "This is a test error message.",
+      visibilityTime: 5000,
+      autoHide: true,
+      topOffset: 60,
+      bottomOffset: 100,
+    });
+  };
+
   const renderModal = () => (
     <Modal
       animationType="slide"
@@ -1129,6 +1067,58 @@ const ConfigureAutopay = () => {
     </Modal>
   );
 
+  const toastConfig = {
+    success: ({ text1, text2, ...rest }: any) => (
+      <View
+        style={{
+          backgroundColor: "#d4edda",
+          padding: 15,
+          borderRadius: 10,
+          margin: 10,
+          flexDirection: "row",
+          alignItems: "center",
+        }}
+      >
+        <MaterialCommunityIcons
+          name="check-circle"
+          size={24}
+          color="#155724"
+          style={{ marginRight: 10 }}
+        />
+
+        <View>
+          <Text style={{ fontSize: 16, fontWeight: "bold", color: "#155724" }}>
+            {text1}
+          </Text>
+
+          <Text style={{ fontSize: 14, color: "#155724" }}>{text2}</Text>
+        </View>
+      </View>
+    ),
+
+    error: ({ text1, text2, ...rest }: any) => (
+      <View
+        style={{
+          backgroundColor: "#f8d7da",
+          padding: 15,
+          borderRadius: 10,
+          margin: 10,
+          flexDirection: "row",
+          alignItems: "center",
+        }}
+      >
+        <MaterialIcons name="error" size={24} color="#721c24"   style={{ marginRight: 10 }}/>
+
+        <View>
+          <Text style={{ fontSize: 16, fontWeight: "bold", color: "#721c24" }}>
+            {text1}
+          </Text>
+
+          <Text style={{ fontSize: 14, color: "#721c24" }}>{text2}</Text>
+        </View>
+      </View>
+    ),
+  };
   return (
     <>
       <KeyboardAvoidingView
@@ -1146,7 +1136,6 @@ const ConfigureAutopay = () => {
             <Text style={styles.headerText}>Configure AutoPay</Text>
             <View style={{ width: 24 }} />
           </View>
-
           <ScrollView
             contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={false}
@@ -1155,22 +1144,14 @@ const ConfigureAutopay = () => {
               <View style={styles.formContainer}>
                 {isLoading ? (
                   <>
-                    {/* <SkeletonLoader style={styles.pickerWrapper} type="text" /> */}
-
                     <SkeletonLoader style={styles.specificInput} type="text" />
-
                     <SkeletonLoader style={styles.specificInput} type="text" />
                     <SkeletonLoader style={styles.helpText} type="text" />
                     <SkeletonLoader style={styles.specificInput} type="text" />
                     <SkeletonLoader style={styles.helpText} type="text" />
                     <SkeletonLoader style={styles.helpText} type="text" />
-                    {/* <SkeletonLoader style={styles.pickerWrapper} type="text" /> */}
                     <SkeletonLoader style={styles.helpText} type="text" />
-                    {/* <SkeletonLoader style={styles.pickerWrapper} type="text" /> */}
                     <SkeletonLoader style={styles.helpText} type="text" />
-                    {/* <SkeletonLoader style={styles.pickerWrapper} type="text" /> */}
-                    <SkeletonLoader style={styles.helpText} type="text" />
-                    {/* <SkeletonLoader style={styles.pickerWrapper} type="text" /> */}
                     <SkeletonLoader style={styles.helpText} type="text" />
                     <SkeletonLoader style={styles.specificInput} type="text" />
                     <SkeletonLoader style={styles.helpText} type="text" />
@@ -1285,7 +1266,6 @@ const ConfigureAutopay = () => {
                         </Picker>
                       </View>
                     )}
-
                     {paymentMethod.startsWith("Debit Card -") ? (
                       <>
                         <Text style={styles.helpText}>Card Number</Text>
@@ -1298,7 +1278,6 @@ const ConfigureAutopay = () => {
                           keyboardType="numeric"
                           editable={paymentMethod === "Add Debit Card"}
                         />
-
                         <Text style={styles.helpText}>Expiration Month</Text>
                         <TextInput
                           style={styles.specificInput}
@@ -1309,7 +1288,6 @@ const ConfigureAutopay = () => {
                           keyboardType="numeric"
                           editable={paymentMethod === "Add Debit Card"}
                         />
-
                         <Text style={styles.helpText}>Expiration Year</Text>
                         <TextInput
                           style={styles.specificInput}
@@ -1333,7 +1311,6 @@ const ConfigureAutopay = () => {
                           keyboardType="numeric"
                           editable={paymentMethod === "Add Checking Account"}
                         />
-
                         <Text style={styles.helpText}>Account Number</Text>
                         <TextInput
                           style={styles.specificInput}
@@ -1346,7 +1323,6 @@ const ConfigureAutopay = () => {
                         />
                       </>
                     )}
-                  
                     <Text style={styles.helpText}>Payment will be</Text>
                     {Platform.OS === "ios" ? (
                       <>
@@ -1371,7 +1347,6 @@ const ConfigureAutopay = () => {
                               onValueChange={(itemValue) => {
                                 const frequency =
                                   getIncomeFrequencyFromString(itemValue);
-
                                 setPaymentFrequency(frequency);
                                 setShowFrequencyPicker(false);
                               }}
@@ -1581,7 +1556,6 @@ const ConfigureAutopay = () => {
                             </Picker>
                           </View>
                         )}
-
                         {selectedMonthlyPaymentOption ===
                           "Specific Week And Day" && (
                           <>
@@ -1653,7 +1627,6 @@ const ConfigureAutopay = () => {
                                 </Picker>
                               </View>
                             )}
-
                             <Text style={styles.helpText}>Day of Week</Text>
                             {Platform.OS === "ios" ? (
                               <>
@@ -1724,7 +1697,6 @@ const ConfigureAutopay = () => {
                             )}
                           </>
                         )}
-
                         {selectedMonthlyPaymentOption === "Specific Day" && (
                           <>
                             <Text style={styles.helpText}>Payment Date</Text>
@@ -1822,7 +1794,6 @@ const ConfigureAutopay = () => {
                             />
                           </View>
                         </Pressable>
-
                         {showLastPayDatePicker && (
                           <DateTimePicker
                             mode="date"
@@ -1903,7 +1874,6 @@ const ConfigureAutopay = () => {
                             </Picker>
                           </View>
                         )}
-
                         <Text style={styles.helpText}>Payday One</Text>
                         {Platform.OS === "ios" ? (
                           <>
@@ -1960,7 +1930,6 @@ const ConfigureAutopay = () => {
                             </Picker>
                           </View>
                         )}
-
                         <Text style={styles.helpText}>Payday Two</Text>
                         {Platform.OS === "ios" ? (
                           <>
@@ -2017,7 +1986,6 @@ const ConfigureAutopay = () => {
                             </Picker>
                           </View>
                         )}
-
                         {!isPayDayTwoValid() && (
                           <Text style={{ color: "red", marginTop: 10 }}>
                             Day Two must be at least 7 days after Day One.
@@ -2061,7 +2029,6 @@ const ConfigureAutopay = () => {
                     </Text>
                     <View style={styles.container}>
                       {renderModal()}
-
                       <TouchableOpacity onPress={handleTurnOffAutoPayPress}>
                         <Text style={styles.turnOffAutoPayText}>
                           Turn off AutoPay
@@ -2071,21 +2038,22 @@ const ConfigureAutopay = () => {
                     <TouchableOpacity
                       style={[
                         styles.submitButton,
-                        isSubmitting && styles.submitButtonDisabled, // Apply the disabled style if isSubmitting is true
+                        isSubmitting && styles.submitButtonDisabled,
                       ]}
                       onPress={handleSubmit}
-                      disabled={isSubmitting} // Disable the button if submitting
+                      disabled={isSubmitting}
                     >
                       <Text style={styles.submitButtonText}>
                         {isSubmitting ? "Submitting..." : "SUBMIT"}
                       </Text>
                     </TouchableOpacity>
+                 
                   </>
                 )}
               </View>
             </View>
           </ScrollView>
-          <Toast />
+          <Toast config={toastConfig} />
         </View>
       </KeyboardAvoidingView>
     </>

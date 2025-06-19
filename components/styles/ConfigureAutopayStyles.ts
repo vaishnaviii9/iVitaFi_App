@@ -260,4 +260,22 @@ export const styles = StyleSheet.create({
     color: "black",
     borderRadius: 6,
   },
+  testErrorButton: {
+    backgroundColor: '#ff6b6b', // A color that stands out, like a shade of red
+    padding: 15,
+    borderRadius: 5,
+    marginTop: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  testErrorButtonText: {
+    color: '#ffffff', // White text for contrast
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
 });
