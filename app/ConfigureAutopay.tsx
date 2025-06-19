@@ -1107,7 +1107,12 @@ const ConfigureAutopay = () => {
           alignItems: "center",
         }}
       >
-        <MaterialIcons name="error" size={24} color="#721c24"   style={{ marginRight: 10 }}/>
+        <MaterialIcons
+          name="error"
+          size={24}
+          color="#721c24"
+          style={{ marginRight: 10 }}
+        />
 
         <View>
           <Text style={{ fontSize: 16, fontWeight: "bold", color: "#721c24" }}>
@@ -2047,7 +2052,6 @@ const ConfigureAutopay = () => {
                         {isSubmitting ? "Submitting..." : "SUBMIT"}
                       </Text>
                     </TouchableOpacity>
-                 
                   </>
                 )}
               </View>

@@ -15,6 +15,7 @@ import { useSelector } from "react-redux";
 import { useFocusEffect } from "@react-navigation/native";
 import { Dimensions } from "react-native";
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+
 // Define types for your props
 interface Transaction {
   id: string;
@@ -175,14 +176,13 @@ const TransactionList: React.FC<TransactionListProps> = ({
   const token = useSelector((state: any) => state.auth.token);
   const mergedStyles = { ...styles, ...passedStyles };
   const [modalVisible, setModalVisible] = useState(false);
-  const [selectedTransactionId, setSelectedTransactionId] = useState<
-    string | null
-  >(null);
+  const [selectedTransactionId, setSelectedTransactionId] = useState<string | null>(null);
   const [operationMessage, setOperationMessage] = useState({
     title: "",
     message: "",
   });
   const [operationModalVisible, setOperationModalVisible] = useState(false);
+  const [deletingTransactionId, setDeletingTransactionId] = useState<string | null>(null);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -204,7 +204,6 @@ const TransactionList: React.FC<TransactionListProps> = ({
   ): Promise<void> => {
     const response = await approvalTransaction(id, isApproved, token);
 
-    // Find the transaction by id
     const transaction = transactions.find((t) => t.id === id);
     const transactionType = transaction
       ? CreditAccountTransactionTypeUtil.toString(transaction.transactionType)
@@ -260,6 +259,7 @@ const TransactionList: React.FC<TransactionListProps> = ({
   const handleDeleteConfirmation = async (confirm: boolean) => {
     setModalVisible(false);
     if (confirm && selectedTransactionId) {
+      setDeletingTransactionId(selectedTransactionId);
       try {
         const response = await deleteTransaction(selectedTransactionId, token);
         if (response.status === 200) {
@@ -275,6 +275,8 @@ const TransactionList: React.FC<TransactionListProps> = ({
           "Error",
           "An error occurred while deleting the transaction."
         );
+      } finally {
+        setDeletingTransactionId(null);
       }
     }
   };
@@ -348,12 +350,14 @@ const TransactionList: React.FC<TransactionListProps> = ({
       );
     }
 
+    const isDeleting = deletingTransactionId === id;
+
     return (
       <TouchableOpacity
-        onPress={() => handleTrashIconPress(id, disable)}
-        disabled={disable}
+        onPress={() => handleTrashIconPress(id, disable || isDeleting)}
+        disabled={disable || isDeleting}
       >
-        {renderTrashIcon(disable)}
+        {renderTrashIcon(disable || isDeleting)}
       </TouchableOpacity>
     );
   };
