@@ -117,7 +117,7 @@ const MakeAdditionalPayment = () => {
               customerResponse,
               token
             );
-            console.log("Fetched credit summaries:", creditSummaries);
+            // console.log("Fetched credit summaries:", creditSummaries);
             dispatch(setCreditSummaries(creditSummaries));
 
             if (creditSummaries && creditSummaries.length > 0) {
@@ -134,7 +134,7 @@ const MakeAdditionalPayment = () => {
                   token,
                   customerId
                 );
-                console.log("Fetched payment methods:", methods);
+                // console.log("Fetched payment methods:", methods);
                 if (methods && methods.length > 0) {
                   const validMethods = methods.filter(
                     (method: PaymentMethod) =>
@@ -218,7 +218,7 @@ const MakeAdditionalPayment = () => {
           return { type: "error", error: { errorCode: ErrorCode.Unknown } };
         } finally {
           setIsLoading(false);
-          console.log("Data fetch completed.");
+          // console.log("Data fetch completed.");
         }
       };
 
@@ -443,7 +443,7 @@ const MakeAdditionalPayment = () => {
         token
       );
 
-      console.log("Result", result);
+      // console.log("Result", result);
 
       if (result.type === "error") {
         Toast.show({
@@ -468,7 +468,7 @@ const MakeAdditionalPayment = () => {
     const currentDate = new Date();
     const resultData = result.response; // Access the response object directly
 
-    console.log("Result data", resultData);
+    // console.log("Result data", resultData);
 
     const pendingTransactionDate = resultData.pendingTransactionDate;
 
@@ -477,7 +477,7 @@ const MakeAdditionalPayment = () => {
       return;
     }
 
-    console.log("Pending transaction date", pendingTransactionDate);
+    // console.log("Pending transaction date", pendingTransactionDate);
 
     if (resultData.status !== undefined) {
       const pendingDate = new Date(pendingTransactionDate).toLocaleDateString();

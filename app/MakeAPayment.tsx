@@ -123,7 +123,7 @@ const MakeAPayment = () => {
               customerResponse,
               token
             );
-            console.log("Fetched credit summaries:", creditSummaries);
+            // console.log("Fetched credit summaries:", creditSummaries);
             dispatch(setCreditSummaries(creditSummaries));
 
             if (creditSummaries && creditSummaries.length > 0) {
@@ -140,7 +140,7 @@ const MakeAPayment = () => {
                   token,
                   customerId
                 );
-                console.log("Fetched payment methods:", methods);
+                // console.log("Fetched payment methods:", methods);
                 if (methods && methods.length > 0) {
                   const validMethods = methods.filter(
                     (method: PaymentMethod) =>
@@ -226,7 +226,7 @@ const MakeAPayment = () => {
           return { type: "error", error: { errorCode: ErrorCode.Unknown } };
         } finally {
           setIsLoading(false);
-          console.log("Data fetch completed.");
+          // console.log("Data fetch completed.");
         }
       };
 
@@ -451,7 +451,7 @@ const MakeAPayment = () => {
         token
       );
 
-      console.log("Result", result);
+      // console.log("Result", result);
 
       if (result.type === "error") {
         Toast.show({
