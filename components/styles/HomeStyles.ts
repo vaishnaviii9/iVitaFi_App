@@ -202,7 +202,6 @@ const styles = StyleSheet.create({
     flex: 1,
     marginBottom: hp("1%"),
   },
-  // Skeleton loader styles
   headerSkeleton: {
     width: wp("90%"),
     height: hp("10%"),
@@ -286,33 +285,64 @@ const styles = StyleSheet.create({
     height: hp("30%"),
   },
   accountStatusContainer: {
+    padding: 10,
+    margin: 10,
+    borderRadius: 5,
+    alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "center",
+  },
+  accountClosed: {
+    backgroundColor: "#BB2649",
+  },
+  accountDelinquent: {
+    backgroundColor: "#bd593a",
+  },
+  accountBankrupt: {
+    backgroundColor: "orange",
+  },
+  accountPastDue: {
     backgroundColor: "#D34A2A",
-    padding: wp("2%"),
-    borderRadius: wp("2%"),
-    marginVertical: hp("1%"),
-    alignSelf: "stretch",
-    marginHorizontal: wp("2%"),
+  },
+  textWhite: {
+    color: "white",
+    fontSize: 13,
+    fontWeight: "bold",
+  },
+  textBlack: {
+    color: "black",
+    fontSize: 13,
+    fontWeight: "bold",
+  },
+  row: {
+    flexDirection: "row",
+    width: "100%",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  col3: {
+    flex: 1,
+  },
+  col6: {
+    alignContent:"center",
+    justifyContent:"center",
+    flexDirection: "row",
+    flex:1,
+    alignItems: "center",
+  },
+  typography: {
+    padding:2,
+    fontWeight:600,
+    color:"white",
+    fontSize: 18,
+    flexDirection: "column",
+    alignItems: "center",
   },
   accountStatusRed: {
     backgroundColor: "#D34A2A",
   },
   accountStatus: {
     backgroundColor: "#D34A2A",
-  },
-  row: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  col3: {
-    flex: 1,
-  },
-  col6: {
-    flex: 2,
-  },
-  typography: {
-    fontSize: wp("3%"),
-    color: "#fff",
-    fontWeight: "900",
   },
   icon: {
     color: "#fff",
