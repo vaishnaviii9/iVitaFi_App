@@ -174,14 +174,22 @@ export const styles = StyleSheet.create({
     borderWidth: wp(0.5),
     borderColor: '#27446F',
   },
-  modalText: {
-    marginTop: hp(1.5),
-    marginBottom: hp(1.5),
+    modalText: {
+    marginBottom: hp(2),
     textAlign: "center",
-    fontSize: wp(6),
+    fontSize: wp(5),
     fontWeight: "bold",
     color: '#27446F',
   },
+
+  modalHeadText:{
+     marginBottom: hp(2),
+    textAlign: "center",
+    fontSize: wp(7),
+    fontWeight: "bold",
+    color: '#27446F',
+  },
+
   modalMessage: {
     marginBottom: hp(2),
     textAlign: "center",

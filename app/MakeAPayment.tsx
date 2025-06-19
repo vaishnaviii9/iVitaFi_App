@@ -71,7 +71,9 @@ const MakeAPayment = () => {
   const [expirationYear, setExpirationYear] = useState("");
   const [routingNumber, setRoutingNumber] = useState("");
   const [accountNumber, setAccountNumber] = useState("");
-  const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState<string | null>(null);
+  const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState<
+    string | null
+  >(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [creditAccountId, setCreditAccountId] = useState<string | null>(null);
@@ -86,6 +88,13 @@ const MakeAPayment = () => {
   const [validSummaries, setValidSummaries] = useState<ValidSummary[]>([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [enableAutoPay, setEnableAutoPay] = useState<boolean | null>(null);
+  const [isSuccessModalVisible, setIsSuccessModalVisible] = useState(false);
+  const [isFailureModalVisible, setIsFailureModalVisible] = useState(false);
+
+
+  const paymentStatusRef = useRef<number | null>(null);
+  const reasonRef = useRef<string | null>(null);
+  const statusRef = useRef<number | null>(null);
   const obj2Ref = useRef<any>(null);
 
   const currentDate = new Date();
@@ -121,21 +130,28 @@ const MakeAPayment = () => {
             if (creditSummaries && creditSummaries.length > 0) {
               setValidSummaries(creditSummaries);
 
-              const customerId = creditSummaries[0]?.detail?.creditAccount?.customerId;
-              const creditAccountId = creditSummaries[0]?.detail?.creditAccountId;
+              const customerId =
+                creditSummaries[0]?.detail?.creditAccount?.customerId;
+              const creditAccountId =
+                creditSummaries[0]?.detail?.creditAccountId;
               setCreditAccountId(creditAccountId);
 
               if (customerId) {
-                const methods = await fetchSavedPaymentMethods(token, customerId);
+                const methods = await fetchSavedPaymentMethods(
+                  token,
+                  customerId
+                );
                 console.log("Fetched payment methods:", methods);
                 if (methods && methods.length > 0) {
                   const validMethods = methods.filter(
                     (method: PaymentMethod) =>
-                      method.cardNumber !== null || method.accountNumber !== null
+                      method.cardNumber !== null ||
+                      method.accountNumber !== null
                   );
                   setSavedMethods(validMethods);
 
-                  const defaultPaymentMethod = creditSummaries[0]?.paymentMethod;
+                  const defaultPaymentMethod =
+                    creditSummaries[0]?.paymentMethod;
                   if (defaultPaymentMethod) {
                     if (defaultPaymentMethod.cardNumber) {
                       const formattedCardNumber =
@@ -143,7 +159,9 @@ const MakeAPayment = () => {
                         defaultPaymentMethod.cardNumber.slice(-4);
                       setCardNumber(formattedCardNumber);
                       setPaymentMethod(
-                        `Debit Card - ${defaultPaymentMethod.cardNumber.slice(-4)}`
+                        `Debit Card - ${defaultPaymentMethod.cardNumber.slice(
+                          -4
+                        )}`
                       );
 
                       const expirationDate = new Date(
@@ -153,33 +171,54 @@ const MakeAPayment = () => {
                       const expirationYear = expirationDate.getFullYear();
 
                       const monthNames = [
-                        "January", "February", "March", "April", "May", "June",
-                        "July", "August", "September", "October", "November", "December"
+                        "January",
+                        "February",
+                        "March",
+                        "April",
+                        "May",
+                        "June",
+                        "July",
+                        "August",
+                        "September",
+                        "October",
+                        "November",
+                        "December",
                       ];
                       const formattedExpirationMonth = `${expirationMonth
                         .toString()
-                        .padStart(2, "0")} - ${monthNames[expirationMonth - 1]}`;
+                        .padStart(2, "0")} - ${
+                        monthNames[expirationMonth - 1]
+                      }`;
 
                       setExpirationMonth(formattedExpirationMonth);
                       setExpirationYear(expirationYear.toString());
                     } else if (defaultPaymentMethod.accountNumber) {
                       setAccountNumber(defaultPaymentMethod.accountNumber);
-                      setRoutingNumber(defaultPaymentMethod.routingNumber || "");
+                      setRoutingNumber(
+                        defaultPaymentMethod.routingNumber || ""
+                      );
                       setPaymentMethod(
-                        `Checking Account - ${defaultPaymentMethod.accountNumber.slice(-4)}`
+                        `Checking Account - ${defaultPaymentMethod.accountNumber.slice(
+                          -4
+                        )}`
                       );
                     }
                   }
                 }
               }
 
-              const autoPayEnabled = creditSummaries[0]?.detail?.creditAccount?.paymentSchedule?.autoPayEnabled;
+              const autoPayEnabled =
+                creditSummaries[0]?.detail?.creditAccount?.paymentSchedule
+                  ?.autoPayEnabled;
               setEnableAutoPay(autoPayEnabled);
 
-              const paymentSchedule = creditSummaries[0]?.detail?.creditAccount?.paymentSchedule;
+              const paymentSchedule =
+                creditSummaries[0]?.detail?.creditAccount?.paymentSchedule;
               if (paymentSchedule) {
                 setPaymentSchedule(paymentSchedule);
-                setPaymentAmount(formatPaymentAmount(paymentSchedule.paymentAmount));
+                setPaymentAmount(
+                  formatPaymentAmount(paymentSchedule.paymentAmount)
+                );
               }
             }
           }
@@ -227,8 +266,18 @@ const MakeAPayment = () => {
         const expirationYear = expirationDate.getFullYear();
 
         const monthNames = [
-          "January", "February", "March", "April", "May", "June",
-          "July", "August", "September", "October", "November", "December"
+          "January",
+          "February",
+          "March",
+          "April",
+          "May",
+          "June",
+          "July",
+          "August",
+          "September",
+          "October",
+          "November",
+          "December",
         ];
         const formattedExpirationMonth = `${expirationMonth
           .toString()
@@ -333,6 +382,7 @@ const MakeAPayment = () => {
     return `${month}/${day}/${year}`;
   };
 
+ 
   const handleSubmit = async () => {
     setIsSubmitting(true);
 
@@ -403,6 +453,8 @@ const MakeAPayment = () => {
         token
       );
 
+      console.log("Result", result);
+
       if (result.type === "error") {
         Toast.show({
           type: "error",
@@ -413,33 +465,54 @@ const MakeAPayment = () => {
           bottomOffset: 100,
         });
       } else {
-        Toast.show({
-          type: "success",
-          text1: "Payment Successful",
-          text2: "Your payment has been processed successfully.",
-          visibilityTime: 5000,
-          autoHide: true,
-          topOffset: 60,
-          bottomOffset: 100,
-        });
-
-        setIsModalVisible(true);
+        handlePaymentResponse(result);
       }
     } catch (error) {
-      Toast.show({
-        type: "error",
-        text1: "Payment Failed",
-        text2: "There was an error processing your payment. Please try again.",
-        visibilityTime: 5000,
-        autoHide: true,
-        topOffset: 60,
-        bottomOffset: 100,
-      });
+      console.error("Error:", error);
+      setIsFailureModalVisible(true);
     } finally {
       setIsSubmitting(false);
     }
   };
+   const handlePaymentResponse = (result: any) => {
+    const currentDate = new Date();
+    const resultData = result.data;
 
+    if (resultData.pendingTransactionDate && resultData.status !== undefined) {
+      if (
+        new Date(resultData.pendingTransactionDate).toLocaleDateString() ===
+          currentDate.toLocaleDateString() &&
+        resultData.dateExecuted !== null &&
+        (resultData.status === null || resultData.status === 1)
+      ) {
+        paymentStatusRef.current = 1;
+        reasonRef.current = resultData.reason;
+        statusRef.current = resultData.status;
+        setIsSuccessModalVisible(true);
+      } else if (
+        new Date(resultData.pendingTransactionDate).toLocaleDateString() >
+          currentDate.toLocaleDateString() &&
+        resultData.dateExecuted === null &&
+        resultData.status === null
+      ) {
+        paymentStatusRef.current = 2;
+        reasonRef.current = resultData.reason;
+        statusRef.current = resultData.status;
+        setIsSuccessModalVisible(true);
+      } else if (
+        new Date(resultData.pendingTransactionDate).toLocaleDateString() ===
+          currentDate.toLocaleDateString() &&
+        resultData.dateExecuted === null &&
+        resultData.status !== 1
+      ) {
+        paymentStatusRef.current = 3;
+        reasonRef.current = resultData.reason;
+        statusRef.current = resultData.status;
+        setIsFailureModalVisible(true);
+      }
+    }
+  };
+  
   const handleOKPress = () => {
     setIsModalVisible(false);
   };
@@ -700,12 +773,13 @@ const MakeAPayment = () => {
         </ScrollView>
         <Toast />
 
+       
         <Modal
           animationType="slide"
           transparent={true}
-          visible={isModalVisible}
+          visible={isSuccessModalVisible}
           onRequestClose={() => {
-            setIsModalVisible(false);
+            setIsSuccessModalVisible(false);
           }}
         >
           <View style={styles.centeredView}>
@@ -719,7 +793,7 @@ const MakeAPayment = () => {
               >
                 <TouchableOpacity
                   style={styles.closeIcon}
-                  onPress={() => setIsModalVisible(false)}
+                  onPress={() => setIsSuccessModalVisible(false)}
                 >
                   <Ionicons name="close" size={34} color="black" />
                 </TouchableOpacity>
@@ -732,11 +806,56 @@ const MakeAPayment = () => {
               <TouchableOpacity
                 style={styles.modalButton}
                 onPress={() => {
-                  setIsModalVisible(!isModalVisible);
+                  setIsSuccessModalVisible(!isSuccessModalVisible);
                   router.push("/(tabs)/Home");
                 }}
               >
                 <Text style={styles.modalButtonText}>Done</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={isFailureModalVisible}
+          onRequestClose={() => {
+            setIsFailureModalVisible(false);
+          }}
+        >
+          <View style={styles.centeredView}>
+            <View style={styles.modalView}>
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  marginBottom: 15,
+                }}
+              >
+                <TouchableOpacity
+                  style={styles.closeIcon}
+                  onPress={() => setIsFailureModalVisible(false)}
+                >
+                  <Ionicons name="close" size={34} color="black" />
+                </TouchableOpacity>
+              </View>
+              <Text style={styles.modalText}>Declined</Text>
+             <Text style={styles.modalHeadText}>Declined</Text>
+                                <Text style={styles.modalText}>
+                                  Your payment was not successful
+                                </Text>
+                                
+                                <Text style={styles.modalMessage}>
+                             There was an error and the payment did not go through
+                                </Text>
+              <TouchableOpacity
+                style={styles.modalButton}
+                onPress={() => {
+                  setIsFailureModalVisible(!isFailureModalVisible);
+                }}
+              >
+                <Text style={styles.modalButtonText}>Back</Text>
               </TouchableOpacity>
             </View>
           </View>
