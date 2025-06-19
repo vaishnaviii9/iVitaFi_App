@@ -286,33 +286,52 @@ const styles = StyleSheet.create({
     height: hp("30%"),
   },
   accountStatusContainer: {
-    backgroundColor: "#D34A2A",
-    padding: wp("2%"),
-    borderRadius: wp("2%"),
-    marginVertical: hp("1%"),
-    alignSelf: "stretch",
-    marginHorizontal: wp("2%"),
+    padding: 10,
+    margin: 10,
+    borderRadius: 5,
+    alignItems: 'center',
   },
-  accountStatusRed: {
-    backgroundColor: "#D34A2A",
+  accountClosed: {
+    backgroundColor: '#BB2649', // Red background for "ACCOUNT IS CLOSED"
   },
-  accountStatus: {
-    backgroundColor: "#D34A2A",
+  accountDelinquent:{
+backgroundColor :"#bd593a"
+  },
+  accountBankrupt: {
+    backgroundColor: 'orange', // Orange background for "ACCOUNT IN BANKRUPTCY" and "ACCOUNT DELINQUENT"
+  },
+  accountPastDue: {
+    backgroundColor: '#D34A2A', // Custom color for "THIS ACCOUNT IS PAST DUE"
+  },
+  textWhite: {
+    color: 'white', // White text color
+    fontSize: 13,
+    fontWeight: 'bold'
+  },
+  textBlack: {
+    color: 'black', // Black text color
+    fontSize: 13,
+    fontWeight: 'bold'
   },
   row: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    width: '100%',
   },
   col3: {
     flex: 1,
   },
   col6: {
     flex: 2,
+    alignItems: 'center',
   },
   typography: {
-    fontSize: wp("3%"),
-    color: "#fff",
-    fontWeight: "900",
+    fontSize: 16,
+  },
+  accountStatusRed: {
+    backgroundColor: "#D34A2A",
+  },
+  accountStatus: {
+    backgroundColor: "#D34A2A",
   },
   icon: {
     color: "#fff",

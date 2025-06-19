@@ -14,7 +14,11 @@ import { fetchCustomerData } from "../services/customerService";
 import { fetchUserData } from "../services/userService";
 import { fetchCreditSummariesWithId } from "../services/creditAccountService";
 import { setCreditAccountId } from "../../features/creditAccount/creditAccountSlice";
-import { useNavigation, useFocusEffect,DrawerActions } from "@react-navigation/native";;
+import {
+  useNavigation,
+  useFocusEffect,
+  DrawerActions,
+} from "@react-navigation/native";
 import { fetchPendingTransactions } from "../../app/services/pendingTransactionsService";
 import { logout } from "../../features/login/loginSlice";
 import { CreditApplicationStatus } from "../../utils/CreditApplicationStatusUtil";
@@ -24,6 +28,7 @@ import {
   setShowMakeAdditionalPayment,
 } from "../../features/buttonVisibility/buttonVisibilitySlice";
 import { ErrorCode } from "../../utils/ErrorCodeUtil";
+import { MaterialIcons } from "@expo/vector-icons";
 
 interface CreditApplication {
   accountNumber: string;
@@ -106,181 +111,138 @@ const HomeScreen: React.FC = () => {
     setClosedAccount(null);
     setBankruptAccount(null);
     setIsActiveClass(null);
+    // Reset any other state variables as needed
   };
 
   const fetchPaymentSetupData = useCallback(
-  async (creditAccountId: string): Promise<PaymentSetupData | { type: string; error: { errorCode: ErrorCode } }> => {
-    try {
-      const response = await fetch(
-        `https://dev.ivitafi.com/api/admin/credit-account/${creditAccountId}/accountPaymentSetup`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+    async (
+      creditAccountId: string
+    ): Promise<
+      PaymentSetupData | { type: string; error: { errorCode: ErrorCode } }
+    > => {
+      try {
+        const response = await fetch(
+          `https://dev.ivitafi.com/api/admin/credit-account/${creditAccountId}/accountPaymentSetup`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
 
-      if (response.ok) {
-        const data: PaymentSetupData = await response.json();
-        setPaymentSetupData(data);
-        return data;
-      } else {
+        if (response.ok) {
+          const data: PaymentSetupData = await response.json();
+          setPaymentSetupData(data);
+          return data;
+        } else {
+          return { type: "error", error: { errorCode: ErrorCode.Unknown } };
+        }
+      } catch (error) {
+        console.error("Error fetching payment setup data:", error);
         return { type: "error", error: { errorCode: ErrorCode.Unknown } };
       }
-    } catch (error) {
-      console.error("Error fetching payment setup data:", error);
-      return { type: "error", error: { errorCode: ErrorCode.Unknown } };
-    }
-  },
-  [token]
-);
+    },
+    [token]
+  );
 
+  // Inside fetchAllData function
+  const fetchAllData = useCallback(async () => {
+    try {
+      setLoading(true);
+      const [userResponse, customerResponse] = await Promise.all([
+        fetchUserData(token, setUserData),
+        fetchCustomerData(token, setCustomerData),
+      ]);
 
-// Inside fetchAllData function
-const fetchAllData = useCallback(async () => {
-  try {
-    setLoading(true);
-    const [userResponse, customerResponse] = await Promise.all([
-      fetchUserData(token, setUserData),
-      fetchCustomerData(token, setCustomerData),
-    ]);
+      if (customerResponse?.creditAccounts) {
+        const accountNumbers = customerResponse.creditAccounts.map(
+          (application: { accountNumber: any }) => application.accountNumber
+        );
+        setAccountNumbers(accountNumbers);
 
-    if (customerResponse?.creditAccounts) {
-      const accountNumbers = customerResponse.creditAccounts.map(
-        (application: { accountNumber: any }) => application.accountNumber
-      );
-      setAccountNumbers(accountNumbers);
+        const { creditSummaries, creditAccountId } =
+          await fetchCreditSummariesWithId(customerResponse, token);
 
-      const { creditSummaries, creditAccountId } = await fetchCreditSummariesWithId(
-        customerResponse,
-        token
-      );
+        if (creditAccountId) {
+          dispatch(setCreditAccountId(creditAccountId));
+          const paymentSetupData = await fetchPaymentSetupData(creditAccountId);
+          console.log("Fetched payment setup data:", paymentSetupData);
 
-      if (creditAccountId) {
-        dispatch(setCreditAccountId(creditAccountId));
-        const paymentSetupData = await fetchPaymentSetupData(creditAccountId);
-        console.log("Fetched payment setup data:", paymentSetupData);
+          if ("isAutoPay" in paymentSetupData) {
+            setCreditSummaries(creditSummaries);
+            const validSummary = creditSummaries.find(
+              (summary) => summary !== null
+            );
+            if (validSummary) {
+              let pastDue =
+                validSummary.totalAmountDue - validSummary.currentAmountDue;
+              // Conditional logic for setting currentAmountDue
+              if (
+                (pastDue > 0 || validSummary.currentAmountDue > 0) &&
+                validSummary.currentBalance > 0
+              ) {
+                setCurrentAmountDue(validSummary.totalAmountDue);
+              } else {
+                setCurrentAmountDue(
+                  validSummary?.detail?.creditAccount?.paymentSchedule
+                    ?.paymentAmount
+                );
+              }
+              const accountNum = validSummary.paymentMethod?.accountNumber;
+              const cardNum = validSummary.paymentMethod?.cardNumber;
 
-        if ('isAutoPay' in paymentSetupData) {
-          setCreditSummaries(creditSummaries);
-          const validSummary = creditSummaries.find((summary) => summary !== null);
-         if (validSummary) {
-          let pastDue = validSummary.totalAmountDue - validSummary.currentAmountDue
-            // Conditional logic for setting currentAmountDue
-            if ((pastDue>0 ||validSummary.currentAmountDue > 0 )&& validSummary.currentBalance > 0) {
-              setCurrentAmountDue(validSummary.totalAmountDue);
-            } else {
-              setCurrentAmountDue(validSummary?.detail?.creditAccount?.paymentSchedule?.paymentAmount);
+              if (accountNum) {
+                setLast4Digits(accountNum.slice(-4));
+                setIsCardNumber(false);
+              } else if (cardNum) {
+                setLast4Digits(cardNum.slice(-4));
+                setIsCardNumber(true);
+              } else {
+                setLast4Digits(null);
+                setIsCardNumber(false);
+              }
+
+              setBalance(validSummary.currentBalance);
+              setAvailableCredit(validSummary.displayAvailableCredit);
+
+              const date = new Date(validSummary.nextPaymentDate);
+              const formattedDate = `${String(date.getMonth() + 1).padStart(
+                2,
+                "0"
+              )}/${String(date.getDate()).padStart(2, "0")}`;
+              setNextPaymentDate(formattedDate);
+
+              // const isAutoPay = paymentSetupData.isAutoPay;
+              const isAutoPay =
+                validSummary?.detail?.creditAccount?.paymentSchedule
+                  ?.autoPayEnabled;
+              setAutopay(isAutoPay);
+              dispatch({ type: "SET_AUTOPLAY_ENABLED", payload: isAutoPay });
+
+              console.log("Set isAutoPay to:", isAutoPay);
+
+              determineCustomerStandingPaymentOptions(
+                validSummary,
+                paymentSetupData
+              );
             }
-            const accountNum = validSummary.paymentMethod?.accountNumber;
-            const cardNum = validSummary.paymentMethod?.cardNumber;
-
-            if (accountNum) {
-              setLast4Digits(accountNum.slice(-4));
-              setIsCardNumber(false);
-            } else if (cardNum) {
-              setLast4Digits(cardNum.slice(-4));
-              setIsCardNumber(true);
-            } else {
-              setLast4Digits(null);
-              setIsCardNumber(false);
-            }
-
-            setBalance(validSummary.currentBalance);
-            setAvailableCredit(validSummary.displayAvailableCredit);
-
-            const date = new Date(validSummary.nextPaymentDate);
-            const formattedDate = `${String(date.getMonth() + 1).padStart(2, "0")}/${String(date.getDate()).padStart(2, "0")}`;
-            setNextPaymentDate(formattedDate);
-
-            // const isAutoPay = paymentSetupData.isAutoPay;
-            const isAutoPay = validSummary?.detail?.creditAccount?.paymentSchedule?.autoPayEnabled;
-            setAutopay(isAutoPay);
-            dispatch({ type: "SET_AUTOPLAY_ENABLED", payload: isAutoPay });
-
-            console.log("Set isAutoPay to:", isAutoPay);
-
-            determineCustomerStandingPaymentOptions(validSummary, paymentSetupData);
           }
         }
+
+        if (creditAccountId) {
+          const transactionsResponse = await fetchPendingTransactions(
+            token,
+            creditAccountId
+          );
+          setTransactions(transactionsResponse || []);
+        }
       }
-
-      if (creditAccountId) {
-        const transactionsResponse = await fetchPendingTransactions(
-          token,
-          creditAccountId
-        );
-        setTransactions(transactionsResponse || []);
-      }
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    } finally {
+      setLoading(false);
     }
-  } catch (error) {
-    console.error("Error fetching data:", error);
-  } finally {
-    setLoading(false);
-  }
-}, [token, dispatch, creditAccountId]);
-
-// Inside determineCustomerStandingPaymentOptions function
-const determineCustomerStandingPaymentOptions = (
-  validSummary: { detail: { creditAccount: { creditApplication: { status: CreditApplicationStatus; }; }; }; isBankrupt: any; currentAmountDue: any; currentBalance: any; daysDelinquent: any; totalAmountDue: any; },
-  paymentSetupData: CreditAccountPaymentSetupDto | null
-) => {
-  const isAccountClosed =
-    validSummary.detail?.creditAccount?.creditApplication?.status ===
-    CreditApplicationStatus.AccountClosed;
-  const isBankrupt = validSummary.isBankrupt;
-  const isAutoPay = paymentSetupData?.isAutoPay !== undefined ? paymentSetupData.isAutoPay : false;
-  const currentAmountDue = validSummary.currentAmountDue;
-  const currentBalance = validSummary.currentBalance;
-  const daysDelinquent = validSummary.daysDelinquent;
-  const totalAmountDue = validSummary.totalAmountDue;
-
-  console.log("isAutoPay in determineCustomerStandingPaymentOptions:", isAutoPay); // Debugging log
-
-  if (isAccountClosed) {
-    setCustomerStandingDisplayMessage("ACCOUNT IS CLOSED");
-    setNoAdditionalPayment(true);
-    setSetUpAutopay(false);
-    setClosedAccount(true);
-    setIsActiveClass(true);
-  } else if (isBankrupt) {
-    setCustomerStandingDisplayMessage("ACCOUNT IN BANKRUPTCY");
-    setIsActiveClass(true);
-    setEnableClick(true);
-    setSetUpAutopay(false);
-    setNoAdditionalPayment(true);
-    setBankruptAccount(true);
-  } else if (isAutoPay === false && !isBankrupt && !isAccountClosed) {
-    setEnableConfigureAutopayText(false);
-    setSetUpAutopay(true);
-    setNoAdditionalPayment(true);
-    setEnableClick(true);
-  } else if (
-    currentAmountDue === 0 &&
-    isAutoPay === true &&
-    currentBalance > 0
-  ) {
-    setEnableConfigureAutopayText(false);
-    setSetUpAutopay(false);
-    setEnableClick(true);
-    setClosedAccount(false);
-    setNoAdditionalPayment(false);
-  } else if (
-    (currentAmountDue === 0 && isAutoPay === false && currentBalance > 0) ||
-    (currentAmountDue > 0 && totalAmountDue - currentAmountDue === 0) ||
-    (totalAmountDue - currentAmountDue > 0 && daysDelinquent <= 60) ||
-    (totalAmountDue - currentAmountDue > 0 && daysDelinquent > 60)
-  ) {
-    if (isAutoPay === false && !isBankrupt && !isAccountClosed) {
-      setSetUpAutopay(true);
-    } else {
-      setSetUpAutopay(false);
-      setEnableClick(true);
-      setNoAdditionalPayment(true);
-    }
-  }
-};
-
+  }, [token, dispatch, creditAccountId]);
 
   useFocusEffect(
     useCallback(() => {
@@ -317,27 +279,149 @@ const determineCustomerStandingPaymentOptions = (
   const handleConfigureAutoPay = () => {
     navigation.navigate("ConfigureAutopay");
   };
+  // Inside determineCustomerStandingPaymentOptions function
+ const determineCustomerStandingPaymentOptions = (
+  validSummary: {
+    detail: {
+      creditAccount: {
+        creditApplication: {
+          status: CreditApplicationStatus;
+        };
+      };
+    };
+    isBankrupt: any;
+    currentAmountDue: any;
+    currentBalance: any;
+    daysDelinquent: any;
+    totalAmountDue: any;
+  },
+  paymentSetupData: CreditAccountPaymentSetupDto | null
+) => {
+  const isAccountClosed =
+    validSummary.detail?.creditAccount?.creditApplication?.status ===
+    CreditApplicationStatus.AccountClosed;
+  const isBankrupt = validSummary.isBankrupt;
+  const isAutoPay =
+    paymentSetupData?.isAutoPay !== undefined ? paymentSetupData.isAutoPay : false;
+  const currentAmountDue = validSummary.currentAmountDue;
+  const currentBalance = validSummary.currentBalance;
+  const daysDelinquent = validSummary.daysDelinquent;
+  const totalAmountDue = validSummary.totalAmountDue;
+
+  console.log("isAccountClosed", isAccountClosed);
+  console.log("isBankrupt", isBankrupt);
+  console.log("currentAmountDue", currentAmountDue);
+  console.log("currentBalance", currentBalance);
+  console.log("daysDelinquent", daysDelinquent);
+  console.log("totalAmountDue", totalAmountDue);
+  console.log("isAutoPay in determineCustomerStandingPaymentOptions:", isAutoPay);
+
+  // Reset the message initially
+  setCustomerStandingDisplayMessage("");
+
+  if (isAccountClosed) {
+    setCustomerStandingDisplayMessage("ACCOUNT IS CLOSED");
+    setNoAdditionalPayment(true);
+    setSetUpAutopay(false);
+    setClosedAccount(true);
+    setIsActiveClass(true);
+  } else if (isBankrupt) {
+    setCustomerStandingDisplayMessage("ACCOUNT IN BANKRUPTCY");
+    setIsActiveClass(true);
+    setEnableClick(true);
+    setSetUpAutopay(false);
+    setNoAdditionalPayment(true);
+    setBankruptAccount(true);
+  } else if (totalAmountDue - currentAmountDue > 0 && daysDelinquent > 60) {
+    setCustomerStandingDisplayMessage("ACCOUNT DELINQUENT");
+    setIsActiveClass(true);
+    setEnableClick(true);
+    setSetUpAutopay(false);
+    setNoAdditionalPayment(false);
+  } else if (
+    (totalAmountDue - currentAmountDue > 0 && daysDelinquent <= 60) ||
+    (totalAmountDue - currentAmountDue > 0 && daysDelinquent === 0)
+  ) {
+    setCustomerStandingDisplayMessage("THIS ACCOUNT IS PAST DUE");
+    setIsActiveClass(true);
+    setEnableClick(true);
+    setSetUpAutopay(false);
+    setNoAdditionalPayment(false);
+  } else if (currentAmountDue > 0 && totalAmountDue - currentAmountDue === 0) {
+    setCustomerStandingDisplayMessage("");
+  } else if (currentAmountDue === 0) {
+    setCustomerStandingDisplayMessage("");
+  } else {
+    setCustomerStandingDisplayMessage("");
+  }
+
+  // Additional logic for handling next payment display
+  let pastDue = totalAmountDue - currentAmountDue;
+  if (
+    (isAccountClosed || isBankrupt) &&
+    validSummary.detail !== null
+  ) {
+    // Handle closed or bankrupt account
+  } else if (validSummary.detail !== null && currentBalance <= 0) {
+    // Handle zero or negative balance
+  } else if (
+    (pastDue > 0 || currentAmountDue > 0) &&
+    currentBalance > 0
+  ) {
+    // Handle account with balance and past due amount
+  } else {
+    // Handle other cases
+  }
+};
+
+  type IconName = "error-outline"; // Add other icon names as needed
 
   const renderAccountStatus = () => {
-    const isVisible =
-      customerStandingDisplayMessage === "ACCOUNT IS CLOSED" ||
-      customerStandingDisplayMessage === "ACCOUNT IN BANKRUPTCY" ||
-      customerStandingDisplayMessage === "THIS ACCOUNT IS PAST DUE";
+    if (!customerStandingDisplayMessage) return null;
 
-    if (!isVisible) return null;
+    let messageStyle, textStyle, iconColor;
+    let iconName: IconName = "error-outline"; // Initialize with a default valid icon name
 
-    const messageStyle = isActiveClass
-      ? styles.accountStatusRed
-      : styles.accountStatus;
-    const iconStyle = isActiveClass ? styles.iconRed : styles.icon;
+    switch (customerStandingDisplayMessage) {
+      case "ACCOUNT IS CLOSED":
+        messageStyle = [styles.accountStatusContainer, styles.accountClosed];
+        textStyle = styles.textWhite;
+        iconName = "error-outline";
+        iconColor = "#f08080"; // Light pink or peach color for the icon
+        break;
+      case "ACCOUNT IN BANKRUPTCY":
+        messageStyle = [styles.accountStatusContainer, styles.accountBankrupt];
+        textStyle = styles.textBlack;
+        iconName = "error-outline";
+        iconColor = "black";
+        break;
+      case "THIS ACCOUNT IS PAST DUE":
+        messageStyle = [styles.accountStatusContainer, styles.accountPastDue];
+        textStyle = styles.textWhite;
+        iconName = "error-outline";
+        iconColor = "black";
+        break;
+      case "ACCOUNT DELINQUENT":
+        messageStyle = [
+          styles.accountStatusContainer,
+          styles.accountDelinquent,
+        ];
+        textStyle = styles.textWhite;
+        iconName = "error-outline";
+        iconColor = "black";
+        break;
+    }
+
+    // If none of the cases match, return null
+    if (!messageStyle || !textStyle || !iconName || !iconColor) return null;
 
     return (
-      <View style={[styles.accountStatusContainer, messageStyle]}>
+      <View style={messageStyle}>
         <View style={styles.row}>
           <View style={styles.col3} />
           <View style={styles.col6}>
-            <Text style={styles.typography}>
-              <Text style={iconStyle}>⚠️ </Text>
+            <Text style={[styles.typography, textStyle]}>
+              <MaterialIcons name={iconName} size={24} color={iconColor} />{" "}
               {customerStandingDisplayMessage}
             </Text>
           </View>
