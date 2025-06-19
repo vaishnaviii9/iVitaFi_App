@@ -210,13 +210,15 @@ export const styles = StyleSheet.create({
     left: wp(32.5),
     top: hp(-3),
     padding: wp(1.2),
+ 
   },
   subHeaderText: {
     color: "#000000",
-    fontSize: wp(3.7),
+    fontSize: wp(3.8),
     textAlign: "center",
     marginTop: hp(0.1),
     marginBottom: hp(2.5),
+       fontWeight: 'bold',
   },
   agreementText: {
     marginTop: hp(0),
