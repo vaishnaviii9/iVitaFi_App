@@ -464,55 +464,55 @@ const MakeAdditionalPayment = () => {
       setIsSubmitting(false);
     }
   };
- const handlePaymentResponse = (result : any) => {
-  const currentDate = new Date();
-  const resultData = result.response; // Access the response object directly
+  const handlePaymentResponse = (result: any) => {
+    const currentDate = new Date();
+    const resultData = result.response; // Access the response object directly
 
-  console.log("Result data", resultData);
+    console.log("Result data", resultData);
 
-  const pendingTransactionDate = resultData.pendingTransactionDate;
+    const pendingTransactionDate = resultData.pendingTransactionDate;
 
-  if (!pendingTransactionDate) {
-    console.error("Pending transaction date is undefined");
-    return;
-  }
-
-  console.log("Pending transaction date", pendingTransactionDate);
-
-  if (resultData.status !== undefined) {
-    const pendingDate = new Date(pendingTransactionDate).toLocaleDateString();
-    const currentDateString = currentDate.toLocaleDateString();
-
-    if (
-      pendingDate === currentDateString &&
-      resultData.dateExecuted !== null &&
-      (resultData.status === null || resultData.status === 1)
-    ) {
-      paymentStatusRef.current = 1;
-      reasonRef.current = resultData.reason;
-      statusRef.current = resultData.status;
-      setIsSuccessModalVisible(true);
-    } else if (
-      pendingDate > currentDateString &&
-      resultData.dateExecuted === null &&
-      resultData.status === null
-    ) {
-      paymentStatusRef.current = 2;
-      reasonRef.current = resultData.reason;
-      statusRef.current = resultData.status;
-      setIsSuccessModalVisible(true);
-    } else if (
-      pendingDate === currentDateString &&
-      resultData.dateExecuted === null &&
-      resultData.status !== 1
-    ) {
-      paymentStatusRef.current = 3;
-      reasonRef.current = resultData.reason;
-      statusRef.current = resultData.status;
-      setIsFailureModalVisible(true);
+    if (!pendingTransactionDate) {
+      console.error("Pending transaction date is undefined");
+      return;
     }
-  }
-};
+
+    console.log("Pending transaction date", pendingTransactionDate);
+
+    if (resultData.status !== undefined) {
+      const pendingDate = new Date(pendingTransactionDate).toLocaleDateString();
+      const currentDateString = currentDate.toLocaleDateString();
+
+      if (
+        pendingDate === currentDateString &&
+        resultData.dateExecuted !== null &&
+        (resultData.status === null || resultData.status === 1)
+      ) {
+        paymentStatusRef.current = 1;
+        reasonRef.current = resultData.reason;
+        statusRef.current = resultData.status;
+        setIsSuccessModalVisible(true);
+      } else if (
+        pendingDate > currentDateString &&
+        resultData.dateExecuted === null &&
+        resultData.status === null
+      ) {
+        paymentStatusRef.current = 2;
+        reasonRef.current = resultData.reason;
+        statusRef.current = resultData.status;
+        setIsSuccessModalVisible(true);
+      } else if (
+        pendingDate === currentDateString &&
+        resultData.dateExecuted === null &&
+        resultData.status !== 1
+      ) {
+        paymentStatusRef.current = 3;
+        reasonRef.current = resultData.reason;
+        statusRef.current = resultData.status;
+        setIsFailureModalVisible(true);
+      }
+    }
+  };
 
   const handleOKPress = () => {
     setIsModalVisible(false);
@@ -802,7 +802,7 @@ const MakeAdditionalPayment = () => {
                 <Ionicons name="close" size={34} color="black" />
               </TouchableOpacity>
             </View>
-              <Text style={styles.modalText}>Your payment was successful</Text>
+            <Text style={styles.modalText}>Your payment was successful</Text>
             <Text style={styles.modalMessage}>
               Thank You! Your payment has been submitted. Please allow 2-4
               business days for it to be reflected on your account.
@@ -820,49 +820,49 @@ const MakeAdditionalPayment = () => {
         </View>
       </Modal>
 
-     <Modal
-               animationType="slide"
-               transparent={true}
-               visible={isFailureModalVisible}
-               onRequestClose={() => {
-                 setIsFailureModalVisible(false);
-               }}
-             >
-               <View style={styles.centeredView}>
-                 <View style={styles.modalView}>
-                   <View
-                     style={{
-                       flexDirection: "row",
-                       alignItems: "center",
-                       marginBottom: 15,
-                     }}
-                   >
-                     <TouchableOpacity
-                       style={styles.closeIcon}
-                       onPress={() => setIsFailureModalVisible(false)}
-                     >
-                       <Ionicons name="close" size={34} color="black" />
-                     </TouchableOpacity>
-                   </View>
-                   <Text style={styles.modalHeadText}>Declined</Text>
-                   <Text style={styles.modalText}>
-                     Your payment was not successful
-                   </Text>
-                   
-                   <Text style={styles.modalMessage}>
-                There was an error and the payment did not go through
-                   </Text>
-                   <TouchableOpacity
-                     style={styles.modalButton}
-                     onPress={() => {
-                       setIsFailureModalVisible(!isFailureModalVisible);
-                     }}
-                   >
-                     <Text style={styles.modalButtonText}>Back</Text>
-                   </TouchableOpacity>
-                 </View>
-               </View>
-             </Modal>
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={isFailureModalVisible}
+        onRequestClose={() => {
+          setIsFailureModalVisible(false);
+        }}
+      >
+        <View style={styles.centeredView}>
+          <View style={styles.modalView}>
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                marginBottom: 15,
+              }}
+            >
+              <TouchableOpacity
+                style={styles.closeIcon}
+                onPress={() => setIsFailureModalVisible(false)}
+              >
+                <Ionicons name="close" size={34} color="black" />
+              </TouchableOpacity>
+            </View>
+            <Text style={styles.modalHeadText}>Declined</Text>
+            <Text style={styles.modalText}>
+              Your payment was not successful
+            </Text>
+
+            <Text style={styles.modalMessage}>
+              There was an error and the payment did not go through
+            </Text>
+            <TouchableOpacity
+              style={styles.modalButton}
+              onPress={() => {
+                setIsFailureModalVisible(!isFailureModalVisible);
+              }}
+            >
+              <Text style={styles.modalButtonText}>Back</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </KeyboardAvoidingView>
   );
 };

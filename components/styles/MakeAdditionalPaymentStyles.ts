@@ -1,7 +1,7 @@
 import { StyleSheet, Platform, Dimensions } from "react-native";
 
 // Get screen dimensions
-const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
 // Function to calculate width percentage
 const wp = (percentage: number) => {
@@ -146,7 +146,7 @@ export const styles = StyleSheet.create({
     width: wp(50),
     backgroundColor: "#27446F",
     padding: hp(2),
-     borderRadius: wp(2.5),
+    borderRadius: wp(2.5),
     alignItems: "center",
     marginTop: hp(0),
   },
@@ -159,10 +159,10 @@ export const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   modalView: {
-    width:wp(90), 
+    width: wp(90),
     margin: wp(1),
     backgroundColor: "white",
     borderRadius: wp(5),
@@ -177,30 +177,29 @@ export const styles = StyleSheet.create({
     shadowRadius: wp(1),
     elevation: 5,
     borderWidth: wp(0.5),
-    borderColor: '#27446F',
+    borderColor: "#27446F",
   },
   modalText: {
     marginBottom: hp(2),
     textAlign: "center",
     fontSize: wp(5),
     fontWeight: "bold",
-    color: '#27446F',
+    color: "#27446F",
   },
 
-  modalHeadText:{
-     marginBottom: hp(2),
+  modalHeadText: {
+    marginBottom: hp(2),
     textAlign: "center",
     fontSize: wp(7),
     fontWeight: "bold",
-    color: '#27446F',
+    color: "#27446F",
   },
-
 
   modalMessage: {
     marginBottom: hp(2.5),
     textAlign: "center",
     fontSize: wp(4),
-    color: '#555555',
+    color: "#555555",
   },
   modalButton: {
     backgroundColor: "#27446F",
@@ -213,14 +212,13 @@ export const styles = StyleSheet.create({
   modalButtonText: {
     color: "white",
     fontSize: wp(4.5),
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
- closeIcon: {
-    position: 'absolute',
+  closeIcon: {
+    position: "absolute",
     left: wp(32.5),
     top: hp(-3),
     padding: wp(1.2),
- 
   },
   subHeaderText: {
     color: "#000000",
@@ -228,7 +226,7 @@ export const styles = StyleSheet.create({
     textAlign: "center",
     marginTop: hp(0.1),
     marginBottom: hp(2.5),
-       fontWeight: 'bold',
+    fontWeight: "bold",
   },
   agreementText: {
     marginTop: hp(0),
@@ -237,7 +235,7 @@ export const styles = StyleSheet.create({
     fontSize: wp(3.5),
     marginBottom: hp(2.5),
   },
-   submitButtonDisabled: {
+  submitButtonDisabled: {
     opacity: 0.6, // This makes the button appear faint
   },
 });

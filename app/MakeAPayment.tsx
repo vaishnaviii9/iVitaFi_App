@@ -91,7 +91,6 @@ const MakeAPayment = () => {
   const [isSuccessModalVisible, setIsSuccessModalVisible] = useState(false);
   const [isFailureModalVisible, setIsFailureModalVisible] = useState(false);
 
-
   const paymentStatusRef = useRef<number | null>(null);
   const reasonRef = useRef<string | null>(null);
   const statusRef = useRef<number | null>(null);
@@ -382,7 +381,6 @@ const MakeAPayment = () => {
     return `${month}/${day}/${year}`;
   };
 
- 
   const handleSubmit = async () => {
     setIsSubmitting(true);
 
@@ -474,7 +472,7 @@ const MakeAPayment = () => {
       setIsSubmitting(false);
     }
   };
-   const handlePaymentResponse = (result: any) => {
+  const handlePaymentResponse = (result: any) => {
     const currentDate = new Date();
     const resultData = result.data;
 
@@ -512,7 +510,7 @@ const MakeAPayment = () => {
       }
     }
   };
-  
+
   const handleOKPress = () => {
     setIsModalVisible(false);
   };
@@ -773,7 +771,6 @@ const MakeAPayment = () => {
         </ScrollView>
         <Toast />
 
-       
         <Modal
           animationType="slide"
           transparent={true}
@@ -841,14 +838,14 @@ const MakeAPayment = () => {
                 </TouchableOpacity>
               </View>
               <Text style={styles.modalText}>Declined</Text>
-             <Text style={styles.modalHeadText}>Declined</Text>
-                                <Text style={styles.modalText}>
-                                  Your payment was not successful
-                                </Text>
-                                
-                                <Text style={styles.modalMessage}>
-                             There was an error and the payment did not go through
-                                </Text>
+              <Text style={styles.modalHeadText}>Declined</Text>
+              <Text style={styles.modalText}>
+                Your payment was not successful
+              </Text>
+
+              <Text style={styles.modalMessage}>
+                There was an error and the payment did not go through
+              </Text>
               <TouchableOpacity
                 style={styles.modalButton}
                 onPress={() => {
