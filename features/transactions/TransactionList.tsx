@@ -14,7 +14,7 @@ import Toast from "react-native-toast-message";
 import { useSelector } from "react-redux";
 import { useFocusEffect } from "@react-navigation/native";
 import { Dimensions } from "react-native";
-
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 // Define types for your props
 interface Transaction {
   id: string;
@@ -234,7 +234,7 @@ const TransactionList: React.FC<TransactionListProps> = ({
   };
 
   const renderCheckIcon = () => {
-    return <Feather name="check" size={24} color="green" />;
+    return <Icon name="check-bold" size={24} color="green" />;
   };
 
   const renderXIcon = () => {
