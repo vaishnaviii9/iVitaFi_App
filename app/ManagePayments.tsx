@@ -237,7 +237,6 @@ const ManagePayments = () => {
     cvv: "",
     zip: "",
   });
-
   const [editDebitCardInputs, setEditDebitCardInputs] = useState({
     firstName: "",
     lastName: "",
@@ -247,7 +246,6 @@ const ManagePayments = () => {
     cvv: "",
     zip: "",
   });
-
   const [isDefault, setIsDefault] = useState(false);
   const [isDefaultMethod, setIsDefaultMethod] = useState<boolean>(false);
   const [accountSummary, setAccountSummary] = useState<CreditSummary | null>(null);
@@ -267,6 +265,8 @@ const ManagePayments = () => {
   const [activeField, setActiveField] = useState<string | null>(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [deletingMethodId, setDeletingMethodId] = useState<string | null>(null);
+
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 11 }, (_, i) => currentYear + i);
   const months = [
@@ -283,6 +283,7 @@ const ManagePayments = () => {
     { label: "11 - Nov", value: "11" },
     { label: "12 - Dec", value: "12" },
   ];
+
   const [isEditModalVisible, setEditModalVisible] = useState(false);
   const [editingMethod, setEditingMethod] = useState<PaymentMethod | null>(null);
   const [customerResponse, setCustomerResponse] = useState<any>(null);
@@ -291,10 +292,8 @@ const ManagePayments = () => {
   const isCardExpired = (expMonth: string, expYear: string): boolean => {
     const currentDate = new Date();
     const expirationDate = new Date(Number(expYear), Number(expMonth) - 1);
-
     expirationDate.setMonth(expirationDate.getMonth() + 1, 0);
     expirationDate.setHours(23, 59, 59, 999);
-
     return currentDate > expirationDate;
   };
 
@@ -310,7 +309,6 @@ const ManagePayments = () => {
     setIsLoading(true);
     try {
       const customerResponse = await fetchCustomerData(token, (data) => {});
-
       setCustomerResponse(customerResponse);
       if (customerResponse) {
         const { creditSummaries } = await fetchCreditSummariesWithId(
@@ -385,6 +383,7 @@ const ManagePayments = () => {
 
   const confirmDeleteMethod = async () => {
     if (!methodToDelete) return;
+    setDeletingMethodId(methodToDelete);
     try {
       const success = await deletePaymentMethod(token, methodToDelete);
       if (success) {
@@ -404,6 +403,7 @@ const ManagePayments = () => {
     } finally {
       setConfirmDeleteModalVisible(false);
       setMethodToDelete(null);
+      setDeletingMethodId(null);
     }
   };
 
@@ -448,7 +448,6 @@ const ManagePayments = () => {
   const handleButtonPress = async () => {
     setIsSubmitting(true);
     setIsSubmitted(true);
-
     const paymentMethodData = {
       accountNumber: null as string | null,
       routingNumber: null as string | null,
@@ -463,34 +462,28 @@ const ManagePayments = () => {
       zipCode: null as string | null,
       paymentMethodType: null as number | null,
     };
-
     if (selectedMethod === "Add Checking Account") {
       const duplicateMethod = savedMethods.find(
         (method) => method.accountNumber === accountNumber && !method.isDisabled
       );
-
       if (duplicateMethod) {
         setAccountVerificationError("Account Number Already exists.");
         setIsSubmitting(false);
         return;
       }
-
       if (routingNumberError || accountNumberError) {
         setIsSubmitting(false);
         return;
       }
-
       paymentMethodData.accountNumber = accountNumber;
       paymentMethodData.routingNumber = routingNumber;
       paymentMethodData.paymentMethodType = 1;
-
       paymentMethodData.cardNumber = null;
       paymentMethodData.securityCode = null;
       paymentMethodData.firstName = null;
       paymentMethodData.lastName = null;
       paymentMethodData.zipCode = null;
       paymentMethodData.expirationDate = null;
-
       try {
         const paymentMethResp =
           await updateCreditAccountPaymentMethodWithDefaultPaymentMethodAsync(
@@ -500,7 +493,6 @@ const ManagePayments = () => {
             isDefault,
             token
           );
-
         if (paymentMethResp.type === "data") {
           Toast.show({
             type: "success",
@@ -546,7 +538,6 @@ const ManagePayments = () => {
     } else if (selectedMethod === "Add Debit Card") {
       const { firstName, lastName, cardNumber, expMonth, expYear } =
         debitCardInputs;
-
       if (firstName.length < 2 || lastName.length < 2) {
         Alert.alert(
           "Validation Error",
@@ -568,9 +559,7 @@ const ManagePayments = () => {
         setIsSubmitting(false);
         return;
       }
-
       const debitExpirationMonthError = isCardExpired(expMonth, expYear);
-
       if (debitExpirationMonthError) {
         Toast.show({
           type: "error",
@@ -581,7 +570,6 @@ const ManagePayments = () => {
         setIsSubmitting(false);
         return;
       }
-
       paymentMethodData.cardNumber = cardNumber;
       paymentMethodData.securityCode = debitCardInputs.cvv;
       paymentMethodData.firstName = firstName;
@@ -592,14 +580,11 @@ const ManagePayments = () => {
         Number(expMonth) - 1
       );
       paymentMethodData.paymentMethodType = 3;
-
       paymentMethodData.accountNumber = null;
       paymentMethodData.routingNumber = null;
-
       var duplicateMethod = savedMethods.find(
         (method) => method.cardNumber === cardNumber && !method.isDisabled
       );
-
       if (duplicateMethod) {
         Toast.show({
           type: "error",
@@ -609,7 +594,6 @@ const ManagePayments = () => {
         setIsSubmitting(false);
         return;
       }
-
       try {
         const paymentMethResp =
           await updateCreditAccountPaymentMethodWithDefaultPaymentMethodAsync(
@@ -619,7 +603,6 @@ const ManagePayments = () => {
             isDefault,
             token
           );
-
         if (paymentMethResp.type === "data") {
           Toast.show({
             type: "success",
@@ -636,7 +619,6 @@ const ManagePayments = () => {
         ) {
           const errorMessage = paymentMethResp.response.errorMessage;
           const formattedMessage = errorMessage.split(".").join("\n");
-
           Toast.show({
             type: "error",
             text1: "Error",
@@ -680,16 +662,13 @@ const ManagePayments = () => {
 
   const formatCardExpiryStatus = (expirationDateStr: string): string => {
     if (!expirationDateStr) return "";
-
     const today = new Date();
     const expirationDate = new Date(expirationDateStr);
-
     const formattedMonth = expirationDate.getMonth() + 1;
     const formattedYear = expirationDate.getFullYear().toString().slice(-2);
     const formattedDate = `${formattedMonth
       .toString()
       .padStart(2, "0")}/${formattedYear}`;
-
     return expirationDate < today
       ? `Expired - ${formattedDate}`
       : `Valid Thru - ${formattedDate}`;
@@ -735,13 +714,10 @@ const ManagePayments = () => {
           },
         }
       );
-
       if (!response.ok) {
         throw new Error("Failed to fetch debit card information");
       }
-
       const data = await response.json();
-
       return data;
     } catch (error) {
       return { type: "error", error: { errorCode: ErrorCode.Unknown } };
@@ -750,26 +726,21 @@ const ManagePayments = () => {
 
   const handleEditMethod = async (method: PaymentMethod) => {
     resetFormInputs();
-
     if (method.cardNumber) {
       try {
         const debitCardInfo = await fetchDebitCardInfo(method.id);
-
         const expMonth = debitCardInfo.expirationDate.substring(0, 2);
         const expYearTwoDigits = debitCardInfo.expirationDate.substring(2, 4);
-
         const expirationYearTwoDigits = parseInt(expYearTwoDigits, 10);
         const currentYear = new Date().getFullYear();
         const currentCentury = Math.floor(currentYear / 100) * 100;
         const currentYearTwoDigits = currentYear % 100;
-
         let fullYear: number;
         if (expirationYearTwoDigits < currentYearTwoDigits) {
           fullYear = currentCentury + 100 + expirationYearTwoDigits;
         } else {
           fullYear = currentCentury + expirationYearTwoDigits;
         }
-
         setSelectedMethod("Add Debit Card");
         setEditDebitCardInputs({
           firstName:
@@ -820,19 +791,15 @@ const ManagePayments = () => {
         }
       );
       const contentType = response.headers.get("content-type");
-
       if (!response.ok) {
         const errorData = contentType?.includes("application/json")
           ? await response.json()
           : { errorMessage: await response.text() };
-
         return { type: "error", response: errorData };
       }
-
       const data = contentType?.includes("application/json")
         ? await response.json()
         : await response.text();
-
       return { type: "data", data };
     } catch (error) {
       return { type: "error", error: { errorCode: ErrorCode.Unknown } };
@@ -841,16 +808,12 @@ const ManagePayments = () => {
 
   const handleUpdateButtonPress = async () => {
     setIsSubmitting(true);
-
     if (selectedMethod === "Add Debit Card" && editingMethod?.id) {
       const { firstName, lastName, cardNumber, expMonth, expYear, cvv } =
         editDebitCardInputs;
-
       const month = Number(expMonth);
       const year = Number(expYear);
-
       const lastDay = new Date(year, month, 0).getDate();
-
       const expirationDateWithTime = new Date(
         year,
         month - 1,
@@ -859,7 +822,6 @@ const ManagePayments = () => {
         0,
         0
       );
-
       const paymentMethodInfo: DebitCardInfoDto = {
         firstName,
         lastName,
@@ -875,10 +837,8 @@ const ManagePayments = () => {
         phone: null,
         state: null,
       };
-
       const isSecurityCodeEntered = !!cvv;
       const isSecurityCodeValid = /^[0-9]{3,4}$/.test(cvv || "");
-
       if (isSecurityCodeEntered && !isSecurityCodeValid) {
         Toast.show({
           type: "error",
@@ -888,10 +848,8 @@ const ManagePayments = () => {
         setIsSubmitting(false);
         return;
       }
-
       const currentYear = new Date().getFullYear();
       const currentMonth = new Date().getMonth() + 1;
-
       if (
         month > 0 &&
         year > 0 &&
@@ -907,16 +865,13 @@ const ManagePayments = () => {
         setIsSubmitting(false);
         return;
       }
-
       try {
         const result = await updateDebitCardInfo(
           paymentMethodInfo,
           Number(editingMethod.id)
         );
-
         if (result?.type === "data") {
           setEditModalVisible(false);
-
           await fetchData();
           Toast.show({
             type: "success",
@@ -1025,7 +980,6 @@ const ManagePayments = () => {
             </TouchableOpacity>
           </View>
         </Modal>
-
         <Modal
           isVisible={isConfirmDeleteModalVisible}
           onBackdropPress={closeConfirmDeleteModal}
@@ -1051,7 +1005,6 @@ const ManagePayments = () => {
             </View>
           </View>
         </Modal>
-
         <Modal
           isVisible={isEditModalVisible}
           onBackdropPress={() => setEditModalVisible(false)}
@@ -1068,7 +1021,6 @@ const ManagePayments = () => {
                 style={styles.modalCloseIcon}
               />
             </TouchableOpacity>
-
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>
                 Update Payment Method Details
@@ -1097,7 +1049,6 @@ const ManagePayments = () => {
                     editable={false}
                   />
                 </View>
-
                 <View style={styles.inputFieldContainer}>
                   <Text style={styles.inputFieldLabel}>Last Name</Text>
                   <TextInput
@@ -1113,7 +1064,6 @@ const ManagePayments = () => {
                     editable={false}
                   />
                 </View>
-
                 <View style={styles.inputFieldContainer}>
                   <Text style={styles.inputFieldLabel}>Card Number</Text>
                   <TextInput
@@ -1209,7 +1159,6 @@ const ManagePayments = () => {
                     </View>
                   )}
                 </View>
-
                 <View style={styles.inputFieldContainer}>
                   <Text style={styles.inputFieldLabel}>Expiration Year *</Text>
                   {Platform.OS === "ios" ? (
@@ -1274,7 +1223,6 @@ const ManagePayments = () => {
                     </View>
                   )}
                 </View>
-
                 <View style={styles.inputFieldContainer}>
                   <Text style={styles.inputFieldLabel}>Security Code</Text>
                   <TextInput
@@ -1289,7 +1237,6 @@ const ManagePayments = () => {
                     maxLength={3}
                   />
                 </View>
-
                 <View style={styles.submitButtonContainer}>
                   <TouchableOpacity
                     style={styles.submitButton}
@@ -1305,7 +1252,6 @@ const ManagePayments = () => {
             )}
           </View>
         </Modal>
-
         <View style={styles.header}>
           <View style={styles.headerContent}>
             <TouchableOpacity
@@ -1317,7 +1263,6 @@ const ManagePayments = () => {
             <Text style={styles.headerText}>Manage Payments</Text>
           </View>
         </View>
-
         <ScrollView
           style={styles.scrollView}
           showsVerticalScrollIndicator={false}
@@ -1378,13 +1323,13 @@ const ManagePayments = () => {
                   <TouchableOpacity
                     style={styles.deleteButton}
                     onPress={() => openConfirmDeleteModal(method.id)}
-                    disabled={method.default || savedMethods.length === 1}
+                    disabled={method.default || savedMethods.length === 1 || deletingMethodId === method.id}
                   >
                     <Ionicons
                       name="trash"
                       size={30}
                       color={
-                        method.default || savedMethods.length === 1
+                        method.default || savedMethods.length === 1 || deletingMethodId === method.id
                           ? "#837e7e"
                           : "#FF0000"
                       }
@@ -1393,7 +1338,6 @@ const ManagePayments = () => {
                 </View>
               ))
           )}
-
           <Text style={styles.addNewPayHeader}>Add New Payment Method</Text>
           <View style={styles.addMethodContainer}>
             {["Add Checking Account", "Add Debit Card"].map((label) => (
@@ -1416,7 +1360,6 @@ const ManagePayments = () => {
               </TouchableOpacity>
             ))}
           </View>
-
           {selectedMethod === "Add Checking Account" && !isEditModalVisible && (
             <>
               <View style={styles.inputFieldContainer}>
@@ -1462,7 +1405,6 @@ const ManagePayments = () => {
               </View>
             </>
           )}
-
           {selectedMethod === "Add Debit Card" && !isEditModalVisible && (
             <>
               <View style={styles.inputFieldContainer}>
@@ -1576,7 +1518,6 @@ const ManagePayments = () => {
                   </View>
                 )}
               </View>
-
               <View style={styles.inputFieldContainer}>
                 <Text style={styles.inputFieldLabel}>Expiration Year</Text>
                 {Platform.OS === "ios" ? (
@@ -1629,7 +1570,6 @@ const ManagePayments = () => {
                   </View>
                 )}
               </View>
-
               <View style={styles.inputFieldContainer}>
                 <Text style={styles.inputFieldLabel}>Security Code</Text>
                 <TextInput
@@ -1677,7 +1617,6 @@ const ManagePayments = () => {
               </View>
             </>
           )}
-
           <View style={styles.defaultPaymentMethodContainer}>
             <TouchableOpacity
               onPress={() => setIsDefaultMethod(!isDefaultMethod)}
@@ -1692,7 +1631,6 @@ const ManagePayments = () => {
               Set as Default Payment Method
             </Text>
           </View>
-
           <View style={styles.submitButtonContainer}>
             <TouchableOpacity
               style={[
@@ -1708,7 +1646,6 @@ const ManagePayments = () => {
             </TouchableOpacity>
           </View>
         </ScrollView>
-
         <Modal
           isVisible={isHelpModalVisible}
           onBackdropPress={toggleHelpModal}
@@ -1745,7 +1682,6 @@ const ManagePayments = () => {
             />
           </View>
         </Modal>
-
         <Toast config={toastConfig} />
       </View>
     </KeyboardAvoidingView>
