@@ -697,7 +697,7 @@ const MakeAdditionalPayment = () => {
                   <>
                     <Text style={styles.helpText}>Routing Number</Text>
                     <TextInput
-                      style={styles.specificInput}
+                      style={styles.nonEditableInput}
                       placeholder="Enter routing number"
                       placeholderTextColor="black"
                       value={routingNumber}
@@ -708,7 +708,7 @@ const MakeAdditionalPayment = () => {
 
                     <Text style={styles.helpText}>Account Number</Text>
                     <TextInput
-                      style={styles.specificInput}
+                      style={styles.nonEditableInput}
                       placeholder="Enter account number"
                       placeholderTextColor="black"
                       value={accountNumber}

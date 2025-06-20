@@ -106,6 +106,7 @@ export const styles = StyleSheet.create({
     marginBottom: hp(0.5),
   },
   specificInput: {
+    fontSize:wp(4),
     height: hp(5),
     borderColor: "#ccc",
     borderWidth: 1,
@@ -140,7 +141,7 @@ export const styles = StyleSheet.create({
   },
   dateText: {
     color: "#000000",
-    fontSize: wp(3.7),
+    fontSize: wp(4),
   },
   submitButton: {
     alignSelf: "center",
