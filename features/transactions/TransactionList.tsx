@@ -14,7 +14,8 @@ import Toast from "react-native-toast-message";
 import { useSelector } from "react-redux";
 import { useFocusEffect } from "@react-navigation/native";
 import { Dimensions } from "react-native";
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import Icon from 'react-native-vector-icons/FontAwesome';
+import FAIcon from 'react-native-vector-icons/FontAwesome'; // Renamed import to FAIcon
 
 // Define types for your props
 interface Transaction {
@@ -233,12 +234,39 @@ const TransactionList: React.FC<TransactionListProps> = ({
   };
 
   const renderCheckIcon = () => {
-    return <Icon name="check-bold" size={32} color="green" />;
+    return (
+      <View
+        style={{
+          backgroundColor: "#6ebd5b",
+          padding: 5,
+          borderRadius: 4,
+          margin: 4,
+          marginLeft: 6,
+        }}
+      >
+        <Icon name="check" size={20} color="white" />
+      </View>
+    );
   };
 
   const renderXIcon = () => {
-    return <Entypo name="cross" size={32} color="red" />;
+    return (
+      <View
+        style={{
+          backgroundColor: "#e34a25",
+          padding: 5,
+          borderRadius: 4,
+          margin: 4,
+          width:30,
+          alignItems: 'center'
+        }}
+      >
+        <FAIcon name="remove" size={21} color="white" />
+      </View>
+    );
   };
+
+ 
 
   const handleTrashIconPress = (id: string, disable: boolean) => {
     if (disable) {
