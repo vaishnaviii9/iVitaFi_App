@@ -116,6 +116,7 @@ export const styles = StyleSheet.create({
   },
 
   nonEditableInput: {
+    fontSize:wp(4),
     height: hp(5),
     borderColor: "#ccc",
     borderWidth: 1,

@@ -48,6 +48,7 @@ export const styles = StyleSheet.create({
     fontSize: 15,
   },
   specificInput: {
+    fontSize:16,
     height: 40,
     borderColor: "#ccc",
     borderWidth: 1,
