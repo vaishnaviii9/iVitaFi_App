@@ -253,6 +253,7 @@ const determineCustomerStandingMessage = (validSummary: AccountSummary) => {
     setNoAdditionalPayment(true);
     setSetUpAutopay(false);
     setClosedAccount(true);
+    setEnableClick(false); 
     setIsActiveClass(true);
   } else if (isBankrupt) {
     setCustomerStandingDisplayMessage("ACCOUNT IN BANKRUPTCY");
