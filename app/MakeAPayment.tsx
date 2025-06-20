@@ -373,6 +373,7 @@ const MakeAPayment = () => {
     }
   };
 
+
   const formatDate = (date: Date) => {
     const month = String(date.getMonth() + 1).padStart(2, "0");
     const day = String(date.getDate()).padStart(2, "0");
@@ -382,134 +383,145 @@ const MakeAPayment = () => {
   };
 
   const handleSubmit = async () => {
-    setIsSubmitting(true);
-
-    const convertedYear = Number(expirationYear);
-    const convertedMonth = Number(expirationMonth.split(" - ")[0]) - 1;
-
-    const expirationDate = new Date(convertedYear, convertedMonth);
-    const currentDate = new Date();
-
-    if (paymentMethod.startsWith("Debit Card -")) {
-      if (expirationDate < currentDate) {
-        Toast.show({
-          type: "error",
-          text1: "Card Expired",
-          text2:
-            "The debit card you entered has expired. Please update your payment details.",
-          visibilityTime: 5000,
-          autoHide: true,
-          topOffset: 60,
-          bottomOffset: 100,
-        });
-        setIsSubmitting(false);
-        return;
-      }
-    }
-
-    const formattedExpirationDate = new Date(
-      convertedYear,
-      convertedMonth
-    ).toISOString();
-    const formattedTransactionDate = date.toISOString();
-
-    const transactionPost = {
-      transactionAmount: Number(paymentAmount.replace(/[^0-9.-]+/g, "")),
-      transactionDate: formattedTransactionDate,
-      customAmount: null,
-      useSavedPaymentMethod: true,
-      enableAutoPay: enableAutoPay !== null ? enableAutoPay : false,
-      paymentMethodType: obj2Ref.current
-        ? obj2Ref.current.paymentMethodType
-        : null,
-    };
-
-    if (!obj2Ref.current || !creditAccountId || !selectedPaymentMethodId) {
-      Toast.show({
-        type: "error",
-        text1: "Submission Error",
-        text2: "Required data is missing. Please check your inputs.",
-        visibilityTime: 5000,
-        autoHide: true,
-        topOffset: 60,
-        bottomOffset: 100,
-      });
-      setIsSubmitting(false);
-      return;
-    }
-
-    const payload = {
-      ...transactionPost,
-      expirationDate: formattedExpirationDate,
-    };
-
-    try {
-      const result = await postCreditAccountTransactionsNew(
-        Number(creditAccountId),
-        Number(selectedPaymentMethodId),
-        payload,
-        token
-      );
-
-      // console.log("Result", result);
-
-      if (result.type === "error") {
-        Toast.show({
-          type: "error",
-          text1: "Payment Failed",
-          visibilityTime: 5000,
-          autoHide: true,
-          topOffset: 60,
-          bottomOffset: 100,
-        });
-      } else {
-        handlePaymentResponse(result);
-      }
-    } catch (error) {
-      console.error("Error:", error);
-      setIsFailureModalVisible(true);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-  const handlePaymentResponse = (result: any) => {
-    const currentDate = new Date();
-    const resultData = result.data;
-
-    if (resultData.pendingTransactionDate && resultData.status !== undefined) {
-      if (
-        new Date(resultData.pendingTransactionDate).toLocaleDateString() ===
-          currentDate.toLocaleDateString() &&
-        resultData.dateExecuted !== null &&
-        (resultData.status === null || resultData.status === 1)
-      ) {
-        paymentStatusRef.current = 1;
-        reasonRef.current = resultData.reason;
-        statusRef.current = resultData.status;
-        setIsSuccessModalVisible(true);
-      } else if (
-        new Date(resultData.pendingTransactionDate).toLocaleDateString() >
-          currentDate.toLocaleDateString() &&
-        resultData.dateExecuted === null &&
-        resultData.status === null
-      ) {
-        paymentStatusRef.current = 2;
-        reasonRef.current = resultData.reason;
-        statusRef.current = resultData.status;
-        setIsSuccessModalVisible(true);
-      } else if (
-        new Date(resultData.pendingTransactionDate).toLocaleDateString() ===
-          currentDate.toLocaleDateString() &&
-        resultData.dateExecuted === null &&
-        resultData.status !== 1
-      ) {
-        paymentStatusRef.current = 3;
-        reasonRef.current = resultData.reason;
-        statusRef.current = resultData.status;
-        setIsFailureModalVisible(true);
-      }
-    }
-  };
+     setIsSubmitting(true);
+ 
+     const convertedYear = Number(expirationYear);
+     const convertedMonth = Number(expirationMonth.split(" - ")[0]) - 1;
+ 
+     const expirationDate = new Date(convertedYear, convertedMonth);
+     const currentDate = new Date();
+ 
+     if (paymentMethod.startsWith("Debit Card -")) {
+       if (expirationDate < currentDate) {
+         Toast.show({
+           type: "error",
+           text1: "Card Expired",
+           text2:
+             "The debit card you entered has expired. Please update your payment details.",
+           visibilityTime: 5000,
+           autoHide: true,
+           topOffset: 60,
+           bottomOffset: 100,
+         });
+         setIsSubmitting(false);
+         return;
+       }
+     }
+ 
+     const formattedExpirationDate = new Date(
+       convertedYear,
+       convertedMonth
+     ).toISOString();
+     const formattedTransactionDate = date.toISOString();
+ 
+     const transactionPost = {
+       transactionAmount: Number(paymentAmount.replace(/[^0-9.-]+/g, "")),
+       transactionDate: formattedTransactionDate,
+       customAmount: null,
+       useSavedPaymentMethod: true,
+       enableAutoPay: enableAutoPay !== null ? enableAutoPay : false,
+       paymentMethodType: obj2Ref.current
+         ? obj2Ref.current.paymentMethodType
+         : null,
+     };
+ 
+     if (!obj2Ref.current || !creditAccountId || !selectedPaymentMethodId) {
+       Toast.show({
+         type: "error",
+         text1: "Submission Error",
+         text2: "Required data is missing. Please check your inputs.",
+         visibilityTime: 5000,
+         autoHide: true,
+         topOffset: 60,
+         bottomOffset: 100,
+       });
+       setIsSubmitting(false);
+       return;
+     }
+ 
+     const payload = {
+       ...transactionPost,
+       expirationDate: formattedExpirationDate,
+     };
+ 
+     try {
+       const result = await postCreditAccountTransactionsNew(
+         Number(creditAccountId),
+         Number(selectedPaymentMethodId),
+         payload,
+         token
+       );
+ 
+       // console.log("Result", result);
+ 
+       if (result.type === "error") {
+         Toast.show({
+           type: "error",
+           text1: "Payment Failed",
+           visibilityTime: 5000,
+           autoHide: true,
+           topOffset: 60,
+           bottomOffset: 100,
+         });
+       } else {
+         handlePaymentResponse(result);
+       }
+     } catch (error) {
+       console.error("Error:", error);
+       setIsFailureModalVisible(true);
+     } finally {
+       setIsSubmitting(false);
+     }
+   };
+   const handlePaymentResponse = (result: any) => {
+     const currentDate = new Date();
+     const resultData = result.response; // Access the response object directly
+ 
+     // console.log("Result data", resultData);
+ 
+     const pendingTransactionDate = resultData.pendingTransactionDate;
+ 
+     if (!pendingTransactionDate) {
+       console.error("Pending transaction date is undefined");
+       return;
+     }
+ 
+     // console.log("Pending transaction date", pendingTransactionDate);
+ 
+     if (resultData.status !== undefined) {
+       const pendingDate = new Date(pendingTransactionDate).toLocaleDateString();
+       const currentDateString = currentDate.toLocaleDateString();
+ 
+       if (
+         pendingDate === currentDateString &&
+         resultData.dateExecuted !== null &&
+         (resultData.status === null || resultData.status === 1)
+       ) {
+         paymentStatusRef.current = 1;
+         reasonRef.current = resultData.reason;
+         statusRef.current = resultData.status;
+         setIsSuccessModalVisible(true);
+       } else if (
+         pendingDate > currentDateString &&
+         resultData.dateExecuted === null &&
+         resultData.status === null
+       ) {
+         paymentStatusRef.current = 2;
+         reasonRef.current = resultData.reason;
+         statusRef.current = resultData.status;
+         setIsSuccessModalVisible(true);
+       } else if (
+         pendingDate === currentDateString &&
+         resultData.dateExecuted === null &&
+         resultData.status !== 1
+       ) {
+         paymentStatusRef.current = 3;
+         reasonRef.current = resultData.reason;
+         statusRef.current = resultData.status;
+         setIsFailureModalVisible(true);
+       }
+     }
+   };
 
   const handleOKPress = () => {
     setIsModalVisible(false);
@@ -771,92 +783,91 @@ const MakeAPayment = () => {
         </ScrollView>
         <Toast />
 
-        <Modal
-          animationType="slide"
-          transparent={true}
-          visible={isSuccessModalVisible}
-          onRequestClose={() => {
-            setIsSuccessModalVisible(false);
-          }}
-        >
-          <View style={styles.centeredView}>
-            <View style={styles.modalView}>
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  marginBottom: 15,
-                }}
-              >
-                <TouchableOpacity
-                  style={styles.closeIcon}
-                  onPress={() => setIsSuccessModalVisible(false)}
-                >
-                  <Ionicons name="close" size={34} color="black" />
-                </TouchableOpacity>
-              </View>
-              <Text style={styles.modalText}>Your payment was successful</Text>
-              <Text style={styles.modalMessage}>
-                Thank You! Your payment has been scheduled. Your account balance
-                will be updated when your payment is processed.
-              </Text>
-              <TouchableOpacity
-                style={styles.modalButton}
-                onPress={() => {
-                  setIsSuccessModalVisible(!isSuccessModalVisible);
-                  router.push("/(tabs)/Home");
-                }}
-              >
-                <Text style={styles.modalButtonText}>Done</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </Modal>
-
-        <Modal
-          animationType="slide"
-          transparent={true}
-          visible={isFailureModalVisible}
-          onRequestClose={() => {
-            setIsFailureModalVisible(false);
-          }}
-        >
-          <View style={styles.centeredView}>
-            <View style={styles.modalView}>
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  marginBottom: 15,
-                }}
-              >
-                <TouchableOpacity
-                  style={styles.closeIcon}
-                  onPress={() => setIsFailureModalVisible(false)}
-                >
-                  <Ionicons name="close" size={34} color="black" />
-                </TouchableOpacity>
-              </View>
-              <Text style={styles.modalText}>Declined</Text>
-              <Text style={styles.modalHeadText}>Declined</Text>
-              <Text style={styles.modalText}>
-                Your payment was not successful
-              </Text>
-
-              <Text style={styles.modalMessage}>
-                There was an error and the payment did not go through
-              </Text>
-              <TouchableOpacity
-                style={styles.modalButton}
-                onPress={() => {
-                  setIsFailureModalVisible(!isFailureModalVisible);
-                }}
-              >
-                <Text style={styles.modalButtonText}>Back</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </Modal>
+         <Modal
+               animationType="slide"
+               transparent={true}
+               visible={isSuccessModalVisible}
+               onRequestClose={() => {
+                 setIsSuccessModalVisible(false);
+               }}
+             >
+               <View style={styles.centeredView}>
+                 <View style={styles.modalView}>
+                   <View
+                     style={{
+                       flexDirection: "row",
+                       alignItems: "center",
+                       marginBottom: 15,
+                     }}
+                   >
+                     <TouchableOpacity
+                       style={styles.closeIcon}
+                       onPress={() => setIsSuccessModalVisible(false)}
+                     >
+                       <Ionicons name="close" size={34} color="black" />
+                     </TouchableOpacity>
+                   </View>
+                   <Text style={styles.modalText}>Your payment was successful</Text>
+                   <Text style={styles.modalMessage}>
+                     Thank You! Your payment has been submitted. Please allow 2-4
+                     business days for it to be reflected on your account.
+                   </Text>
+                   <TouchableOpacity
+                     style={styles.modalButton}
+                     onPress={() => {
+                       setIsSuccessModalVisible(!isSuccessModalVisible);
+                       router.push("/(tabs)/Home");
+                     }}
+                   >
+                     <Text style={styles.modalButtonText}>Done</Text>
+                   </TouchableOpacity>
+                 </View>
+               </View>
+             </Modal>
+       
+             <Modal
+               animationType="slide"
+               transparent={true}
+               visible={isFailureModalVisible}
+               onRequestClose={() => {
+                 setIsFailureModalVisible(false);
+               }}
+             >
+               <View style={styles.centeredView}>
+                 <View style={styles.modalView}>
+                   <View
+                     style={{
+                       flexDirection: "row",
+                       alignItems: "center",
+                       marginBottom: 15,
+                     }}
+                   >
+                     <TouchableOpacity
+                       style={styles.closeIcon}
+                       onPress={() => setIsFailureModalVisible(false)}
+                     >
+                       <Ionicons name="close" size={34} color="black" />
+                     </TouchableOpacity>
+                   </View>
+                   <Text style={styles.modalHeadText}>Declined</Text>
+                   <Text style={styles.modalText}>
+                     Your payment was not successful
+                   </Text>
+       
+                   <Text style={styles.modalMessage}>
+                     There was an error and the payment did not go through
+                   </Text>
+                   <TouchableOpacity
+                     style={styles.modalButton}
+                     onPress={() => {
+                       setIsFailureModalVisible(!isFailureModalVisible);
+                     }}
+                   >
+                     <Text style={styles.modalButtonText}>Back</Text>
+                   </TouchableOpacity>
+                 </View>
+               </View>
+             </Modal>
       </View>
     </KeyboardAvoidingView>
   );
