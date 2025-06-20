@@ -410,7 +410,7 @@ const ProfileScreen = () => {
               disabled={isSaving}
             >
               <Text style={styles.saveButtonText}>
-                {isSaving ? "Saving..." : "Save"}
+                {isSaving ? "Saving..." : "SAVE"}
               </Text>
             </TouchableOpacity>
           </View>
