@@ -1641,7 +1641,7 @@ const ManagePayments = () => {
               disabled={isSubmitting}
             >
               <Text style={styles.submitButtonText}>
-                {isSubmitting ? "Submitting..." : "Submit"}
+                {isSubmitting ? "Submitting..." : "SUBMIT"}
               </Text>
             </TouchableOpacity>
           </View>

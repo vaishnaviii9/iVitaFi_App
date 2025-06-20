@@ -120,7 +120,7 @@ const LoginScreen = () => {
             disabled={loading}
           >
             <Text style={styles.loginButtonText}>
-              {loading ? 'Submitting...' : 'Submit'}
+              {loading ? 'Submitting...' : 'SUBMIT'}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => setIsForgotPassword(false)}>
