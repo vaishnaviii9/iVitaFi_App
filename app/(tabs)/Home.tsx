@@ -14,7 +14,7 @@ import { CreditApplicationStatus } from "../../utils/CreditApplicationStatusUtil
 import styles from "../../components/styles/HomeStyles";
 import { setShowMakePayment, setShowMakeAdditionalPayment } from "../../features/buttonVisibility/buttonVisibilitySlice";
 import { ErrorCode } from "../../utils/ErrorCodeUtil";
-import { MaterialIcons } from "@expo/vector-icons";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 
 interface CreditApplication {
   accountNumber: string;
@@ -40,6 +40,7 @@ const HomeScreen: React.FC = () => {
   const { firstName, lastName, token } = useSelector((state: any) => state.auth);
   const creditAccountId = useSelector((state: any) => state.creditAccount.creditAccountId);
   const navigation = useNavigation();
+
   const [userData, setUserData] = useState<any>(null);
   const [customerData, setCustomerData] = useState<any>(null);
   const [accountNumbers, setAccountNumbers] = useState<string[]>([]);
@@ -114,16 +115,28 @@ const HomeScreen: React.FC = () => {
   const fetchAllData = useCallback(async () => {
     try {
       setLoading(true);
-      const [userResponse, customerResponse] = await Promise.all([fetchUserData(token, setUserData), fetchCustomerData(token, setCustomerData)]);
+      const [userResponse, customerResponse] = await Promise.all([
+        fetchUserData(token, setUserData),
+        fetchCustomerData(token, setCustomerData),
+      ]);
+
       if (customerResponse?.creditAccounts) {
-        const accountNumbers = customerResponse.creditAccounts.map((application: { accountNumber: any }) => application.accountNumber);
+        const accountNumbers = customerResponse.creditAccounts.map(
+          (application: { accountNumber: any }) => application.accountNumber
+        );
         setAccountNumbers(accountNumbers);
-        const { creditSummaries, creditAccountId } = await fetchCreditSummariesWithId(customerResponse, token);
+
+        const { creditSummaries, creditAccountId } = await fetchCreditSummariesWithId(
+          customerResponse,
+          token
+        );
+
         if (creditAccountId) {
           dispatch(setCreditAccountId(creditAccountId));
           const paymentSetupData = await fetchPaymentSetupData(creditAccountId);
           console.log("Fetched payment setup data:", paymentSetupData);
-          if ("isAutoPay" in paymentSetupData) {
+
+          if ('isAutoPay' in paymentSetupData) {
             setCreditSummaries(creditSummaries);
             const validSummary = creditSummaries.find((summary) => summary !== null);
             if (validSummary) {
@@ -135,6 +148,7 @@ const HomeScreen: React.FC = () => {
               }
               const accountNum = validSummary.paymentMethod?.accountNumber;
               const cardNum = validSummary.paymentMethod?.cardNumber;
+
               if (accountNum) {
                 setLast4Digits(accountNum.slice(-4));
                 setIsCardNumber(false);
@@ -145,19 +159,26 @@ const HomeScreen: React.FC = () => {
                 setLast4Digits(null);
                 setIsCardNumber(false);
               }
+
               setBalance(validSummary.currentBalance);
               setAvailableCredit(validSummary.displayAvailableCredit);
+
               const date = new Date(validSummary.nextPaymentDate);
               const formattedDate = `${String(date.getMonth() + 1).padStart(2, "0")}/${String(date.getDate()).padStart(2, "0")}`;
               setNextPaymentDate(formattedDate);
-              const isAutoPay = validSummary?.detail?.creditAccount?.paymentSchedule?.autoPayEnabled;
+
+              const isAutoPay = paymentSetupData.isAutoPay;
               setAutopay(isAutoPay);
               dispatch({ type: "SET_AUTOPLAY_ENABLED", payload: isAutoPay });
+
               console.log("Set isAutoPay to:", isAutoPay);
-              determineCustomerStandingPaymentOptions(validSummary, paymentSetupData);
+
+              determineCustomerStandingMessage(validSummary);
+            determineButtonVisibility(validSummary, paymentSetupData);
             }
           }
         }
+
         if (creditAccountId) {
           const transactionsResponse = await fetchPendingTransactions(token, creditAccountId);
           setTransactions(transactionsResponse || []);
@@ -170,6 +191,59 @@ const HomeScreen: React.FC = () => {
     }
   }, [token, dispatch, creditAccountId]);
 
+const determineCustomerStandingMessage = (validSummary : any) => {
+  const isAccountClosed = validSummary.detail?.creditAccount?.creditApplication?.status === CreditApplicationStatus.AccountClosed;
+  const isBankrupt = validSummary.isBankrupt;
+  const currentAmountDue = validSummary.currentAmountDue;
+  const daysDelinquent = validSummary.daysDelinquent;
+  const totalAmountDue = validSummary.totalAmountDue;
+
+  if (isAccountClosed) {
+    setCustomerStandingDisplayMessage("ACCOUNT IS CLOSED");
+    setIsActiveClass(true);
+  } else if (isBankrupt) {
+    setCustomerStandingDisplayMessage("ACCOUNT IN BANKRUPTCY");
+    setIsActiveClass(true);
+  } else if (totalAmountDue - currentAmountDue > 0 && daysDelinquent > 60) {
+    setCustomerStandingDisplayMessage("ACCOUNT DELINQUENT");
+    setIsActiveClass(true);
+  } else if ((totalAmountDue - currentAmountDue > 0 && daysDelinquent <= 60) || (totalAmountDue - currentAmountDue > 0 && daysDelinquent === 0)) {
+    setCustomerStandingDisplayMessage("THIS ACCOUNT IS PAST DUE");
+    setIsActiveClass(true);
+  } else {
+    setCustomerStandingDisplayMessage("");
+    setIsActiveClass(false);
+  }
+};
+const determineButtonVisibility = (validSummary: { detail: { creditAccount: { creditApplication: { status: CreditApplicationStatus; }; }; }; isBankrupt: any; currentAmountDue: any; currentBalance: any; }, paymentSetupData: PaymentSetupData) => {
+  const isAccountClosed = validSummary.detail?.creditAccount?.creditApplication?.status === CreditApplicationStatus.AccountClosed;
+  const isBankrupt = validSummary.isBankrupt;
+  const isAutoPay = paymentSetupData?.isAutoPay !== undefined ? paymentSetupData.isAutoPay : false;
+  const currentAmountDue = validSummary.currentAmountDue;
+  const currentBalance = validSummary.currentBalance;
+
+  if (isAccountClosed || isBankrupt) {
+    setNoAdditionalPayment(true);
+    setSetUpAutopay(false);
+    setEnableClick(false);
+  } else if (isAutoPay === false && !isBankrupt && !isAccountClosed) {
+    setSetUpAutopay(true);
+    setNoAdditionalPayment(true);
+    setEnableClick(true);
+  } else if (currentAmountDue === 0 && isAutoPay === true && currentBalance > 0) {
+    setSetUpAutopay(false);
+    setNoAdditionalPayment(false);
+    setEnableClick(true);
+  } else {
+    setSetUpAutopay(isAutoPay === false);
+    setNoAdditionalPayment(false);
+    setEnableClick(true);
+  }
+};
+
+
+
+
   useFocusEffect(
     useCallback(() => {
       fetchAllData();
@@ -177,6 +251,7 @@ const HomeScreen: React.FC = () => {
   );
 
   const isLoggedOut = useSelector((state: any) => !state.auth.token);
+
   useFocusEffect(
     useCallback(() => {
       if (isLoggedOut) {
@@ -205,77 +280,8 @@ const HomeScreen: React.FC = () => {
     navigation.navigate("ConfigureAutopay");
   };
 
-  const determineCustomerStandingPaymentOptions = (
-    validSummary: {
-      detail: { creditAccount: { creditApplication: { status: CreditApplicationStatus } } };
-      isBankrupt: any;
-      currentAmountDue: any;
-      currentBalance: any;
-      daysDelinquent: any;
-      totalAmountDue: any;
-    },
-    paymentSetupData: CreditAccountPaymentSetupDto | null
-  ) => {
-    const isAccountClosed = validSummary.detail?.creditAccount?.creditApplication?.status === CreditApplicationStatus.AccountClosed;
-    const isBankrupt = validSummary.isBankrupt;
-    const isAutoPay = paymentSetupData?.isAutoPay !== undefined ? paymentSetupData.isAutoPay : false;
-    const currentAmountDue = validSummary.currentAmountDue;
-    const currentBalance = validSummary.currentBalance;
-    const daysDelinquent = validSummary.daysDelinquent;
-    const totalAmountDue = validSummary.totalAmountDue;
-    console.log("isAccountClosed", isAccountClosed);
-    console.log("isBankrupt", isBankrupt);
-    console.log("currentAmountDue", currentAmountDue);
-    console.log("currentBalance", currentBalance);
-    console.log("daysDelinquent", daysDelinquent);
-    console.log("totalAmountDue", totalAmountDue);
-    console.log("isAutoPay in determineCustomerStandingPaymentOptions:", isAutoPay);
-
-    setCustomerStandingDisplayMessage("");
-    if (isAccountClosed) {
-      setCustomerStandingDisplayMessage("ACCOUNT IS CLOSED");
-      setNoAdditionalPayment(true);
-      setSetUpAutopay(false);
-      setClosedAccount(true);
-      setIsActiveClass(true);
-    } else if (isBankrupt) {
-      setCustomerStandingDisplayMessage("ACCOUNT IN BANKRUPTCY");
-      setIsActiveClass(true);
-      setEnableClick(true);
-      setSetUpAutopay(false);
-      setNoAdditionalPayment(true);
-      setBankruptAccount(true);
-    } else if (totalAmountDue - currentAmountDue > 0 && daysDelinquent > 60) {
-      setCustomerStandingDisplayMessage("ACCOUNT DELINQUENT");
-      setIsActiveClass(true);
-      setEnableClick(true);
-      setSetUpAutopay(false);
-      setNoAdditionalPayment(false);
-    } else if ((totalAmountDue - currentAmountDue > 0 && daysDelinquent <= 60) || (totalAmountDue - currentAmountDue > 0 && daysDelinquent === 0)) {
-      setCustomerStandingDisplayMessage("THIS ACCOUNT IS PAST DUE");
-      setIsActiveClass(true);
-      setEnableClick(true);
-      setSetUpAutopay(false);
-      setNoAdditionalPayment(false);
-    } else if (currentAmountDue > 0 && totalAmountDue - currentAmountDue === 0) {
-      setCustomerStandingDisplayMessage("");
-    } else if (currentAmountDue === 0) {
-      setCustomerStandingDisplayMessage("");
-    } else {
-      setCustomerStandingDisplayMessage("");
-    }
-
-    let pastDue = totalAmountDue - currentAmountDue;
-    if ((isAccountClosed || isBankrupt) && validSummary.detail !== null) {
-    } else if (validSummary.detail !== null && currentBalance <= 0) {
-    } else if ((pastDue > 0 || currentAmountDue > 0) && currentBalance > 0) {
-    } else {
-    }
-  };
-
   type IconName = "error-outline";
-
-  const renderAccountStatus = () => {
+ const renderAccountStatus = () => {
     if (!customerStandingDisplayMessage) return null;
     let messageStyle, textStyle, iconColor;
     let iconName: IconName = "error-outline";
@@ -321,8 +327,14 @@ const HomeScreen: React.FC = () => {
     );
   };
 
+
   useEffect(() => {
-    console.log("Rendering buttons with values:", { noAdditionalPayment, enableClick, setUpAutopay });
+    console.log("Rendering buttons with values:", {
+      noAdditionalPayment,
+      enableClick,
+      setUpAutopay,
+    });
+
     dispatch(setShowMakePayment(noAdditionalPayment && enableClick));
     dispatch(setShowMakeAdditionalPayment(!noAdditionalPayment && enableClick));
   }, [noAdditionalPayment, enableClick, dispatch]);
@@ -445,29 +457,32 @@ const HomeScreen: React.FC = () => {
           </View>
         </View>
         <View style={styles.buttonContainer}>
-          {noAdditionalPayment === false && enableClick === true && (
-            <TouchableOpacity style={styles.button} onPress={handleMakeAdditionalPayment}>
-              <Text style={styles.additionalPaymentText}>Make Additional Payment</Text>
-            </TouchableOpacity>
-          )}
-          {setUpAutopay === true ? (
-            <View style={styles.twoButtons}>
-              <TouchableOpacity style={styles.smallButton} onPress={handleConfigureAutoPay}>
-                <Text style={styles.additionalPaymentText}>Configure AutoPay</Text>
-              </TouchableOpacity>
-              {noAdditionalPayment === true && (
-                <TouchableOpacity style={styles.smallButton} onPress={handleMakeAPayment}>
-                  <Text style={styles.additionalPaymentText}>Make a Payment</Text>
+          {enableClick && (
+            <>
+              {!noAdditionalPayment && (
+                <TouchableOpacity style={styles.button} onPress={handleMakeAdditionalPayment}>
+                  <Text style={styles.additionalPaymentText}>Make Additional Payment</Text>
                 </TouchableOpacity>
               )}
-            </View>
-          ) : (
-            noAdditionalPayment === true &&
-            enableClick === true && (
-              <TouchableOpacity style={styles.button} onPress={handleMakeAPayment}>
-                <Text style={styles.additionalPaymentText}>Make a Payment</Text>
-              </TouchableOpacity>
-            )
+              {setUpAutopay ? (
+                <View style={styles.twoButtons}>
+                  <TouchableOpacity style={styles.smallButton} onPress={handleConfigureAutoPay}>
+                    <Text style={styles.additionalPaymentText}>Configure AutoPay</Text>
+                  </TouchableOpacity>
+                  {noAdditionalPayment && (
+                    <TouchableOpacity style={styles.smallButton} onPress={handleMakeAPayment}>
+                      <Text style={styles.additionalPaymentText}>Make a Payment</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              ) : (
+                noAdditionalPayment && (
+                  <TouchableOpacity style={styles.button} onPress={handleMakeAPayment}>
+                    <Text style={styles.additionalPaymentText}>Make a Payment</Text>
+                  </TouchableOpacity>
+                )
+              )}
+            </>
           )}
         </View>
         <View style={styles.RecentTransactionsContainer}>
