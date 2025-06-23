@@ -30,7 +30,6 @@ import Toast from "react-native-toast-message";
 import SkeletonLoader from "../components/SkeletonLoader";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 
-// Define an interface for the payment method to ensure type safety
 interface PaymentMethod {
   id: string;
   expirationDate: string | number | Date;
@@ -39,7 +38,6 @@ interface PaymentMethod {
   routingNumber: string | null;
 }
 
-// Enum for income frequencies
 enum IncomeFrequency {
   Unknown = 0,
   Weekly = 1,
@@ -48,14 +46,12 @@ enum IncomeFrequency {
   Monthly = 4,
 }
 
-// Enum for payment sub-frequencies
 enum PaymentSubFrequency {
   Unknown = 0,
   SpecificDay = 1,
   SpecificWeekAndDay = 2,
 }
 
-// Arrays for date options
 const dateOptions = [
   { name: "1st", value: 1 },
   { name: "2nd", value: 2 },
@@ -177,12 +173,10 @@ const paymentWeekOptions = [
   { name: "4th Week", value: 4 },
 ];
 
-// Function to handle back button press, navigating back to the Home screen
 const handleBackPress = () => {
   router.push("/(tabs)/Home");
 };
 
-// Function to get the label for a given value
 const getLabelForValue = (value: IncomeFrequency) => {
   const frequency = incomeFrequencies.find((freq) => freq.value === value);
   return frequency ? frequency.name : "Select";
@@ -263,7 +257,6 @@ const updateDefaultPaymentMethod = async (
   }
 };
 
-// Function to update the payment schedule
 const updatePaymentSchedule = async (
   creditAccountId: string | null,
   token: string,
@@ -316,7 +309,6 @@ const updatePaymentSchedule = async (
 };
 
 const ConfigureAutopay = () => {
-  // State variables for form fields
   const [paymentMethod, setPaymentMethod] = useState("");
   const [routingNumber, setRoutingNumber] = useState("");
   const [accountNumber, setAccountNumber] = useState("");
@@ -327,7 +319,8 @@ const ConfigureAutopay = () => {
     IncomeFrequency.Unknown
   );
   const [dayOfWeek, setDayOfWeek] = useState("");
-  const [paymentAmount, setPaymentAmount] = useState("");
+  const [paymentAmount, setPaymentAmount] = useState("$0.00");
+  const [formattedAmount, setFormattedAmount] = useState("$0.00");
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
@@ -361,8 +354,6 @@ const ConfigureAutopay = () => {
   const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState<
     string | null
   >(null);
-
-  // New state variables
   const [paymentDayOne, setPaymentDayOne] = useState<number | undefined>(
     undefined
   );
@@ -398,14 +389,14 @@ const ConfigureAutopay = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isPaymentAmountEmpty, setIsPaymentAmountEmpty] = useState(false);
+
   const currentDate = new Date();
   const maxDate = new Date(currentDate);
   maxDate.setDate(currentDate.getDate() + 30);
 
-  // Retrieve token from Redux store to authenticate API requests
   const token = useSelector((state: any) => state.auth.token);
 
-  // Map item values to names for the date options
   const date2Map = date2.reduce((acc, day) => {
     acc[day.value] = day.name;
     return acc;
@@ -423,7 +414,6 @@ const ConfigureAutopay = () => {
     return paymentDayTwo >= paymentDayOne + 7;
   };
 
-  // Replace your useEffect with useFocusEffect
   useFocusEffect(
     React.useCallback(() => {
       const fetchData = async () => {
@@ -628,11 +618,57 @@ const ConfigureAutopay = () => {
     }
   }, [paymentFrequency, amountDueMonthly]);
 
-  const formatPaymentAmount = (amount: number) => {
-    return `$${amount.toFixed(2)}`;
+  const formatPaymentAmount = (amount: number | string) => {
+    // Handle cases where amount is a string that might be empty or not a valid number
+    if (typeof amount === "string") {
+      amount = amount.replace(/[^0-9.-]/g, "");
+    }
+    const numericAmount = Number(amount);
+    if (isNaN(numericAmount)) {
+      return "$0.00";
+    }
+    return `$${numericAmount.toFixed(2)}`;
   };
+  useEffect(() => {
+    if (paymentAmount) {
+      const amount = parseFloat(paymentAmount.replace(/[^0-9.-]/g, ""));
+      setFormattedAmount(formatPaymentAmount(isNaN(amount) ? 0 : amount));
+    } else {
+      setFormattedAmount("$0.00");
+    }
+  }, [paymentAmount]);
 
-  // Function to update the payment schedule payment amount
+const handlePaymentAmountChange = (text: string) => {
+  // Check if the input starts with '$'
+  if (text.startsWith('$')) {
+    // Extract the numeric part after the '$'
+    let numericValue = text.substring(1).replace(/[^0-9.]/g, '');
+
+    // Ensure the numeric part is not empty
+    if (numericValue === '') {
+      setPaymentAmount('$');
+      setIsPaymentAmountEmpty(true);
+    } else {
+      // Parse the numeric value to ensure it's a valid number
+      const numericAmount = parseFloat(numericValue);
+      if (!isNaN(numericAmount)) {
+        setPaymentAmount(`$${numericValue}`);
+        setIsPaymentAmountEmpty(false);
+      } else {
+        // If the numeric part is invalid, reset to '$'
+        setPaymentAmount('$');
+        setIsPaymentAmountEmpty(true);
+      }
+    }
+  } else {
+    // If the user tries to delete '$', reset to '$'
+    setPaymentAmount('$');
+    setIsPaymentAmountEmpty(true);
+  }
+};
+
+
+
   const updatePaymentSchedulePaymentAmount = (
     paymentSchedule: {
       paymentFrequency: IncomeFrequency;
@@ -668,29 +704,30 @@ const ConfigureAutopay = () => {
     setPaymentAmount(formattedAmount);
   };
 
-  // Function to handle form submission
   const getPaymentSummaryMessage = () => {
     if (!paymentSchedule || !paymentAmount) return "";
     const paymentMethodText = paymentMethod.startsWith("Debit Card -")
       ? "from your debit card"
       : "from your checking account";
+
     if (paymentFrequency === IncomeFrequency.Monthly) {
       if (paymentSubFrequency === PaymentSubFrequency.SpecificDay) {
-        return `You have selected to pay ${paymentAmount} on the ${paymentDate} of each month, ${paymentMethodText}.`;
+        return `You have selected to pay ${formattedAmount} on the ${paymentDate} of each month, ${paymentMethodText}.`;
       } else if (
         paymentSubFrequency === PaymentSubFrequency.SpecificWeekAndDay
       ) {
-        return `You have selected to pay ${paymentAmount} on the ${paymentWeek} ${dayOfWeek} of each month, ${paymentMethodText}.`;
+        return `You have selected to pay ${formattedAmount} on the ${paymentWeek} ${dayOfWeek} of each month, ${paymentMethodText}.`;
       }
-      return `You have selected to pay ${paymentAmount} monthly, ${paymentMethodText}.`;
+      return `You have selected to pay ${formattedAmount} monthly, ${paymentMethodText}.`;
     }
+
     switch (paymentFrequency) {
       case IncomeFrequency.Weekly:
-        return `You have selected to pay ${paymentAmount} every week on ${dayOfWeek}, ${paymentMethodText}.`;
+        return `You have selected to pay ${formattedAmount} every week on ${dayOfWeek}, ${paymentMethodText}.`;
       case IncomeFrequency.BiWeekly:
-        return `You have selected to pay ${paymentAmount} every other ${dayOfWeek}, ${paymentMethodText}. In months with more than 2 pay periods, you will only make 2 payments.`;
+        return `You have selected to pay ${formattedAmount} every other ${dayOfWeek}, ${paymentMethodText}. In months with more than 2 pay periods, you will only make 2 payments.`;
       case IncomeFrequency.SemiMonthly:
-        return `You have selected to pay ${paymentAmount} on the ${selectedPayDayOne} and ${selectedPayDayTwo} of each month, ${paymentMethodText}.`;
+        return `You have selected to pay ${formattedAmount} on the ${selectedPayDayOne} and ${selectedPayDayTwo} of each month, ${paymentMethodText}.`;
       default:
         return "";
     }
@@ -847,6 +884,9 @@ const ConfigureAutopay = () => {
       setShowDatePicker(false);
     }
     if (selectedDate) {
+      const currentDate = new Date();
+      currentDate.setHours(0, 0, 0, 0);
+
       if (selectedDate >= currentDate && selectedDate <= maxDate) {
         setDate(selectedDate);
       } else {
@@ -871,6 +911,11 @@ const ConfigureAutopay = () => {
   };
 
   const handleSubmit = async () => {
+    if (paymentAmount.trim() === "") {
+      setIsPaymentAmountEmpty(true);
+      return;
+    }
+
     const safeNextPaymentAmount = parseFloat(
       paymentAmount.replace(/[^0-9.-]/g, "")
     );
@@ -886,6 +931,8 @@ const ConfigureAutopay = () => {
       });
       return;
     }
+
+    setIsPaymentAmountEmpty(false);
     if (creditAccountId && selectedPaymentMethodId && token) {
       setIsSubmitting(true);
       const result = await updateDefaultPaymentMethod(
@@ -1085,17 +1132,14 @@ const ConfigureAutopay = () => {
           color="#155724"
           style={{ marginRight: 10 }}
         />
-
         <View>
           <Text style={{ fontSize: 16, fontWeight: "bold", color: "#155724" }}>
             {text1}
           </Text>
-
           <Text style={{ fontSize: 14, color: "#155724" }}>{text2}</Text>
         </View>
       </View>
     ),
-
     error: ({ text1, text2, ...rest }: any) => (
       <View
         style={{
@@ -1113,17 +1157,16 @@ const ConfigureAutopay = () => {
           color="#721c24"
           style={{ marginRight: 10 }}
         />
-
         <View>
           <Text style={{ fontSize: 16, fontWeight: "bold", color: "#721c24" }}>
             {text1}
           </Text>
-
           <Text style={{ fontSize: 14, color: "#721c24" }}>{text2}</Text>
         </View>
       </View>
     ),
   };
+
   return (
     <>
       <KeyboardAvoidingView
@@ -1998,15 +2041,19 @@ const ConfigureAutopay = () => {
                         )}
                       </>
                     )}
-                    <Text style={styles.helpText}>Payment Amount</Text>
                     <TextInput
-                      style={styles.PaymentAmountField}
-                      placeholder="Enter payment amount"
-                      placeholderTextColor="black"
-                      value={paymentAmount}
-                      onChangeText={setPaymentAmount}
-                      keyboardType="numeric"
-                    />
+  style={styles.PaymentAmountField}
+  placeholder="Enter payment amount"
+  placeholderTextColor="black"
+  value={paymentAmount}
+  onChangeText={handlePaymentAmountChange}
+  keyboardType="numeric"
+/>
+{isPaymentAmountEmpty && (
+  <Text style={styles.errorText}>This field is required</Text>
+)}
+
+
                     <Text style={styles.helpText}>Payment Start Date</Text>
                     <Pressable onPress={toggleDatePicker}>
                       <View style={styles.datePickerButton}>

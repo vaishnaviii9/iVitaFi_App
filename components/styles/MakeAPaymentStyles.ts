@@ -227,8 +227,10 @@ export const styles = StyleSheet.create({
     opacity: 0.6, // This makes the button appear faint
   },
    errorText: {
-    color: 'red',
-    marginTop: 5,
-    marginBottom:7,
+    color: "#FF0000",
+    fontSize: wp(3.5),
+    marginTop: hp(0.6),
+    marginBottom: hp(0.6),
+    textAlign: "left",
   },
 });
