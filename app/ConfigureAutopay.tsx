@@ -638,36 +638,34 @@ const ConfigureAutopay = () => {
     }
   }, [paymentAmount]);
 
-const handlePaymentAmountChange = (text: string) => {
-  // Check if the input starts with '$'
-  if (text.startsWith('$')) {
-    // Extract the numeric part after the '$'
-    let numericValue = text.substring(1).replace(/[^0-9.]/g, '');
+  const handlePaymentAmountChange = (text: string) => {
+    // Check if the input starts with '$'
+    if (text.startsWith("$")) {
+      // Extract the numeric part after the '$'
+      let numericValue = text.substring(1).replace(/[^0-9.]/g, "");
 
-    // Ensure the numeric part is not empty
-    if (numericValue === '') {
-      setPaymentAmount('$');
-      setIsPaymentAmountEmpty(true);
-    } else {
-      // Parse the numeric value to ensure it's a valid number
-      const numericAmount = parseFloat(numericValue);
-      if (!isNaN(numericAmount)) {
-        setPaymentAmount(`$${numericValue}`);
-        setIsPaymentAmountEmpty(false);
-      } else {
-        // If the numeric part is invalid, reset to '$'
-        setPaymentAmount('$');
+      // Ensure the numeric part is not empty
+      if (numericValue === "") {
+        setPaymentAmount("$");
         setIsPaymentAmountEmpty(true);
+      } else {
+        // Parse the numeric value to ensure it's a valid number
+        const numericAmount = parseFloat(numericValue);
+        if (!isNaN(numericAmount)) {
+          setPaymentAmount(`$${numericValue}`);
+          setIsPaymentAmountEmpty(false);
+        } else {
+          // If the numeric part is invalid, reset to '$'
+          setPaymentAmount("$");
+          setIsPaymentAmountEmpty(true);
+        }
       }
+    } else {
+      // If the user tries to delete '$', reset to '$'
+      setPaymentAmount("$");
+      setIsPaymentAmountEmpty(true);
     }
-  } else {
-    // If the user tries to delete '$', reset to '$'
-    setPaymentAmount('$');
-    setIsPaymentAmountEmpty(true);
-  }
-};
-
-
+  };
 
   const updatePaymentSchedulePaymentAmount = (
     paymentSchedule: {
@@ -1498,9 +1496,10 @@ const handlePaymentAmountChange = (text: string) => {
                                   (day) => day.value === Number(itemValue)
                                 );
                                 if (selectedDay) {
-                                  setDayOfWeek(selectedDay.name);
-                                }
-                              }}
+                                    setDayOfWeek(selectedDay.name);
+                                    }
+                                    setShowDayPicker(false);
+                                  }}
                               style={styles.iosPicker}
                               itemStyle={{ color: "black" }}
                             >
@@ -1659,9 +1658,10 @@ const handlePaymentAmountChange = (text: string) => {
                               <View style={styles.pickerWrapper}>
                                 <Picker
                                   selectedValue={paymentWeek}
-                                  onValueChange={(itemValue) =>
-                                    setPaymentWeek(itemValue)
-                                  }
+                                 onValueChange={(itemValue) => {
+                                        setPaymentWeek(itemValue);
+                                        setShowWeekPicker(false);
+                                      }}
                                   style={styles.androidPicker}
                                   dropdownIconColor="#000000"
                                 >
@@ -1801,9 +1801,10 @@ const handlePaymentAmountChange = (text: string) => {
                               <View style={styles.pickerWrapper}>
                                 <Picker
                                   selectedValue={paymentDate}
-                                  onValueChange={(itemValue) =>
-                                    setPaymentDate(itemValue)
-                                  }
+                                  onValueChange={(itemValue) => {
+                                        setPaymentDate(itemValue);
+                                        setShowPaymentDatePicker(false);
+                                      }}
                                   style={styles.androidPicker}
                                   dropdownIconColor="#000000"
                                 >
@@ -2042,17 +2043,18 @@ const handlePaymentAmountChange = (text: string) => {
                       </>
                     )}
                     <TextInput
-  style={styles.PaymentAmountField}
-  placeholder="Enter payment amount"
-  placeholderTextColor="black"
-  value={paymentAmount}
-  onChangeText={handlePaymentAmountChange}
-  keyboardType="numeric"
-/>
-{isPaymentAmountEmpty && (
-  <Text style={styles.errorText}>This field is required</Text>
-)}
-
+                      style={styles.PaymentAmountField}
+                      placeholder="Enter payment amount"
+                      placeholderTextColor="black"
+                      value={paymentAmount}
+                      onChangeText={handlePaymentAmountChange}
+                      keyboardType="numeric"
+                    />
+                    {isPaymentAmountEmpty && (
+                      <Text style={styles.errorText}>
+                        This field is required
+                      </Text>
+                    )}
 
                     <Text style={styles.helpText}>Payment Start Date</Text>
                     <Pressable onPress={toggleDatePicker}>
