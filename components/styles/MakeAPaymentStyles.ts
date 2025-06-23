@@ -226,4 +226,9 @@ export const styles = StyleSheet.create({
   submitButtonDisabled: {
     opacity: 0.6, // This makes the button appear faint
   },
+   errorText: {
+    color: 'red',
+    marginTop: 5,
+    marginBottom:7,
+  },
 });

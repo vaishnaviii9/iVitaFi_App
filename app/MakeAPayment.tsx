@@ -71,13 +71,12 @@ const MakeAPayment = () => {
   const [expirationYear, setExpirationYear] = useState("");
   const [routingNumber, setRoutingNumber] = useState("");
   const [accountNumber, setAccountNumber] = useState("");
-  const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState<
-    string | null
-  >(null);
+  const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [creditAccountId, setCreditAccountId] = useState<string | null>(null);
   const [paymentAmount, setPaymentAmount] = useState("");
+  const [formattedAmount, setFormattedAmount] = useState("$0.00");
   const [paymentSchedule, setPaymentSchedule] = useState<any>(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [date, setDate] = useState(new Date());
@@ -90,6 +89,7 @@ const MakeAPayment = () => {
   const [enableAutoPay, setEnableAutoPay] = useState<boolean | null>(null);
   const [isSuccessModalVisible, setIsSuccessModalVisible] = useState(false);
   const [isFailureModalVisible, setIsFailureModalVisible] = useState(false);
+  const [isPaymentAmountEmpty, setIsPaymentAmountEmpty] = useState(false);
 
   const paymentStatusRef = useRef<number | null>(null);
   const reasonRef = useRef<string | null>(null);
@@ -103,8 +103,19 @@ const MakeAPayment = () => {
   const token = useSelector((state: any) => state.auth.token);
   const dispatch = useDispatch();
 
+  useEffect(() => {
+    if (paymentAmount.trim() !== '') {
+      const amount = parseFloat(paymentAmount);
+      if (!isNaN(amount)) {
+        setFormattedAmount(`$${amount.toFixed(2)}`);
+      }
+    } else {
+      setFormattedAmount("$0.00");
+    }
+  }, [paymentAmount]);
+
   const formatPaymentAmount = (amount: number) => {
-    return `$${amount.toFixed(2)}`;
+    return amount.toFixed(2);
   };
 
   const handleTestModal = () => {
@@ -123,7 +134,6 @@ const MakeAPayment = () => {
               customerResponse,
               token
             );
-            // console.log("Fetched credit summaries:", creditSummaries);
             dispatch(setCreditSummaries(creditSummaries));
 
             if (creditSummaries && creditSummaries.length > 0) {
@@ -140,7 +150,6 @@ const MakeAPayment = () => {
                   token,
                   customerId
                 );
-                // console.log("Fetched payment methods:", methods);
                 if (methods && methods.length > 0) {
                   const validMethods = methods.filter(
                     (method: PaymentMethod) =>
@@ -170,18 +179,8 @@ const MakeAPayment = () => {
                       const expirationYear = expirationDate.getFullYear();
 
                       const monthNames = [
-                        "January",
-                        "February",
-                        "March",
-                        "April",
-                        "May",
-                        "June",
-                        "July",
-                        "August",
-                        "September",
-                        "October",
-                        "November",
-                        "December",
+                        "January", "February", "March", "April", "May", "June",
+                        "July", "August", "September", "October", "November", "December"
                       ];
                       const formattedExpirationMonth = `${expirationMonth
                         .toString()
@@ -226,7 +225,6 @@ const MakeAPayment = () => {
           return { type: "error", error: { errorCode: ErrorCode.Unknown } };
         } finally {
           setIsLoading(false);
-          // console.log("Data fetch completed.");
         }
       };
 
@@ -265,18 +263,8 @@ const MakeAPayment = () => {
         const expirationYear = expirationDate.getFullYear();
 
         const monthNames = [
-          "January",
-          "February",
-          "March",
-          "April",
-          "May",
-          "June",
-          "July",
-          "August",
-          "September",
-          "October",
-          "November",
-          "December",
+          "January", "February", "March", "April", "May", "June",
+          "July", "August", "September", "October", "November", "December"
         ];
         const formattedExpirationMonth = `${expirationMonth
           .toString()
@@ -382,6 +370,11 @@ const MakeAPayment = () => {
   };
 
   const handleSubmit = async () => {
+    if (paymentAmount.trim() === '') {
+      setIsPaymentAmountEmpty(true);
+      return;
+    }
+
     setIsSubmitting(true);
 
     const convertedYear = Number(expirationYear);
@@ -451,8 +444,6 @@ const MakeAPayment = () => {
         token
       );
 
-      // console.log("Result", result);
-
       if (result.type === "error") {
         Toast.show({
           type: "error",
@@ -472,11 +463,10 @@ const MakeAPayment = () => {
       setIsSubmitting(false);
     }
   };
+
   const handlePaymentResponse = (result: any) => {
     const currentDate = new Date();
-    const resultData = result.response; // Access the response object directly
-
-    // console.log("Result data", resultData);
+    const resultData = result.response;
 
     const pendingTransactionDate = resultData.pendingTransactionDate;
 
@@ -484,8 +474,6 @@ const MakeAPayment = () => {
       console.error("Pending transaction date is undefined");
       return;
     }
-
-    // console.log("Pending transaction date", pendingTransactionDate);
 
     if (resultData.status !== undefined) {
       const pendingDate = new Date(pendingTransactionDate).toLocaleDateString();
@@ -730,9 +718,13 @@ const MakeAPayment = () => {
                   placeholder="Enter payment amount"
                   placeholderTextColor="black"
                   value={paymentAmount}
-                  onChangeText={setPaymentAmount}
+                  onChangeText={(text) => {
+                    setPaymentAmount(text);
+                    setIsPaymentAmountEmpty(text.trim() === '');
+                  }}
                   keyboardType="numeric"
                 />
+                {isPaymentAmountEmpty && <Text style={styles.errorText}>This field is required</Text>}
 
                 <Text style={styles.helpText}>Payment Start Date</Text>
                 <Pressable onPress={toggleDatePicker}>
@@ -756,10 +748,10 @@ const MakeAPayment = () => {
               {paymentMethod && (
                 <Text style={styles.agreementText}>
                   {paymentMethod.startsWith("Debit Card -")
-                    ? `You agree to pay a one-time payment of ${paymentAmount} on ${formatDate(
+                    ? `You agree to pay a one-time payment of ${formattedAmount} on ${formatDate(
                         date
                       )} using your Debit Card.`
-                    : `You agree to pay a one-time payment of ${paymentAmount} on ${formatDate(
+                    : `You agree to pay a one-time payment of ${formattedAmount} on ${formatDate(
                         date
                       )} from your Checking Account.`}
                 </Text>
@@ -768,10 +760,10 @@ const MakeAPayment = () => {
               <TouchableOpacity
                 style={[
                   styles.submitButton,
-                  isSubmitting && styles.submitButtonDisabled,
+                  (isSubmitting || isPaymentAmountEmpty) && styles.submitButtonDisabled,
                 ]}
                 onPress={handleSubmit}
-                disabled={isSubmitting}
+                disabled={isSubmitting || isPaymentAmountEmpty}
               >
                 <Text style={styles.submitButtonText}>
                   {isSubmitting ? "Submitting..." : "SUBMIT"}
@@ -871,5 +863,6 @@ const MakeAPayment = () => {
     </KeyboardAvoidingView>
   );
 };
+
 
 export default MakeAPayment;
