@@ -569,7 +569,7 @@ const determineButtonVisibility = (validSummary: AccountSummary, paymentSetupDat
         </View>
         <View style={styles.balanceContainer}>
           <View style={styles.balanceRow}>
-            <Text style={styles.myBalance}>My Balance</Text>
+            <Text style={styles.myBalance}>Balance</Text>
             <Text style={styles.text}>${balance?.toFixed(2) || " "}</Text>
           </View>
           <View style={styles.balanceRow}>

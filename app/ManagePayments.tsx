@@ -490,7 +490,7 @@ const ManagePayments = () => {
             creditAccountId,
             paymentMethodData,
             0,
-            isDefault,
+            isDefaultMethod,
             token
           );
         if (paymentMethResp.type === "data") {
@@ -600,7 +600,7 @@ const ManagePayments = () => {
             creditAccountId,
             paymentMethodData,
             0,
-            isDefault,
+            isDefaultMethod,
             token
           );
         if (paymentMethResp.type === "data") {
