@@ -237,7 +237,7 @@ const TransactionList: React.FC<TransactionListProps> = ({
     return (
       <View
         style={{
-          backgroundColor: "#6ebd5b",
+          backgroundColor: "#279412",
           padding: 5,
           borderRadius: 4,
           margin: 4,
