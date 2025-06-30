@@ -2042,6 +2042,7 @@ const ConfigureAutopay = () => {
                         )}
                       </>
                     )}
+                     <Text style={styles.helpText}>Payment Amount</Text>
                     <TextInput
                       style={styles.PaymentAmountField}
                       placeholder="Enter payment amount"
